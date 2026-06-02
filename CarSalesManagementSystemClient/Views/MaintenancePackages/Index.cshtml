@@ -1,0 +1,44 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.MaintenancePackage>
+
+@{
+    ViewData["Title"] = "Quản lý Gói Bảo Dưỡng";
+}
+
+<h1>Quản lý Gói Bảo Dưỡng</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.PackageName)</th>
+            <th>@Html.DisplayNameFor(model => model.Price)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.PackageName)</td>
+            <td>@Html.DisplayFor(modelItem => item.Price)</td>
+            <td>
+                @if(item.Status == "Available")
+                {
+                    <span class="badge bg-success">@item.Status</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">@item.Status</span>
+                }
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.PackageId" class="btn btn-sm btn-warning">Sửa</a>
+                <a asp-action="Details" asp-route-id="@item.PackageId" class="btn btn-sm btn-info">Chi tiết</a>
+                <a asp-action="Delete" asp-route-id="@item.PackageId" class="btn btn-sm btn-danger">Xóa</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
