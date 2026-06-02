@@ -22,7 +22,6 @@ D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\scopedcss\bundle\CarSalesManagementSystemClient.styles.css
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\scopedcss\projectbundle\CarSalesManagementSystemClient.bundle.scp.css
-D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\compressed\rakwv3hr67-b9sayid5wm.gz
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\compressed\xdpxwtjdmp-61n19gt1b8.gz
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\compressed\p2i02ohj6q-xtxxf3hu2r.gz
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\compressed\glyfstl1i4-bqjiyaj88i.gz
@@ -95,3 +94,11 @@ D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\CarSalesManagementSystemClient.pdb
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\CarSalesManagementSystemClient.genruntimeconfig.cache
 D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\ref\CarSalesManagementSystemClient.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\CarSalesManagementSystemClient.csproj.AssemblyReference.cache
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\CarSales.89AE83C0.Up2Date
+D:\semester 8\Prn232\project\prn232-fe\CarSalesManagementSystemClient\obj\Debug\net9.0\compressed\rakwv3hr67-cbevuoggum.gz
