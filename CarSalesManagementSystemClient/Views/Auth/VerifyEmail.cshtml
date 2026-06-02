@@ -1,0 +1,43 @@
+@model CarSalesManagementSystemClient.Models.VerifyViewModel
+
+@{
+    ViewData["Title"] = "Xác nhận Email";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-header bg-warning text-dark text-center">
+                <h3 class="font-weight-light my-2">Xác nhận Email</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">Chúng tôi đã gửi một mã OTP gồm 6 chữ số đến Email <b>@Model.Email</b>. Vui lòng kiểm tra hộp thư (cả mục Spam) và nhập mã vào đây.</p>
+                
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+
+                <form asp-action="VerifyEmail" method="post">
+                    <input type="hidden" asp-for="Email" />
+                    <div class="form-group mb-3">
+                        <label class="small mb-1" asp-for="Otp">Mã OTP</label>
+                        <input class="form-control py-4 text-center fs-4 letter-spacing-5" asp-for="Otp" placeholder="------" maxlength="6" />
+                        <span asp-validation-for="Otp" class="text-danger"></span>
+                    </div>
+                    <div class="form-group mt-4 mb-0 text-center">
+                        <button type="submit" class="btn btn-warning w-100">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
