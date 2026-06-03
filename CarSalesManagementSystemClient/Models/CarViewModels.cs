@@ -72,3 +72,14 @@ public class PurchaseRequestHistoryViewModel
     public string? CaptchaCode { get; set; }
     public CarViewModel Car { get; set; } = null!;
 }
+
+public class DepositCaptchaViewModel
+{
+    public int CaptchaId { get; set; }
+    public string Code { get; set; } = null!;
+    public int CarId { get; set; }
+    public bool IsUsed { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UsedAt { get; set; }
+    public CarViewModel Car { get; set; } = null!;
+}

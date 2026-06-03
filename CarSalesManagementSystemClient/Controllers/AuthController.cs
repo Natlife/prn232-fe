@@ -37,7 +37,6 @@ namespace CarSalesManagementSystemClient.Controllers
             }
             catch (JsonException)
             {
-                // If backend returns plain text/HTML error (like a 500 Server Error stack trace)
                 return (false, "Lỗi từ Backend: " + responseString, null);
             }
         }
@@ -55,11 +54,16 @@ namespace CarSalesManagementSystemClient.Controllers
             if (result.IsSuccess)
             {
                 var token = result.Token;
-                
+
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
 
-                var claimsIdentity = new ClaimsIdentity(jwtToken.Claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(
+                    jwtToken.Claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    ClaimTypes.Name,
+                    ClaimTypes.Role
+                );
                 claimsIdentity.AddClaim(new Claim("jwt_token", token));
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
@@ -82,9 +86,7 @@ namespace CarSalesManagementSystemClient.Controllers
             var result = await ProcessResponse(response);
 
             if (result.IsSuccess)
-            {
                 return Json(new { success = true, message = result.Message, email = model.Email });
-            }
 
             return Json(new { success = false, message = result.Message });
         }
