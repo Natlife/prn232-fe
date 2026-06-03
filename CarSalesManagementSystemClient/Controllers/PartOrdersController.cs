@@ -277,9 +277,9 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 AppendAuthorizationHeader();
                 var requestUri = $"{_ordersApiUrl}?$expand=PartOrderDetails($expand=Part)&$orderby=CreatedAt desc";
-                var response = await _httpClient.GetFromJsonAsync<ODataResponse<PartOrderViewModel>>(requestUri);
+                var response = await _httpClient.GetFromJsonAsync<List<PartOrderViewModel>>(requestUri);
 
-                return View(response?.Value ?? new List<PartOrderViewModel>());
+                return View(response ?? new List<PartOrderViewModel>());
             }
             catch (Exception ex)
             {
@@ -296,9 +296,9 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 AppendAuthorizationHeader();
                 var requestUri = $"{_ordersApiUrl}?$expand=Customer,PartOrderDetails($expand=Part)&$orderby=CreatedAt desc";
-                var response = await _httpClient.GetFromJsonAsync<ODataResponse<PartOrderViewModel>>(requestUri);
+                var response = await _httpClient.GetFromJsonAsync<List<PartOrderViewModel>>(requestUri);
 
-                return View(response?.Value ?? new List<PartOrderViewModel>());
+                return View(response ?? new List<PartOrderViewModel>());
             }
             catch (Exception ex)
             {
