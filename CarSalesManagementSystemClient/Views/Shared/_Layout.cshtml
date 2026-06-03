@@ -18,12 +18,29 @@
                     <span>Chào mừng bạn tới <span class="text-danger fw-bold">Group7</span></span>
                 </div>
                 <div class="d-flex align-items-center">
+                    <!-- Shopping Cart Icon Link -->
+                    <a asp-controller="PartOrders" asp-action="Cart" class="text-white text-decoration-none me-4 position-relative">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        @{
+                            var cartJson = Context.Session.GetString("PartCart");
+                            var cartCount = string.IsNullOrEmpty(cartJson) ? 0 : System.Text.Json.JsonSerializer.Deserialize<List<CarSalesManagementSystemClient.Models.CartItemViewModel>>(cartJson).Sum(x => x.Quantity);
+                        }
+                        <span id="navbarCartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(cartCount > 0 ? "" : "d-none")" style="font-size: 9px; padding: 3px 6px;">
+                            @cartCount
+                        </span>
+                    </a>
+
+                    <!-- User authentication / History Links -->
                     @if (User.Identity.IsAuthenticated)
                     {
+                        @if (!User.IsInRole("Admin"))
+                        {
+                            <a class="text-white text-decoration-none me-3" asp-controller="PartOrders" asp-action="MyOrders"><i class="bi bi-clock-history me-1"></i>Lịch sử mua</a>
+                        }
                         <span class="me-3">Xin chào, <b>@User.Identity.Name</b>!</span>
                         @if (User.IsInRole("Admin"))
                         {
-                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/MaintenanceAppointments"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
+                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/Cars"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
                         }
                         <a class="text-white text-decoration-none" asp-area="" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
                     }
@@ -83,8 +100,19 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">GIỚI THIỆU</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i></a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
+                                </a>
+                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Index">PHỤ TÙNG</a></li>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
+                                    }
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">TIN TỨC</a>
@@ -102,6 +130,21 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">LIÊN HỆ</a>
                             </li>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
+                                </li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
+                                    </li>
+                                }
+                            }
                         </ul>
                     </div>
                 </div>
@@ -301,11 +344,7 @@
                 const res = await fetch('/Auth/Login', { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
-                    if (result.isAdmin) {
-                        window.location.href = '/Admin/MaintenanceAppointments';
-                    } else {
-                        window.location.reload();
-                    }
+                    window.location.href = result.redirectUrl || '/';
                 } else {
                     const err = document.getElementById('loginError');
                     err.innerText = result.message;

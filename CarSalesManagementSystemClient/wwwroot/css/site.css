@@ -54,3 +54,21 @@ html {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Dropdown Hover styling for Desktop navbar */
+@media (min-width: 992px) {
+    .dropdown:hover .dropdown-menu {
+        display: block;
+        margin-top: 0; /* Remove default offset */
+        transition: all 0.3s ease;
+    }
+}
+
+.dropdown-item {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #e0a800 !important;
+    color: #000 !important;
+}

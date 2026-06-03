@@ -10,7 +10,7 @@ namespace CarSalesManagementSystemClient.Controllers
     public class MaintenancePackagesController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "http://localhost:5084/api/MaintenancePackages";
+        private readonly string _apiUrl = "http://localhost:5084/odata/MaintenancePackages";
 
         public MaintenancePackagesController(IHttpClientFactory httpClientFactory)
         {
@@ -20,16 +20,33 @@ namespace CarSalesManagementSystemClient.Controllers
         // GET: MaintenancePackages
         public async Task<IActionResult> Index()
         {
-            var packages = await _httpClient.GetFromJsonAsync<IEnumerable<MaintenancePackage>>(_apiUrl);
-            return View(packages);
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<ODataResponse<MaintenancePackage>>(_apiUrl);
+                var packages = response?.Value ?? new List<MaintenancePackage>();
+                return View(packages);
+            }
+            catch (System.Exception ex)
+            {
+                TempData["ErrorMessage"] = "Không thể tải danh sách gói bảo dưỡng: " + ex.Message;
+                return View(new List<MaintenancePackage>());
+            }
         }
 
         // GET: MaintenancePackages/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}/{id}");
-            if (package == null) return NotFound();
-            return View(package);
+            try
+            {
+                var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}({id})");
+                if (package == null) return NotFound();
+                return View(package);
+            }
+            catch (System.Exception ex)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy gói bảo dưỡng: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: MaintenancePackages/Create
@@ -45,10 +62,18 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             if (ModelState.IsValid)
             {
-                var response = await _httpClient.PostAsJsonAsync(_apiUrl, package);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    return RedirectToAction(nameof(Index));
+                    var response = await _httpClient.PostAsJsonAsync(_apiUrl, package);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    TempData["ErrorMessage"] = "Thêm gói thất bại: " + await response.Content.ReadAsStringAsync();
+                }
+                catch (System.Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Lỗi kết nối: " + ex.Message;
                 }
             }
             return View(package);
@@ -57,9 +82,17 @@ namespace CarSalesManagementSystemClient.Controllers
         // GET: MaintenancePackages/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}/{id}");
-            if (package == null) return NotFound();
-            return View(package);
+            try
+            {
+                var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}({id})");
+                if (package == null) return NotFound();
+                return View(package);
+            }
+            catch (System.Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: MaintenancePackages/Edit/5
@@ -71,10 +104,18 @@ namespace CarSalesManagementSystemClient.Controllers
 
             if (ModelState.IsValid)
             {
-                var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/{id}", package);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    return RedirectToAction(nameof(Index));
+                    var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}({id})", package);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    TempData["ErrorMessage"] = "Cập nhật thất bại: " + await response.Content.ReadAsStringAsync();
+                }
+                catch (System.Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Lỗi kết nối: " + ex.Message;
                 }
             }
             return View(package);
@@ -83,9 +124,17 @@ namespace CarSalesManagementSystemClient.Controllers
         // GET: MaintenancePackages/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}/{id}");
-            if (package == null) return NotFound();
-            return View(package);
+            try
+            {
+                var package = await _httpClient.GetFromJsonAsync<MaintenancePackage>($"{_apiUrl}({id})");
+                if (package == null) return NotFound();
+                return View(package);
+            }
+            catch (System.Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: MaintenancePackages/Delete/5
@@ -93,12 +142,20 @@ namespace CarSalesManagementSystemClient.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return RedirectToAction(nameof(Index));
+                var response = await _httpClient.DeleteAsync($"{_apiUrl}({id})");
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                TempData["ErrorMessage"] = "Xóa thất bại: " + await response.Content.ReadAsStringAsync();
             }
-            return View();
+            catch (System.Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi kết nối: " + ex.Message;
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 }
