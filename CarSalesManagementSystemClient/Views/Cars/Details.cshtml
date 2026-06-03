@@ -109,6 +109,108 @@
     .specs-table td {
         padding: 12px 16px;
     }
+    /* ── Deposit Modal ─────────────────────────── */
+    .deposit-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .deposit-modal-overlay.active { display: flex; }
+    .deposit-modal-box {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 480px;
+        margin: 16px;
+        padding: 36px 32px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+    @@keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .deposit-step { display: none; }
+    .deposit-step.active { display: block; }
+    .deposit-phone-badge {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border: 2px solid #fbbf24;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .deposit-phone-badge .phone-number {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #92400e;
+        letter-spacing: 2px;
+    }
+    .deposit-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    .deposit-info-row .label { color: #64748b; }
+    .deposit-info-row .value { font-weight: 700; color: #1e293b; }
+    .captcha-input {
+        font-size: 1.4rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        width: 100%;
+        transition: border-color 0.2s;
+    }
+    .captcha-input:focus {
+        outline: none;
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 3px rgba(251,191,36,0.2);
+    }
+    .btn-deposit-submit {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #1f2937;
+        border: none;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1rem;
+        padding: 14px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 16px;
+    }
+    .btn-deposit-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(251,191,36,0.4);
+    }
+    .btn-deposit-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .deposit-success-icon {
+        font-size: 4rem;
+        margin-bottom: 12px;
+        animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @@keyframes popIn {
+        from { transform: scale(0); } to { transform: scale(1); }
+    }
 </style>
 
 <div class="container py-5 font-outfit">
@@ -266,7 +368,11 @@
 
                 <div class="row g-3 mt-auto">
                     <div class="col-6">
-                        <button class="btn btn-action-deposit w-100 d-flex align-items-center justify-content-center gap-2" onclick="alert('Tính năng Đặt Cọc sẽ được tích hợp ở luồng thanh toán sắp tới.')">
+                        <button id="btnDepositOpen"
+                                class="btn btn-action-deposit w-100 d-flex align-items-center justify-content-center gap-2"
+                                data-carid="@Model.CarId"
+                                data-carname="@Model.CarName"
+                                data-price="@Model.Price">
                             <i class="bi bi-cash-stack fs-5"></i>
                             <span>Đặt Cọc Xe</span>
                         </button>
@@ -278,6 +384,112 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="depositModalOverlay" class="deposit-modal-overlay" role="dialog" aria-modal="true">
+    <div class="deposit-modal-box font-outfit">
+        <button id="btnDepositClose" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <div id="depositStep1" class="deposit-step active">
+            <div class="text-center mb-3">
+                <span style="font-size:2.5rem;">📞</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1">Đặt cọc giữ xe</h4>
+                <p class="text-muted" style="font-size:14px;">Liên hệ showroom để xác nhận và hoàn tất đặt cọc</p>
+            </div>
+
+            <div class="deposit-phone-badge">
+                <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">📱 HOTLINE SHOWROOM</div>
+                <div class="phone-number">0987 173 229</div>
+                <div class="text-muted mt-1" style="font-size:12px;">Liên hệ trực tiếp để trao đổi và đặt cọc xe</div>
+            </div>
+
+            <div class="deposit-info-row">
+                <span class="label"><i class="bi bi-car-front me-1"></i> Xe</span>
+                <span class="value" id="step1CarName"></span>
+            </div>
+            <div class="deposit-info-row">
+                <span class="label"><i class="bi bi-cash me-1"></i> Tiền cọc (5%)</span>
+                <span class="value text-danger" id="step1DepositAmt"></span>
+            </div>
+            <div class="deposit-info-row">
+                <span class="label"><i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc</span>
+                <span class="value">14 ngày</span>
+            </div>
+
+            <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;">
+                <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                <span>Sau 14 ngày nếu không hoàn tất mua xe, tiền cọc sẽ <strong>bị mất</strong> và xe được trả lại showroom.</span>
+            </div>
+
+            <button id="btnGoStep2" class="btn-deposit-submit">
+                <i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận
+            </button>
+        </div>
+
+        <div id="depositStep2" class="deposit-step">
+            <div class="text-center mb-4">
+                <span style="font-size:2.5rem;">🔐</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1">Nhập mã xác nhận</h4>
+                <p class="text-muted" style="font-size:14px;">Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc</p>
+            </div>
+
+            <div id="depositLoginWarning" class="alert alert-info d-none" style="font-size:13px; border-radius:10px;">
+                <i class="bi bi-info-circle me-1"></i> Bạn cần <a href="/Auth/Login" class="fw-bold">đăng nhập</a> để đặt cọc.
+            </div>
+
+            <label class="fw-bold text-dark mb-2" style="font-size:14px;">
+                <i class="bi bi-key-fill me-1 text-warning"></i> Mã xác nhận từ nhân viên
+            </label>
+            <input id="captchaInput" type="text" class="captcha-input"
+                   placeholder="VD: ABC123" maxlength="20"
+                   autocomplete="off" spellcheck="false">
+
+            <div id="depositError" class="text-danger mt-2" style="font-size:13px; display:none;">
+                <i class="bi bi-exclamation-circle me-1"></i>
+                <span id="depositErrorMsg"></span>
+            </div>
+
+            <button id="btnSubmitDeposit" class="btn-deposit-submit">
+                <i class="bi bi-lock-fill me-2"></i> Xác nhận đặt cọc
+            </button>
+
+            <button id="btnBackStep1" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </button>
+        </div>
+
+        <div id="depositStep3" class="deposit-step">
+            <div class="text-center">
+                <div class="deposit-success-icon">✅</div>
+                <h4 class="fw-bold text-success mb-2">Đặt cọc thành công!</h4>
+                <p class="text-muted" style="font-size:14px;">Xe đã được giữ riêng cho bạn.</p>
+
+                <div class="deposit-info-row mt-3">
+                    <span class="label">Số tiền cọc</span>
+                    <span class="value text-danger" id="step3DepositAmt"></span>
+                </div>
+                <div class="deposit-info-row">
+                    <span class="label">Hạn hoàn tất mua xe</span>
+                    <span class="value" id="step3Expiry"></span>
+                </div>
+                <div class="deposit-info-row">
+                    <span class="label">Mã yêu cầu</span>
+                    <span class="value" id="step3RequestId"></span>
+                </div>
+
+                <div class="alert alert-success mt-3" style="font-size:13px; border-radius:10px;">
+                    <i class="bi bi-telephone-fill me-1"></i>
+                    Showroom sẽ liên hệ xác nhận lại trong vòng 24h làm việc.
+                </div>
+
+                <button id="btnDepositDone" class="btn-deposit-submit">
+                    <i class="bi bi-check-circle me-2"></i> Hoàn tất
+                </button>
             </div>
         </div>
     </div>
@@ -571,4 +783,145 @@
             rotateBtn.className = "btn btn-outline-warning btn-sm fw-bold px-3 py-1.5 text-warning";
         }
     });
+
+    // ══════════════════════════════════════════════════════
+    //  DEPOSIT MODAL LOGIC
+    // ══════════════════════════════════════════════════════
+    const depositOverlay  = document.getElementById('depositModalOverlay');
+    const btnOpen         = document.getElementById('btnDepositOpen');
+    const btnClose        = document.getElementById('btnDepositClose');
+    const btnGoStep2      = document.getElementById('btnGoStep2');
+    const btnBackStep1    = document.getElementById('btnBackStep1');
+    const btnSubmit       = document.getElementById('btnSubmitDeposit');
+    const btnDone         = document.getElementById('btnDepositDone');
+    const captchaInput    = document.getElementById('captchaInput');
+    const depositError    = document.getElementById('depositError');
+    const depositErrorMsg = document.getElementById('depositErrorMsg');
+    const loginWarning    = document.getElementById('depositLoginWarning');
+
+    let currentCarId    = null;
+    let currentCarPrice = null;
+
+    function showStep(n) {
+        ['depositStep1','depositStep2','depositStep3'].forEach((id, i) => {
+            document.getElementById(id).classList.toggle('active', i === n - 1);
+        });
+    }
+
+    function formatVnd(amount) {
+        return Number(amount).toLocaleString('vi-VN') + ' VND';
+    }
+
+    function openModal() {
+        const btn   = document.getElementById('btnDepositOpen');
+        currentCarId    = parseInt(btn.dataset.carid);
+        currentCarPrice = parseFloat(btn.dataset.price);
+        const carName   = btn.dataset.carname;
+        const deposit   = Math.round(currentCarPrice * 0.05);
+
+        document.getElementById('step1CarName').textContent    = carName;
+        document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
+
+        captchaInput.value = '';
+        depositError.style.display = 'none';
+        loginWarning.classList.add('d-none');
+        showStep(1);
+        depositOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        depositOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    btnOpen?.addEventListener('click', openModal);
+    btnClose?.addEventListener('click', closeModal);
+    btnDone?.addEventListener('click', closeModal);
+
+    // Close on overlay click
+    depositOverlay?.addEventListener('click', (e) => {
+        if (e.target === depositOverlay) closeModal();
+    });
+
+    btnGoStep2?.addEventListener('click', () => showStep(2));
+    btnBackStep1?.addEventListener('click', () => showStep(1));
+
+    // Helper: parse JWT from cookie claims (user identity)
+    function getUserInfo() {
+        // Claims are baked into server-side render; we use a hidden meta tag approach
+        // We pass UserId/FullName/Phone from Razor via JS variables
+        const userId   = @(User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        const fullName = "@(User.FindFirst("name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "")";
+        const email    = "@(User.FindFirst("email")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")";
+        return { userId: Number(userId), fullName, email };
+    }
+
+    btnSubmit?.addEventListener('click', async () => {
+        const code = captchaInput.value.trim().toUpperCase();
+        if (!code) {
+            depositErrorMsg.textContent = 'Vui lòng nhập mã xác nhận.';
+            depositError.style.display = 'block';
+            return;
+        }
+
+        const user = getUserInfo();
+        if (!user.userId || user.userId <= 0) {
+            loginWarning.classList.remove('d-none');
+            depositErrorMsg.textContent = 'Bạn cần đăng nhập để đặt cọc.';
+            depositError.style.display = 'block';
+            return;
+        }
+
+        depositError.style.display = 'none';
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+
+        try {
+            const payload = {
+                carId:        currentCarId,
+                customerId:   user.userId,
+                customerName: user.fullName || 'Khách hàng',
+                customerPhone: '0987173229', // will be updated when we have profile page
+                customerEmail: user.email,
+                captchaCode:  code
+            };
+
+            const resp = await fetch('http://localhost:5084/api/PurchaseRequests/deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+            const success = (data.success !== undefined) ? data.success : data.Success;
+            const depositAmount = (data.depositAmount !== undefined) ? data.depositAmount : data.DepositAmount;
+            const depositExpiry = (data.depositExpiry !== undefined) ? data.depositExpiry : data.DepositExpiry;
+            const requestId = (data.requestId !== undefined) ? data.requestId : data.RequestId;
+            const message = (data.message !== undefined) ? data.message : data.Message;
+
+            if (resp.ok && success) {
+                // Show success step
+                document.getElementById('step3DepositAmt').textContent  = formatVnd(depositAmount);
+                document.getElementById('step3Expiry').textContent      = new Date(depositExpiry).toLocaleDateString('vi-VN');
+                document.getElementById('step3RequestId').textContent   = '#' + requestId;
+                showStep(3);
+            } else {
+                depositErrorMsg.textContent = message || 'Đặt cọc không thành công.';
+                depositError.style.display = 'block';
+            }
+        } catch (err) {
+            depositErrorMsg.textContent = 'Không thể kết nối đến máy chủ. Vui lòng thử lại.';
+            depositError.style.display = 'block';
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="bi bi-lock-fill me-2"></i> Xác nhận đặt cọc';
+        }
+    });
+
+    // Auto-uppercase captcha input
+    captchaInput?.addEventListener('input', () => {
+        captchaInput.value = captchaInput.value.toUpperCase();
+    });
+
 </script>
