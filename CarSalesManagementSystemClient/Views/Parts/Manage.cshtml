@@ -1,0 +1,318 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.PartViewModel>
+@{
+    ViewData["Title"] = "Quản lý Phụ tùng - Admin";
+    var categories = ViewBag.Categories as IEnumerable<CarSalesManagementSystemClient.Models.PartCategoryViewModel> ?? new List<PartCategoryViewModel>();
+}
+
+<div class="container-fluid py-5 px-md-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
+                QUẢN LÝ PHỤ TÙNG
+            </h1>
+            <p class="text-secondary m-0 ps-3">Danh sách toàn bộ phụ tùng trong hệ thống</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-warning fw-bold border-0 px-4 py-2 text-dark" style="background-color: #ffc107;" onclick="openAddModal()">
+                <i class="bi bi-plus-circle-fill me-2"></i> THÊM PHỤ TÙNG MỚI
+            </button>
+        </div>
+    </div>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th class="ps-4">Hình ảnh</th>
+                            <th>Mã phụ tùng</th>
+                            <th>Tên phụ tùng</th>
+                            <th>Danh mục</th>
+                            <th>Thương hiệu</th>
+                            <th>Giá bán</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end pe-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center py-5 text-secondary">
+                                    <i class="bi bi-tools fs-1 d-block mb-3"></i>
+                                    Chưa có phụ tùng nào được tạo.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var part in Model)
+                            {
+                                var displayImageUrl = string.IsNullOrWhiteSpace(part.ImageUrl) 
+                                    ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=100&q=80" 
+                                    : part.ImageUrl;
+                                    
+                                <tr>
+                                    <td class="ps-4">
+                                        <img src="@displayImageUrl" alt="@part.PartName" class="rounded object-fit-cover" style="width: 60px; height: 60px;" />
+                                    </td>
+                                    <td class="fw-bold text-secondary" style="font-family: monospace;">@part.PartCode</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@part.PartName</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@part.Category?.CategoryName</span>
+                                    </td>
+                                    <td>@part.Brand</td>
+                                    <td class="fw-bold text-danger">@part.Price.ToString("N0") đ</td>
+                                    <td class="fw-bold">@part.Quantity</td>
+                                    <td>
+                                        @if (part.Status == "Available")
+                                        {
+                                            <span class="badge bg-success">Còn hàng</span>
+                                        }
+                                        else if (part.Status == "Out of Stock")
+                                        {
+                                            <span class="badge bg-warning text-dark">Hết hàng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Ngưng bán</span>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-outline-primary btn-sm me-2 fw-bold" onclick="openEditModal(@part.PartId)">
+                                            <i class="bi bi-pencil-square me-1"></i> Sửa
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm fw-bold" onclick="confirmDelete(@part.PartId, '@part.PartName')">
+                                            <i class="bi bi-trash me-1"></i> Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap CRUD Modal -->
+<div class="modal fade" id="partModal" tabindex="-1" aria-labelledby="partModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="partModalLabel">Thêm phụ tùng mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="modalError" class="alert alert-danger d-none"></div>
+                <form id="partForm">
+                    <input type="hidden" name="PartId" id="partId" value="0" />
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tên phụ tùng <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="PartName" id="partName" required maxlength="150" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mã phụ tùng <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="PartCode" id="partCode" required maxlength="50" placeholder="VD: PT-LOPHIEU-MICH" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                            <select class="form-select" name="CategoryId" id="categoryId" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.CategoryId">@cat.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Thương hiệu / Hãng</label>
+                            <input type="text" class="form-control" name="Brand" id="brand" maxlength="100" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Giá bán (VND) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="Price" id="price" required min="1000" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Số lượng tồn kho <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="Quantity" id="quantity" required min="0" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Trạng thái <span class="text-danger">*</span></label>
+                            <select class="form-select" name="Status" id="status" required>
+                                <option value="Available">Còn hàng (Available)</option>
+                                <option value="Out of Stock">Hết hàng (Out of Stock)</option>
+                                <option value="Inactive">Ngưng kinh doanh (Inactive)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Đường dẫn hình ảnh (URL)</label>
+                            <input type="url" class="form-control" name="ImageUrl" id="imageUrl" maxlength="500" placeholder="https://..." />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả phụ tùng</label>
+                        <textarea class="form-control" name="Description" id="description" rows="3" maxlength="1000"></textarea>
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-secondary px-4 fw-bold me-2" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-warning px-4 fw-bold text-dark" style="background-color: #ffc107;" id="btnSubmit">Lưu lại</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        var partModal = new bootstrap.Modal(document.getElementById('partModal'));
+
+        function openAddModal() {
+            $('#modalError').addClass('d-none');
+            $('#partForm')[0].reset();
+            $('#partId').val('0');
+            $('#partModalLabel').text('Thêm phụ tùng mới');
+            partModal.show();
+        }
+
+        function openEditModal(partId) {
+            $('#modalError').addClass('d-none');
+            $('#partForm')[0].reset();
+            
+            // Fetch item detail
+            $.ajax({
+                url: '/Parts/GetPartJson/' + partId,
+                type: 'GET',
+                success: function(part) {
+                    $('#partId').val(part.partId);
+                    $('#partName').val(part.partName);
+                    $('#partCode').val(part.partCode);
+                    $('#categoryId').val(part.categoryId);
+                    $('#brand').val(part.brand);
+                    $('#price').val(part.price);
+                    $('#quantity').val(part.quantity);
+                    $('#status').val(part.status);
+                    $('#imageUrl').val(part.imageUrl);
+                    $('#description').val(part.description);
+                    
+                    $('#partModalLabel').text('Cập nhật thông tin phụ tùng');
+                    partModal.show();
+                },
+                error: function() {
+                    Swal.fire('Lỗi!', 'Không thể tải thông tin phụ tùng.', 'error');
+                }
+            });
+        }
+
+        // Handle AJAX save form
+        $('#partForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            var form = $(this);
+            if (!form.valid()) return;
+
+            var btn = $('#btnSubmit');
+            btn.prop('disabled', true).text('Đang lưu...');
+
+            $.ajax({
+                url: '/Parts/Save',
+                type: 'POST',
+                data: form.serialize(),
+                success: function(res) {
+                    btn.prop('disabled', false).text('Lưu lại');
+                    if (res.success) {
+                        partModal.hide();
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: res.message,
+                            icon: 'success',
+                            confirmButtonColor: '#ffc107'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        $('#modalError').html(res.message).removeClass('d-none');
+                    }
+                },
+                error: function() {
+                    btn.prop('disabled', false).text('Lưu lại');
+                    Swal.fire('Lỗi!', 'Lỗi kết nối máy chủ.', 'error');
+                }
+            });
+        });
+
+        // Handle delete action
+        function confirmDelete(partId, name) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc chắn muốn xóa phụ tùng '" + name + "'? Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Parts/Delete/' + partId,
+                        type: 'POST',
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Đã xóa!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#ffc107'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Lỗi kết nối mạng.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .object-fit-cover {
+        object-fit: cover;
+    }
+</style>
