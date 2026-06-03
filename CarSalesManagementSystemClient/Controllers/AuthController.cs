@@ -64,7 +64,10 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                return Json(new { success = true, message = result.Message });
+                var isAdmin = jwtToken.Claims.Any(c => (c.Type == ClaimTypes.Role || c.Type == "role") && c.Value == "Admin");
+                var redirectUrl = isAdmin ? Url.Action("Manage", "Parts") : Url.Action("Index", "Home");
+
+                return Json(new { success = true, message = result.Message, redirectUrl = redirectUrl });
             }
 
             return Json(new { success = false, message = result.Message });

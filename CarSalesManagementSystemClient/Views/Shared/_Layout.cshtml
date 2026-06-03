@@ -106,8 +106,7 @@
                                     @if (User.IsInRole("Admin"))
                                     {
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage">QUẢN LÝ PHỤ TÙNG</a></li>
-                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="PartOrders" asp-action="Manage">QUẢN LÝ ĐƠN PHỤ TÙNG</a></li>
+                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
                                     }
                                 </ul>
                             </li>
@@ -319,7 +318,7 @@
                 const res = await fetch('/Auth/Login', { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
-                    window.location.reload();
+                    window.location.href = result.redirectUrl || '/';
                 } else {
                     const err = document.getElementById('loginError');
                     err.innerText = result.message;

@@ -1,5 +1,6 @@
 @model IEnumerable<CarSalesManagementSystemClient.Models.PartViewModel>
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Phụ tùng - Admin";
     var categories = ViewBag.Categories as IEnumerable<CarSalesManagementSystemClient.Models.PartCategoryViewModel> ?? new List<PartCategoryViewModel>();
 }
