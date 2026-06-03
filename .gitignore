@@ -7,8 +7,10 @@
 *.sln.docstates
 
 # Build directories
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+appsettings.Local.json
 
 # Build outputs
 *.dll
