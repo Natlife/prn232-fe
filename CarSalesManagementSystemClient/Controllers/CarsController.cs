@@ -14,7 +14,7 @@ namespace CarSalesManagementSystemClient.Controllers
     public class CarsController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _brandsApiUrl = "http://localhost:5084/api/CarBrands";
+        private readonly string _brandsApiUrl = "http://localhost:5084/odata/CarBrands";
 
         public CarsController(IHttpClientFactory httpClientFactory)
         {
@@ -27,8 +27,9 @@ namespace CarSalesManagementSystemClient.Controllers
             try
             {
                 // Fetch Brands for the Left Filter Sidebar
-                var brands = await _httpClient.GetFromJsonAsync<IEnumerable<CarBrandViewModel>>(_brandsApiUrl);
-                ViewBag.Brands = brands ?? new List<CarBrandViewModel>();
+                var brandResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(_brandsApiUrl);
+                var brands = brandResponse?.Value ?? new List<CarBrandViewModel>();
+                ViewBag.Brands = brands;
 
                 // Build OData query parameters
                 var odataParams = new List<string>();
@@ -162,14 +163,5 @@ namespace CarSalesManagementSystemClient.Controllers
                 return View(new List<PurchaseRequestHistoryViewModel>());
             }
         }
-    }
-
-    public class ODataResponse<T>
-    {
-        [JsonPropertyName("value")]
-        public List<T> Value { get; set; } = new();
-
-        [JsonPropertyName("@odata.count")]
-        public int? Count { get; set; }
     }
 }

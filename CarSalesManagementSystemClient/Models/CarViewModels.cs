@@ -83,3 +83,29 @@ public class DepositCaptchaViewModel
     public DateTime? UsedAt { get; set; }
     public CarViewModel Car { get; set; } = null!;
 }
+
+public class CarFormViewModel
+{
+    public int CarId { get; set; }
+    public int BrandId { get; set; }
+    public string CarName { get; set; } = null!;
+    public string? Model { get; set; }
+    public int Year { get; set; } = DateTime.Now.Year;
+    public string? Color { get; set; }
+    public int Mileage { get; set; }
+    public string FuelType { get; set; } = "Gasoline";
+    public string Transmission { get; set; } = "Automatic";
+    public decimal Price { get; set; }
+    public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public string Status { get; set; } = "Available";
+}
+
+public class ODataResponse<T>
+{
+    [System.Text.Json.Serialization.JsonPropertyName("value")]
+    public List<T> Value { get; set; } = new();
+
+    [System.Text.Json.Serialization.JsonPropertyName("@odata.count")]
+    public int? Count { get; set; }
+}
