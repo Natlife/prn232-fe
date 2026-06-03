@@ -1,0 +1,111 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.AppointmentHistoryViewModel>
+@{
+    ViewData["Title"] = "Lịch sử Đặt lịch";
+}
+
+<div class="py-4 mb-5 text-center" style="background-color: #f7f7f7; border-bottom: 1px solid #eee;">
+    <h3 class="fw-bold m-0 text-secondary" style="letter-spacing: 1px;">LỊCH SỬ BẢO DƯỠNG</h3>
+</div>
+
+<div class="container mb-5 pb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-borderless align-middle m-0">
+                    <thead class="bg-dark text-white text-uppercase" style="font-size: 13px;">
+                        <tr>
+                            <th class="py-3 px-4 rounded-start-0 rounded-end-0">Ngày tạo</th>
+                            <th class="py-3">Gói Dịch Vụ</th>
+                            <th class="py-3">Xe / Biển Số</th>
+                            <th class="py-3">Lịch Hẹn</th>
+                            <th class="py-3">Trạng Thái</th>
+                            <th class="py-3 text-end px-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model.OrderByDescending(x => x.CreatedAt))
+                            {
+                                <tr class="border-bottom">
+                                    <td class="py-4 px-4 text-secondary small">
+                                        @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="py-4">
+                                        <span class="fw-bold text-dark">@(item.Package?.PackageName ?? "Gói Tự Chọn")</span>
+                                    </td>
+                                    <td class="py-4">
+                                        <div class="fw-bold text-dark">@item.CarName</div>
+                                        <div class="text-secondary small">@item.LicensePlate</div>
+                                    </td>
+                                    <td class="py-4">
+                                        <div class="fw-bold text-danger">@item.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                                        <div class="text-secondary small"><i class="bi bi-clock me-1"></i>@item.AppointmentTime.ToString("HH:mm")</div>
+                                    </td>
+                                    <td class="py-4">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Đang chờ</span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>
+                                        }
+                                        else if (item.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">@item.Status</span>
+                                        }
+                                    </td>
+                                    <td class="py-4 text-end px-4">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <form asp-action="Cancel" asp-route-id="@item.AppointmentId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này không?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                    <i class="bi bi-x-circle me-1"></i>Hủy
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-light rounded-pill px-3 text-muted disabled">
+                                                <i class="bi bi-ban me-1"></i>Hủy
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-50"></i>
+                                    Bạn chưa có lịch hẹn bảo dưỡng nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
