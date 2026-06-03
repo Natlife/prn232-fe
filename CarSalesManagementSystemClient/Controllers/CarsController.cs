@@ -129,6 +129,16 @@ namespace CarSalesManagementSystemClient.Controllers
             }
         }
 
+        private void AttachJwtToken()
+        {
+            var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
         // GET: Cars/History
         [HttpGet]
         public async Task<IActionResult> History()
@@ -140,6 +150,7 @@ namespace CarSalesManagementSystemClient.Controllers
 
             try
             {
+                AttachJwtToken();
                 var customerIdClaim = User.FindFirst("sub")?.Value 
                     ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 
@@ -161,6 +172,29 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải lịch sử: " + ex.Message;
                 return View(new List<PurchaseRequestHistoryViewModel>());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitPurchaseRequest(string endpoint, [FromBody] System.Text.Json.JsonElement payload)
+        {
+            if (string.IsNullOrEmpty(endpoint) || (endpoint != "deposit" && endpoint != "buyout"))
+            {
+                return BadRequest(new { success = false, message = "Loại yêu cầu không hợp lệ." });
+            }
+
+            try
+            {
+                AttachJwtToken();
+                var requestUri = $"http://localhost:5084/odata/PurchaseRequests/{endpoint}";
+                var response = await _httpClient.PostAsJsonAsync(requestUri, payload);
+                var content = await response.Content.ReadAsStringAsync();
+                
+                return StatusCode((int)response.StatusCode, content);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối máy chủ: " + ex.Message });
             }
         }
     }

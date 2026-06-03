@@ -930,7 +930,7 @@
             };
 
             const endpoint = modalMode === 'deposit' ? 'deposit' : 'buyout';
-            const resp = await fetch(`http://localhost:5084/odata/PurchaseRequests/${endpoint}`, {
+            const resp = await fetch(`/Cars/SubmitPurchaseRequest?endpoint=${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

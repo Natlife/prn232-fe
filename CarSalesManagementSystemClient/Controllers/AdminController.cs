@@ -25,14 +25,16 @@ namespace CarSalesManagementSystemClient.Controllers
             _httpClient = httpClientFactory.CreateClient();
         }
 
-        private void AttachJwtToken()
+        private bool AttachJwtToken()
         {
-            var token = User.FindFirst("jwt_token")?.Value;
-            if (!string.IsNullOrEmpty(token))
+            var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
+            if (string.IsNullOrEmpty(token))
             {
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                return false;
             }
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            return true;
         }
 
         // GET: Admin/Cars
@@ -228,6 +230,12 @@ namespace CarSalesManagementSystemClient.Controllers
 
         public async Task<IActionResult> Captchas()
         {
+            if (!AttachJwtToken())
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không có token hoặc đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction("Logout", "Auth");
+            }
+
             try
             {
                 var captchaRequestUri = $"{_captchasApiUrl}?$expand=Car&$orderby=CreatedAt desc";
@@ -240,6 +248,11 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 ViewBag.Cars = cars;
                 return View(captchas);
+            }
+            catch (System.Net.Http.HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                TempData["ErrorMessage"] = "Token xác thực đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.";
+                return RedirectToAction("Logout", "Auth");
             }
             catch (Exception ex)
             {

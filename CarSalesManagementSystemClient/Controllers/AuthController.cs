@@ -66,6 +66,15 @@ namespace CarSalesManagementSystemClient.Controllers
                 );
                 claimsIdentity.AddClaim(new Claim("jwt_token", token));
 
+                // Save token to cookie with httpOnly and sameSite settings
+                Response.Cookies.Append("jwt_token", token, new Microsoft.AspNetCore.Http.CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // Set to true if running over HTTPS
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddHours(2)
+                });
+
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 return Json(new { success = true, message = result.Message });
@@ -168,6 +177,7 @@ namespace CarSalesManagementSystemClient.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            Response.Cookies.Delete("jwt_token");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
