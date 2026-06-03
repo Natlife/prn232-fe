@@ -25,7 +25,7 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpGet]
         public IActionResult Login() => View();
 
-        private async Task<(bool IsSuccess, string Message, string Token)> ProcessResponse(HttpResponseMessage response)
+        private async Task<(bool IsSuccess, string Message, string? Token)> ProcessResponse(HttpResponseMessage response)
         {
             var responseString = await response.Content.ReadAsStringAsync();
             try
@@ -33,7 +33,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 var jsonDoc = JsonDocument.Parse(responseString);
                 var message = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "Đã có lỗi xảy ra.";
                 var token = jsonDoc.RootElement.TryGetProperty("token", out var tokenProp) ? tokenProp.GetString() : null;
-                return (response.IsSuccessStatusCode, message, token);
+                return (response.IsSuccessStatusCode, message ?? "Đã có lỗi xảy ra.", token);
             }
             catch (JsonException)
             {
@@ -54,18 +54,34 @@ namespace CarSalesManagementSystemClient.Controllers
 
             if (result.IsSuccess)
             {
-                var token = result.Token;
+                var token = result.Token ?? string.Empty;
                 
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
 
-                var claimsIdentity = new ClaimsIdentity(jwtToken.Claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                claimsIdentity.AddClaim(new Claim("jwt_token", token));
+                // Trích xuất các giá trị từ JWT claim một cách an toàn
+                var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub" || c.Type == "nameid")?.Value;
+                var email = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email")?.Value;
+                var name = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name || c.Type == "unique_name" || c.Type == "name")?.Value;
+                var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role || c.Type == "role")?.Value;
+
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId ?? ""),
+                    new Claim(ClaimTypes.Email, email ?? ""),
+                    new Claim(ClaimTypes.Name, name ?? ""),
+                    new Claim(ClaimTypes.Role, role ?? "Customer"),
+                    new Claim("jwt_token", token)
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-                bool isAdmin = jwtToken.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
-                return Json(new { success = true, message = result.Message, isAdmin = isAdmin });
+                bool isAdmin = role == "Admin";
+                var redirectUrl = isAdmin ? Url.Action("Manage", "Parts") : Url.Action("Index", "Home");
+
+                return Json(new { success = true, message = result.Message, redirectUrl = redirectUrl, isAdmin = isAdmin });
             }
 
             return Json(new { success = false, message = result.Message });
@@ -169,6 +185,12 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }
