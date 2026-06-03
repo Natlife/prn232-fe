@@ -108,6 +108,25 @@ namespace CarSalesManagementSystemClient.Controllers
                 return View(new PagedResultViewModel<CarViewModel>());
             }
         }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var requestUri = $"http://localhost:5084/odata/Cars({id})?$expand=Brand";
+                var car = await _httpClient.GetFromJsonAsync<CarViewModel>(requestUri);
+                if (car == null)
+                {
+                    return NotFound();
+                }
+                return View(car);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Không thể tải thông tin chi tiết xe: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 
     public class ODataResponse<T>

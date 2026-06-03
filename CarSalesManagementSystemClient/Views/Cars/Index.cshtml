@@ -243,7 +243,7 @@
                                             <span class="fs-5 fw-bold text-danger">@car.Price.ToString("N0") đ</span>
                                         </div>
                                         <div>
-                                            <a href="#" class="btn btn-warning btn-sm fw-bold px-3 py-2 border-0 text-dark" style="background-color: #ffc107;">
+                                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId" class="btn btn-warning btn-sm fw-bold px-3 py-2 border-0 text-dark" style="background-color: #ffc107;">
                                                 Chi tiết <i class="bi bi-arrow-right-short"></i>
                                             </a>
                                         </div>
