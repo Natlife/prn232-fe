@@ -8,17 +8,22 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using CarSalesManagementSystemClient.Models;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 
 namespace CarSalesManagementSystemClient.Controllers
 {
     public class CarsController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _brandsApiUrl = "http://localhost:5084/api/CarBrands";
+        private readonly string _apiBaseUrl;
+        private string BrandsApiUrl => $"{_apiBaseUrl}/odata/CarBrands";
+        private string CarsApiUrl => $"{_apiBaseUrl}/odata/Cars";
+        private string PurchaseRequestsApiUrl => $"{_apiBaseUrl}/odata/PurchaseRequests";
 
-        public CarsController(IHttpClientFactory httpClientFactory)
+        public CarsController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient();
+            _apiBaseUrl = (configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5084").TrimEnd('/');
         }
 
         // GET: Cars (Showroom)
@@ -27,12 +32,16 @@ namespace CarSalesManagementSystemClient.Controllers
             try
             {
                 // Fetch Brands for the Left Filter Sidebar
-                var brands = await _httpClient.GetFromJsonAsync<IEnumerable<CarBrandViewModel>>(_brandsApiUrl);
-                ViewBag.Brands = brands ?? new List<CarBrandViewModel>();
+                var brandResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(BrandsApiUrl);
+                var brands = brandResponse?.Value ?? new List<CarBrandViewModel>();
+                ViewBag.Brands = brands;
 
                 // Build OData query parameters
                 var odataParams = new List<string>();
-                var filters = new List<string>();
+                var filters = new List<string>
+                {
+                    "Status ne 'Inactive'"
+                };
 
                 if (filter.BrandId.HasValue) 
                     filters.Add($"BrandId eq {filter.BrandId.Value}");
@@ -80,7 +89,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 odataParams.Add("$count=true");
                 odataParams.Add("$expand=Brand");
 
-                var requestUri = "http://localhost:5084/odata/Cars";
+                var requestUri = CarsApiUrl;
                 if (odataParams.Any())
                 {
                     requestUri += "?" + string.Join("&", odataParams);
@@ -108,14 +117,98 @@ namespace CarSalesManagementSystemClient.Controllers
                 return View(new PagedResultViewModel<CarViewModel>());
             }
         }
-    }
 
-    public class ODataResponse<T>
-    {
-        [JsonPropertyName("value")]
-        public List<T> Value { get; set; } = new();
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                var requestUri = $"{CarsApiUrl}({id})?$expand=Brand";
+                var car = await _httpClient.GetFromJsonAsync<CarViewModel>(requestUri);
+                if (car == null)
+                {
+                    return NotFound();
+                }
+                return View(car);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Không thể tải thông tin chi tiết xe: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
 
-        [JsonPropertyName("@odata.count")]
-        public int? Count { get; set; }
+        private void AttachJwtToken()
+        {
+            var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+
+        // GET: Cars/History
+        [HttpGet]
+        public async Task<IActionResult> History()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                AttachJwtToken();
+                var customerIdClaim = User.FindFirst("sub")?.Value 
+                    ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(customerIdClaim))
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin tài khoản người dùng.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                int customerId = int.Parse(customerIdClaim);
+                
+                var requestUri = $"{PurchaseRequestsApiUrl}?$filter=CustomerId eq {customerId}&$expand=Car&$orderby=CreatedAt desc";
+                var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PurchaseRequestHistoryViewModel>>(requestUri);
+                var historyList = odataResponse?.Value ?? new List<PurchaseRequestHistoryViewModel>();
+
+                return View(historyList);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải lịch sử: " + ex.Message;
+                return View(new List<PurchaseRequestHistoryViewModel>());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitPurchaseRequest(string endpoint, [FromBody] System.Text.Json.JsonElement payload)
+        {
+            if (string.IsNullOrEmpty(endpoint) || (endpoint != "deposit" && endpoint != "buyout"))
+            {
+                return BadRequest(new { success = false, message = "Loại yêu cầu không hợp lệ." });
+            }
+
+            try
+            {
+                AttachJwtToken();
+                var requestUri = $"{PurchaseRequestsApiUrl}/{endpoint}";
+                var response = await _httpClient.PostAsJsonAsync(requestUri, payload);
+                var content = await response.Content.ReadAsStringAsync();
+                
+                return new ContentResult
+                {
+                    Content = content,
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json",
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối máy chủ: " + ex.Message });
+            }
+        }
     }
 }

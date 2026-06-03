@@ -37,7 +37,6 @@ namespace CarSalesManagementSystemClient.Controllers
             }
             catch (JsonException)
             {
-                // If backend returns plain text/HTML error (like a 500 Server Error stack trace)
                 return (false, "Lỗi từ Backend: " + responseString, null);
             }
         }
@@ -74,7 +73,22 @@ namespace CarSalesManagementSystemClient.Controllers
                     new Claim("jwt_token", token)
                 };
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(
+                    jwtToken.Claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    ClaimTypes.Name,
+                    ClaimTypes.Role
+                );
+                claimsIdentity.AddClaim(new Claim("jwt_token", token));
+
+                // Save token to cookie with httpOnly and sameSite settings
+                Response.Cookies.Append("jwt_token", token, new Microsoft.AspNetCore.Http.CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // Set to true if running over HTTPS
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddHours(2)
+                });
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
@@ -99,9 +113,7 @@ namespace CarSalesManagementSystemClient.Controllers
             var result = await ProcessResponse(response);
 
             if (result.IsSuccess)
-            {
                 return Json(new { success = true, message = result.Message, email = model.Email });
-            }
 
             return Json(new { success = false, message = result.Message });
         }
@@ -183,6 +195,7 @@ namespace CarSalesManagementSystemClient.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            Response.Cookies.Delete("jwt_token");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }
