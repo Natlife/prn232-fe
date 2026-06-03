@@ -807,6 +807,16 @@
     let currentCarId    = null;
     let currentCarPrice = null;
     let modalMode       = 'deposit'; // 'deposit' | 'buyout'
+    const currentCarStatus = "@Model.Status";
+
+    if (currentCarStatus === 'Reserved') {
+        btnOpen?.closest('.col-6')?.classList.add('d-none');
+        btnBuyoutOpen?.closest('.col-6')?.classList.replace('col-6', 'col-12');
+        const buyoutText = btnBuyoutOpen?.querySelector('span');
+        if (buyoutText) {
+            buyoutText.textContent = 'Mua đứt - Thanh toán phần còn lại';
+        }
+    }
 
     function showStep(n) {
         ['depositStep1','depositStep2','depositStep3'].forEach((id, i) => {
@@ -825,6 +835,9 @@
 
         currentCarId    = parseInt(btn.dataset.carid);
         currentCarPrice = parseFloat(btn.dataset.price);
+        const buyoutAmount = currentCarStatus === 'Reserved'
+            ? Math.round(currentCarPrice * 0.95)
+            : currentCarPrice;
         const carName   = btn.dataset.carname;
 
         document.getElementById('step1CarName').textContent = carName;
@@ -850,7 +863,10 @@
             document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để thanh toán và hoàn tất mua đứt';
             document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để chuyển khoản thanh toán mua đứt xe';
             document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Giá bán xe (100%)';
-            document.getElementById('step1DepositAmt').textContent = formatVnd(currentCarPrice);
+            if (currentCarStatus === 'Reserved') {
+                document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Sá»‘ tiá»n cÃ²n láº¡i pháº£i tráº£';
+            }
+            document.getElementById('step1DepositAmt').textContent = formatVnd(buyoutAmount);
             document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> Bàn giao dự kiến';
             document.getElementById('step1ExpiryVal').textContent = 'Sớm nhất';
             document.getElementById('step1Alert').style.display = 'none';
@@ -962,6 +978,9 @@
                 }
                 document.getElementById('step3RequestId').textContent   = '#' + requestId;
                 showStep(3);
+                if (modalMode === 'buyout') {
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             } else {
                 depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'Đặt cọc không thành công.' : 'Mua đứt không thành công.');
                 depositError.style.display = 'block';

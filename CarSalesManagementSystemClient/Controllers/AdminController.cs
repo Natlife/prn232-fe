@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using CarSalesManagementSystemClient.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 
 namespace CarSalesManagementSystemClient.Controllers
 {
@@ -15,14 +16,15 @@ namespace CarSalesManagementSystemClient.Controllers
     public class AdminController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _captchasApiUrl = "http://localhost:5084/odata/DepositCaptchas";
-        private readonly string _carsApiUrl = "http://localhost:5084/odata/Cars";
-        private readonly string _carsRestApiUrl = "http://localhost:5084/odata/Cars";
-        private readonly string _brandsApiUrl = "http://localhost:5084/odata/CarBrands";
+        private readonly string _apiBaseUrl;
+        private string CaptchasApiUrl => $"{_apiBaseUrl}/odata/DepositCaptchas";
+        private string CarsApiUrl => $"{_apiBaseUrl}/odata/Cars";
+        private string BrandsApiUrl => $"{_apiBaseUrl}/odata/CarBrands";
 
-        public AdminController(IHttpClientFactory httpClientFactory)
+        public AdminController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient();
+            _apiBaseUrl = (configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5084").TrimEnd('/');
         }
 
         private bool AttachJwtToken()
@@ -37,13 +39,19 @@ namespace CarSalesManagementSystemClient.Controllers
             return true;
         }
 
+        private async Task<string> ReadApiErrorAsync(HttpResponseMessage response, string requestUri)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            return $"({(int)response.StatusCode} {response.StatusCode}) - {requestUri}: {error}";
+        }
+
         // GET: Admin/Cars
         public async Task<IActionResult> Cars()
         {
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<ODataResponse<CarViewModel>>(
-                    $"{_carsApiUrl}?$expand=Brand&$orderby=CreatedAt desc");
+                    $"{CarsApiUrl}?$filter=Status ne 'Inactive'&$expand=Brand&$orderby=CreatedAt desc");
                 var cars = response?.Value ?? new List<CarViewModel>();
                 return View(cars);
             }
@@ -64,35 +72,40 @@ namespace CarSalesManagementSystemClient.Controllers
         // POST: Admin/CreateCar
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateCar(CarFormViewModel model)
+        public async Task<IActionResult> CreateCar(CarFormViewModel form)
         {
             if (!ModelState.IsValid)
             {
                 await LoadBrandsToViewBag();
-                return View(model);
+                return View(form);
             }
 
             try
             {
-                AttachJwtToken();
+                if (!AttachJwtToken())
+                {
+                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    await LoadBrandsToViewBag();
+                    return View(form);
+                }
                 var payload = new
                 {
-                    BrandId = model.BrandId,
-                    CarName = model.CarName,
-                    Model = model.Model,
-                    Year = model.Year,
-                    Color = model.Color,
-                    Mileage = model.Mileage,
-                    FuelType = model.FuelType,
-                    Transmission = model.Transmission,
-                    Price = model.Price,
-                    Description = model.Description,
-                    ImageUrl = model.ImageUrl,
-                    Status = model.Status,
+                    BrandId = form.BrandId,
+                    CarName = form.CarName,
+                    Model = form.Model,
+                    Year = form.Year,
+                    Color = form.Color,
+                    Mileage = form.Mileage,
+                    FuelType = form.FuelType,
+                    Transmission = form.Transmission,
+                    Price = form.Price,
+                    Description = form.Description,
+                    ImageUrl = form.ImageUrl,
+                    Status = form.Status,
                     CreatedAt = DateTime.Now
                 };
 
-                var response = await _httpClient.PostAsync(_carsRestApiUrl,
+                var response = await _httpClient.PostAsync(CarsApiUrl,
                     new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -101,7 +114,7 @@ namespace CarSalesManagementSystemClient.Controllers
                     return RedirectToAction(nameof(Cars));
                 }
 
-                var error = await response.Content.ReadAsStringAsync();
+                var error = await ReadApiErrorAsync(response, CarsApiUrl);
                 TempData["ErrorMessage"] = "Thêm xe thất bại: " + error;
             }
             catch (Exception ex)
@@ -110,7 +123,7 @@ namespace CarSalesManagementSystemClient.Controllers
             }
 
             await LoadBrandsToViewBag();
-            return View(model);
+            return View(form);
         }
 
         // GET: Admin/EditCar/5
@@ -118,7 +131,7 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
-                var car = await _httpClient.GetFromJsonAsync<CarViewModel>($"{_carsApiUrl}({id})");
+                var car = await _httpClient.GetFromJsonAsync<CarViewModel>($"{CarsApiUrl}({id})");
                 if (car == null) return NotFound();
 
                 await LoadBrandsToViewBag();
@@ -150,36 +163,41 @@ namespace CarSalesManagementSystemClient.Controllers
         // POST: Admin/EditCar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCar(int id, CarFormViewModel model)
+        public async Task<IActionResult> EditCar(int id, CarFormViewModel form)
         {
             if (!ModelState.IsValid)
             {
                 await LoadBrandsToViewBag();
-                return View(model);
+                return View(form);
             }
 
             try
             {
-                AttachJwtToken();
+                if (!AttachJwtToken())
+                {
+                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    await LoadBrandsToViewBag();
+                    return View(form);
+                }
                 var payload = new
                 {
                     CarId = id,
-                    BrandId = model.BrandId,
-                    CarName = model.CarName,
-                    Model = model.Model,
-                    Year = model.Year,
-                    Color = model.Color,
-                    Mileage = model.Mileage,
-                    FuelType = model.FuelType,
-                    Transmission = model.Transmission,
-                    Price = model.Price,
-                    Description = model.Description,
-                    ImageUrl = model.ImageUrl,
-                    Status = model.Status,
+                    BrandId = form.BrandId,
+                    CarName = form.CarName,
+                    Model = form.Model,
+                    Year = form.Year,
+                    Color = form.Color,
+                    Mileage = form.Mileage,
+                    FuelType = form.FuelType,
+                    Transmission = form.Transmission,
+                    Price = form.Price,
+                    Description = form.Description,
+                    ImageUrl = form.ImageUrl,
+                    Status = form.Status,
                     CreatedAt = DateTime.Now
                 };
 
-                var response = await _httpClient.PutAsync($"{_carsRestApiUrl}({id})",
+                var response = await _httpClient.PutAsync($"{CarsApiUrl}({id})",
                     new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
 
                 if (response.IsSuccessStatusCode)
@@ -188,7 +206,7 @@ namespace CarSalesManagementSystemClient.Controllers
                     return RedirectToAction(nameof(Cars));
                 }
 
-                var error = await response.Content.ReadAsStringAsync();
+                var error = await ReadApiErrorAsync(response, $"{CarsApiUrl}({id})");
                 TempData["ErrorMessage"] = "Cập nhật thất bại: " + error;
             }
             catch (Exception ex)
@@ -197,7 +215,7 @@ namespace CarSalesManagementSystemClient.Controllers
             }
 
             await LoadBrandsToViewBag();
-            return View(model);
+            return View(form);
         }
 
         // POST: Admin/DeleteCar/5
@@ -207,14 +225,18 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
-                AttachJwtToken();
-                var response = await _httpClient.DeleteAsync($"{_carsRestApiUrl}({id})");
+                if (!AttachJwtToken())
+                {
+                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    return RedirectToAction(nameof(Cars));
+                }
+                var response = await _httpClient.DeleteAsync($"{CarsApiUrl}({id})");
 
                 if (response.IsSuccessStatusCode)
                     TempData["SuccessMessage"] = "Xóa xe thành công!";
                 else
                 {
-                    var error = await response.Content.ReadAsStringAsync();
+                    var error = await ReadApiErrorAsync(response, $"{CarsApiUrl}({id})");
                     TempData["ErrorMessage"] = "Xóa thất bại: " + error;
                 }
             }
@@ -233,16 +255,17 @@ namespace CarSalesManagementSystemClient.Controllers
             if (!AttachJwtToken())
             {
                 TempData["ErrorMessage"] = "Phiên đăng nhập không có token hoặc đã hết hạn. Vui lòng đăng nhập lại.";
-                return RedirectToAction("Logout", "Auth");
+                ViewBag.Cars = new List<CarViewModel>();
+                return View(new List<DepositCaptchaViewModel>());
             }
 
             try
             {
-                var captchaRequestUri = $"{_captchasApiUrl}?$expand=Car&$orderby=CreatedAt desc";
+                var captchaRequestUri = $"{CaptchasApiUrl}?$expand=Car&$orderby=CreatedAt desc";
                 var captchaResponse = await _httpClient.GetFromJsonAsync<ODataResponse<DepositCaptchaViewModel>>(captchaRequestUri);
                 var captchas = captchaResponse?.Value ?? new List<DepositCaptchaViewModel>();
 
-                var carsRequestUri = $"{_carsApiUrl}?$filter=Status eq 'Available' or Status eq 'Reserved'";
+                var carsRequestUri = $"{CarsApiUrl}?$filter=Status eq 'Available' or Status eq 'Reserved'";
                 var carsResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarViewModel>>(carsRequestUri);
                 var cars = carsResponse?.Value ?? new List<CarViewModel>();
 
@@ -252,7 +275,8 @@ namespace CarSalesManagementSystemClient.Controllers
             catch (System.Net.Http.HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 TempData["ErrorMessage"] = "Token xác thực đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.";
-                return RedirectToAction("Logout", "Auth");
+                ViewBag.Cars = new List<CarViewModel>();
+                return View(new List<DepositCaptchaViewModel>());
             }
             catch (Exception ex)
             {
@@ -269,7 +293,7 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 AttachJwtToken();
                 var payload = new { CarId = carId, Code = code };
-                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/odata/DepositCaptchas/generate", payload);
+                var response = await _httpClient.PostAsJsonAsync($"{CaptchasApiUrl}/generate", payload);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var jsonDoc = JsonDocument.Parse(responseContent);
@@ -299,7 +323,7 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(_brandsApiUrl);
+                var response = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(BrandsApiUrl);
                 ViewBag.Brands = response?.Value ?? new List<CarBrandViewModel>();
             }
             catch

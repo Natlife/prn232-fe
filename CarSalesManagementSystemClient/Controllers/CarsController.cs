@@ -8,17 +8,22 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using CarSalesManagementSystemClient.Models;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 
 namespace CarSalesManagementSystemClient.Controllers
 {
     public class CarsController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _brandsApiUrl = "http://localhost:5084/odata/CarBrands";
+        private readonly string _apiBaseUrl;
+        private string BrandsApiUrl => $"{_apiBaseUrl}/odata/CarBrands";
+        private string CarsApiUrl => $"{_apiBaseUrl}/odata/Cars";
+        private string PurchaseRequestsApiUrl => $"{_apiBaseUrl}/odata/PurchaseRequests";
 
-        public CarsController(IHttpClientFactory httpClientFactory)
+        public CarsController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient();
+            _apiBaseUrl = (configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5084").TrimEnd('/');
         }
 
         // GET: Cars (Showroom)
@@ -27,13 +32,16 @@ namespace CarSalesManagementSystemClient.Controllers
             try
             {
                 // Fetch Brands for the Left Filter Sidebar
-                var brandResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(_brandsApiUrl);
+                var brandResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarBrandViewModel>>(BrandsApiUrl);
                 var brands = brandResponse?.Value ?? new List<CarBrandViewModel>();
                 ViewBag.Brands = brands;
 
                 // Build OData query parameters
                 var odataParams = new List<string>();
-                var filters = new List<string>();
+                var filters = new List<string>
+                {
+                    "Status ne 'Inactive'"
+                };
 
                 if (filter.BrandId.HasValue) 
                     filters.Add($"BrandId eq {filter.BrandId.Value}");
@@ -81,7 +89,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 odataParams.Add("$count=true");
                 odataParams.Add("$expand=Brand");
 
-                var requestUri = "http://localhost:5084/odata/Cars";
+                var requestUri = CarsApiUrl;
                 if (odataParams.Any())
                 {
                     requestUri += "?" + string.Join("&", odataParams);
@@ -114,7 +122,7 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
-                var requestUri = $"http://localhost:5084/odata/Cars({id})?$expand=Brand";
+                var requestUri = $"{CarsApiUrl}({id})?$expand=Brand";
                 var car = await _httpClient.GetFromJsonAsync<CarViewModel>(requestUri);
                 if (car == null)
                 {
@@ -162,7 +170,7 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 int customerId = int.Parse(customerIdClaim);
                 
-                var requestUri = $"http://localhost:5084/odata/PurchaseRequests?$filter=CustomerId eq {customerId}&$expand=Car&$orderby=CreatedAt desc";
+                var requestUri = $"{PurchaseRequestsApiUrl}?$filter=CustomerId eq {customerId}&$expand=Car&$orderby=CreatedAt desc";
                 var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PurchaseRequestHistoryViewModel>>(requestUri);
                 var historyList = odataResponse?.Value ?? new List<PurchaseRequestHistoryViewModel>();
 
@@ -186,11 +194,16 @@ namespace CarSalesManagementSystemClient.Controllers
             try
             {
                 AttachJwtToken();
-                var requestUri = $"http://localhost:5084/odata/PurchaseRequests/{endpoint}";
+                var requestUri = $"{PurchaseRequestsApiUrl}/{endpoint}";
                 var response = await _httpClient.PostAsJsonAsync(requestUri, payload);
                 var content = await response.Content.ReadAsStringAsync();
                 
-                return StatusCode((int)response.StatusCode, content);
+                return new ContentResult
+                {
+                    Content = content,
+                    ContentType = response.Content.Headers.ContentType?.ToString() ?? "application/json",
+                    StatusCode = (int)response.StatusCode
+                };
             }
             catch (Exception ex)
             {
