@@ -79,8 +79,14 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">GIỚI THIỆU</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i></a>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
+                                </a>
+                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" href="#">PHỤ TÙNG</a></li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">TIN TỨC</a>
