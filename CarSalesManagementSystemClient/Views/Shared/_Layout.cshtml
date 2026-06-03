@@ -21,6 +21,10 @@
                     @if (User.Identity.IsAuthenticated)
                     {
                         <span class="me-3">Xin chào, <b>@User.Identity.Name</b>!</span>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/MaintenanceAppointments"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
+                        }
                         <a class="text-white text-decoration-none" asp-area="" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
                     }
                     else
@@ -86,7 +90,14 @@
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">TIN TỨC</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Maintenance" asp-action="Index">BẢO DƯỠNG</a>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
+                                }
+                                else
+                                {
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Maintenance" asp-action="Index">BẢO DƯỠNG</a>
+                                }
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">LIÊN HỆ</a>
@@ -290,7 +301,11 @@
                 const res = await fetch('/Auth/Login', { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
-                    window.location.reload();
+                    if (result.isAdmin) {
+                        window.location.href = '/Admin/MaintenanceAppointments';
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
                     const err = document.getElementById('loginError');
                     err.innerText = result.message;

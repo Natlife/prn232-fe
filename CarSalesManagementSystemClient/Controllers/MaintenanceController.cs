@@ -112,6 +112,12 @@ namespace CarSalesManagementSystemClient.Controllers
             }
 
             var package = apiResult.Data;
+            if (package.Status != "Available")
+            {
+                TempData["Error"] = "Gói bảo dưỡng này hiện đã ngừng cung cấp. Vui lòng chọn gói khác.";
+                return RedirectToAction("Index");
+            }
+
             var model = new BookingViewModel 
             { 
                 PackageId = package.PackageId,
@@ -130,6 +136,18 @@ namespace CarSalesManagementSystemClient.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            var checkPackageResponse = await _httpClient.GetAsync($"{_apiUrl}/MaintenancePackages/{model.PackageId}");
+            if (checkPackageResponse.IsSuccessStatusCode)
+            {
+                var content = await checkPackageResponse.Content.ReadAsStringAsync();
+                var apiResult = JsonSerializer.Deserialize<ApiResponse<MaintenancePackageViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (apiResult == null || apiResult.Data == null || apiResult.Data.Status != "Available")
+                {
+                    TempData["Error"] = "Gói bảo dưỡng này hiện đã ngừng cung cấp. Vui lòng chọn gói khác.";
+                    return RedirectToAction("Index");
+                }
             }
 
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -184,12 +202,13 @@ namespace CarSalesManagementSystemClient.Controllers
         public async Task<IActionResult> Cancel(int id)
         {
             AppendAuthorizationHeader();
+            var reqObj = new { Status = "Cancelled", Reason = "Khách hàng tự hủy" };
             var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/status",
-                new StringContent(JsonSerializer.Serialize("Cancelled"), Encoding.UTF8, "application/json"));
+                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["Success"] = "Hủy lịch hẹn thành công.";
+                TempData["Success"] = "Bạn đã hủy!!!";
             }
             else
             {
