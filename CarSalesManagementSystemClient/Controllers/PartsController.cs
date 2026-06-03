@@ -190,14 +190,53 @@ namespace CarSalesManagementSystemClient.Controllers
                     return Json(new { success = true, message = msg });
                 }
                 
-                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
-                string errMsg = errContent.TryGetProperty("message", out var msgProp) ? msgProp.GetString()! : "Đã xảy ra lỗi trên Server.";
+                string errMsg = await ExtractErrorMessageAsync(response, "Đã xảy ra lỗi trên Server.");
                 return Json(new { success = false, message = errMsg });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
             }
+        }
+
+        private async Task<string> ExtractErrorMessageAsync(HttpResponseMessage response, string defaultMessage)
+        {
+            try
+            {
+                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
+                if (errContent.TryGetProperty("message", out var msgProp))
+                {
+                    return msgProp.GetString()!;
+                }
+                if (errContent.TryGetProperty("errors", out var errorsProp) && errorsProp.ValueKind == JsonValueKind.Object)
+                {
+                    var errorsList = new List<string>();
+                    foreach (var prop in errorsProp.EnumerateObject())
+                    {
+                        foreach (var err in prop.Value.EnumerateArray())
+                        {
+                            errorsList.Add(err.GetString()!);
+                        }
+                    }
+                    if (errorsList.Any())
+                    {
+                        return string.Join("<br/>", errorsList);
+                    }
+                }
+            }
+            catch
+            {
+                try
+                {
+                    var rawStr = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(rawStr) && rawStr.Length < 200)
+                    {
+                        return rawStr;
+                    }
+                }
+                catch { }
+            }
+            return defaultMessage;
         }
 
         // POST: Parts/Delete/5 (AJAX POST)
@@ -215,8 +254,7 @@ namespace CarSalesManagementSystemClient.Controllers
                     return Json(new { success = true, message = "Xóa phụ tùng thành công!" });
                 }
 
-                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
-                string errMsg = errContent.TryGetProperty("message", out var msgProp) ? msgProp.GetString()! : "Không thể xóa phụ tùng.";
+                string errMsg = await ExtractErrorMessageAsync(response, "Không thể xóa phụ tùng.");
                 return Json(new { success = false, message = errMsg });
             }
             catch (Exception ex)

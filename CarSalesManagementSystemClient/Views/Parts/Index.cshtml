@@ -279,6 +279,26 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function addToCart(partId) {
+            var isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+            if (!isAuthenticated) {
+                Swal.fire({
+                    title: 'Yêu cầu đăng nhập!',
+                    text: 'Vui lòng đăng nhập để thêm phụ tùng vào giỏ hàng.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffc107',
+                    cancelButtonColor: '#262626',
+                    confirmButtonText: 'Đăng nhập',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var myModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        myModal.show();
+                    }
+                });
+                return;
+            }
+
             $.ajax({
                 url: '@Url.Action("AddToCart", "PartOrders")',
                 type: 'POST',

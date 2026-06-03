@@ -54,6 +54,11 @@ namespace CarSalesManagementSystemClient.Controllers
         // GET: PartOrders/Cart
         public IActionResult Cart()
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                TempData["Error"] = "Vui lòng đăng nhập để xem giỏ hàng.";
+                return RedirectToAction("Index", "Home");
+            }
             var cart = GetCartFromSession();
             return View(cart);
         }
@@ -62,6 +67,10 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int partId, int quantity = 1)
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng." });
+            }
             try
             {
                 // Fetch Part from API to verify details and stock
@@ -116,6 +125,10 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateCart(int partId, int quantity)
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập." });
+            }
             if (quantity <= 0)
             {
                 return Json(new { success = false, message = "Số lượng phải lớn hơn 0." });
@@ -157,6 +170,10 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpPost]
         public IActionResult RemoveFromCart(int partId)
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập." });
+            }
             var cart = GetCartFromSession();
             var item = cart.FirstOrDefault(x => x.PartId == partId);
             if (item != null)
@@ -241,8 +258,7 @@ namespace CarSalesManagementSystemClient.Controllers
                     return RedirectToAction(nameof(MyOrders));
                 }
 
-                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
-                string errMsg = errContent.TryGetProperty("message", out var msgProp) ? msgProp.GetString()! : "Có lỗi khi xử lý đơn hàng.";
+                string errMsg = await ExtractErrorMessageAsync(response, "Có lỗi khi xử lý đơn hàng.");
                 ModelState.AddModelError("", errMsg);
                 return View(model);
             }
@@ -308,14 +324,53 @@ namespace CarSalesManagementSystemClient.Controllers
                     return Json(new { success = true, message });
                 }
 
-                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
-                string errMsg = errContent.TryGetProperty("message", out var msgProp) ? msgProp.GetString()! : "Không thể cập nhật đơn hàng.";
+                string errMsg = await ExtractErrorMessageAsync(response, "Không thể cập nhật đơn hàng.");
                 return Json(new { success = false, message = errMsg });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
             }
+        }
+
+        private async Task<string> ExtractErrorMessageAsync(HttpResponseMessage response, string defaultMessage)
+        {
+            try
+            {
+                var errContent = await response.Content.ReadFromJsonAsync<JsonElement>();
+                if (errContent.TryGetProperty("message", out var msgProp))
+                {
+                    return msgProp.GetString()!;
+                }
+                if (errContent.TryGetProperty("errors", out var errorsProp) && errorsProp.ValueKind == JsonValueKind.Object)
+                {
+                    var errorsList = new List<string>();
+                    foreach (var prop in errorsProp.EnumerateObject())
+                    {
+                        foreach (var err in prop.Value.EnumerateArray())
+                        {
+                            errorsList.Add(err.GetString()!);
+                        }
+                    }
+                    if (errorsList.Any())
+                    {
+                        return string.Join("<br/>", errorsList);
+                    }
+                }
+            }
+            catch
+            {
+                try
+                {
+                    var rawStr = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(rawStr) && rawStr.Length < 200)
+                    {
+                        return rawStr;
+                    }
+                }
+                catch { }
+            }
+            return defaultMessage;
         }
     }
 }
