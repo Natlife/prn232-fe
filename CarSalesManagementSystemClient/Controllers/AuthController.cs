@@ -25,7 +25,7 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpGet]
         public IActionResult Login() => View();
 
-        private async Task<(bool IsSuccess, string Message, string Token)> ProcessResponse(HttpResponseMessage response)
+        private async Task<(bool IsSuccess, string Message, string? Token)> ProcessResponse(HttpResponseMessage response)
         {
             var responseString = await response.Content.ReadAsStringAsync();
             try
@@ -33,7 +33,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 var jsonDoc = JsonDocument.Parse(responseString);
                 var message = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "Đã có lỗi xảy ra.";
                 var token = jsonDoc.RootElement.TryGetProperty("token", out var tokenProp) ? tokenProp.GetString() : null;
-                return (response.IsSuccessStatusCode, message, token);
+                return (response.IsSuccessStatusCode, message ?? "Đã có lỗi xảy ra.", token);
             }
             catch (JsonException)
             {
@@ -54,7 +54,7 @@ namespace CarSalesManagementSystemClient.Controllers
 
             if (result.IsSuccess)
             {
-                var token = result.Token;
+                var token = result.Token ?? string.Empty;
                 
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
