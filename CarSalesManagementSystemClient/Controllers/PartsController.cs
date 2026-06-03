@@ -172,6 +172,31 @@ namespace CarSalesManagementSystemClient.Controllers
 
             try
             {
+                if (part.PartId == 0) // Create new
+                {
+                    part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
+                }
+                else // Update existing
+                {
+                    // Fetch existing part details to preserve status if it was Inactive (Ngưng bán)
+                    var existing = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{part.PartId}");
+                    if (existing != null)
+                    {
+                        if (part.Quantity == 0)
+                        {
+                            part.Status = "Out of Stock";
+                        }
+                        else
+                        {
+                            part.Status = existing.Status == "Inactive" ? "Inactive" : "Available";
+                        }
+                    }
+                    else
+                    {
+                        part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
+                    }
+                }
+
                 AppendAuthorizationHeader();
                 HttpResponseMessage response;
 
@@ -246,6 +271,12 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
+                // Check if the part is in any customer's cart
+                if (ActiveCartRegistry.IsPartInAnyCart(id))
+                {
+                    return Json(new { success = false, message = "Không thể xóa phụ tùng này vì sản phẩm đang nằm trong giỏ hàng của khách hàng!" });
+                }
+
                 AppendAuthorizationHeader();
                 var response = await _httpClient.DeleteAsync($"{_partsApiUrl}/{id}");
 
@@ -255,6 +286,46 @@ namespace CarSalesManagementSystemClient.Controllers
                 }
 
                 string errMsg = await ExtractErrorMessageAsync(response, "Không thể xóa phụ tùng.");
+                return Json(new { success = false, message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/Discontinue/5 (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Discontinue(int id)
+        {
+            try
+            {
+                // Check if the part is in any customer's cart
+                if (ActiveCartRegistry.IsPartInAnyCart(id))
+                {
+                    return Json(new { success = false, message = "Không thể ngưng bán phụ tùng này vì sản phẩm đang nằm trong giỏ hàng của khách hàng!" });
+                }
+
+                // Fetch existing details
+                var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{id}");
+                if (part == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phụ tùng cần cập nhật." });
+                }
+
+                // Set status to Inactive (Ngưng bán)
+                part.Status = "Inactive";
+
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PutAsJsonAsync($"{_partsApiUrl}/{id}", part);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, message = "Đã ngưng bán phụ tùng thành công!" });
+                }
+
+                string errMsg = await ExtractErrorMessageAsync(response, "Không thể ngưng bán phụ tùng.");
                 return Json(new { success = false, message = errMsg });
             }
             catch (Exception ex)

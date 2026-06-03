@@ -113,6 +113,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 }
 
                 SaveCartToSession(cart);
+                ActiveCartRegistry.UpdateCart(HttpContext.Session.Id, cart.Select(c => c.PartId));
                 return Json(new { success = true, message = $"Đã thêm {quantity} '{part.PartName}' vào giỏ hàng thành công!", cartCount = cart.Sum(x => x.Quantity) });
             }
             catch (Exception ex)
@@ -153,6 +154,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 {
                     item.Quantity = quantity;
                     SaveCartToSession(cart);
+                    ActiveCartRegistry.UpdateCart(HttpContext.Session.Id, cart.Select(c => c.PartId));
                 }
 
                 var subTotal = item != null ? (item.Price * item.Quantity).ToString("N0") + " đ" : "0 đ";
@@ -180,6 +182,7 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 cart.Remove(item);
                 SaveCartToSession(cart);
+                ActiveCartRegistry.UpdateCart(HttpContext.Session.Id, cart.Select(c => c.PartId));
             }
 
             var cartTotal = cart.Sum(x => x.Price * x.Quantity).ToString("N0") + " đ";
@@ -254,6 +257,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 {
                     // Clear cart
                     HttpContext.Session.Remove("PartCart");
+                    ActiveCartRegistry.ClearCart(HttpContext.Session.Id);
                     TempData["Success"] = "Đặt mua phụ tùng thành công! Đơn hàng của bạn đang chờ phê duyệt.";
                     return RedirectToAction(nameof(MyOrders));
                 }

@@ -92,6 +92,12 @@
                                         }
                                     </td>
                                     <td class="text-end pe-4">
+                                        @if (part.Status != "Inactive")
+                                        {
+                                            <button class="btn btn-outline-warning btn-sm me-2 fw-bold" onclick="confirmDiscontinue(@part.PartId, '@part.PartName')">
+                                                <i class="bi bi-slash-circle me-1"></i> Ngưng bán
+                                            </button>
+                                        }
                                         <button class="btn btn-outline-primary btn-sm me-2 fw-bold" onclick="openEditModal(@part.PartId)">
                                             <i class="bi bi-pencil-square me-1"></i> Sửa
                                         </button>
@@ -162,15 +168,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">Trạng thái <span class="text-danger">*</span></label>
-                            <select class="form-select" name="Status" id="status" required>
-                                <option value="Available">Còn hàng (Available)</option>
-                                <option value="Out of Stock">Hết hàng (Out of Stock)</option>
-                                <option value="Inactive">Ngưng kinh doanh (Inactive)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label fw-bold">Đường dẫn hình ảnh (URL)</label>
                             <input type="url" class="form-control" name="ImageUrl" id="imageUrl" maxlength="500" placeholder="https://..." />
                         </div>
@@ -292,6 +290,44 @@
                             if (res.success) {
                                 Swal.fire({
                                     title: 'Đã xóa!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#ffc107'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Lỗi kết nối mạng.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Handle discontinue action
+        function confirmDiscontinue(partId, name) {
+            Swal.fire({
+                title: 'Xác nhận ngưng bán?',
+                text: "Bạn có chắc chắn muốn ngưng bán phụ tùng '" + name + "'? Khách hàng sẽ không thể mua sản phẩm này nữa!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Parts/Discontinue/' + partId,
+                        type: 'POST',
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Thành công!',
                                     text: res.message,
                                     icon: 'success',
                                     confirmButtonColor: '#ffc107'
