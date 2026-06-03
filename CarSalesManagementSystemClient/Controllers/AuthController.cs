@@ -93,7 +93,7 @@ namespace CarSalesManagementSystemClient.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
                 bool isAdmin = role == "Admin";
-                var redirectUrl = isAdmin ? Url.Action("Manage", "Parts") : Url.Action("Index", "Home");
+                var redirectUrl = isAdmin ? "/Admin/Cars" : Url.Action("Index", "Home");
 
                 return Json(new { success = true, message = result.Message, redirectUrl = redirectUrl, isAdmin = isAdmin });
             }

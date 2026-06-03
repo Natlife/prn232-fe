@@ -17,7 +17,7 @@ public class HomeController : Controller
     {
         if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
         {
-            return RedirectToAction("Manage", "Parts");
+            return Redirect("/Admin/Cars");
         }
         return View();
     }

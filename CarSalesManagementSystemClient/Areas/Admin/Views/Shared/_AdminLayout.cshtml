@@ -41,6 +41,16 @@
                 <ul class="nav flex-column mb-auto">
 
                     <li>
+                        <a href="/Admin/Cars" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Cars" ? "active" : "")">
+                            <i class="bi bi-car-front-fill me-2"></i> Quan ly o to
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Admin/Captchas" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Captchas" ? "active" : "")">
+                            <i class="bi bi-key-fill me-2"></i> Gen ma captcha
+                        </a>
+                    </li>
+                    <li>
                         <a href="/Admin/MaintenancePackages" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" ? "active" : "")">
                             <i class="bi bi-tools me-2"></i> Gói Bảo dưỡng
                         </a>

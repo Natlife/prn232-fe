@@ -133,7 +133,7 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-brand d-flex align-items-center justify-content-between">
-            <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center">
                 <i class="bi bi-shield-lock-fill text-warning fs-3 me-2"></i>
                 <div class="lh-1">
                     <h5 class="m-0 fw-bold text-white">GROUP7</h5>
@@ -146,18 +146,27 @@
         <div class="admin-menu">
             <div class="px-4 py-2 text-uppercase text-secondary fw-bold" style="font-size: 10px; letter-spacing: 1px;">Quản lý hệ thống</div>
             
+            <a class="admin-menu-item @(ViewContext.RouteData.Values["area"]?.ToString() == "Admin" && ViewContext.RouteData.Values["controller"]?.ToString() == "Cars" ? "active" : "")"
+               href="/Admin/Cars">
+                <i class="bi bi-car-front-fill text-primary"></i> Quan ly o to
+            </a>
+            
+            <a class="admin-menu-item @(ViewContext.RouteData.Values["area"]?.ToString() == "Admin" && ViewContext.RouteData.Values["controller"]?.ToString() == "Captchas" ? "active" : "")"
+               href="/Admin/Captchas">
+                <i class="bi bi-key-fill text-danger"></i> Gen ma captcha
+            </a>
             <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Parts" && ViewContext.RouteData.Values["action"]?.ToString() == "Manage" ? "active" : "")" 
-               asp-controller="Parts" asp-action="Manage">
+               asp-area="" asp-controller="Parts" asp-action="Manage">
                 <i class="bi bi-tools text-warning"></i> Quản lý phụ tùng
             </a>
             
             <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "PartOrders" && ViewContext.RouteData.Values["action"]?.ToString() == "Manage" ? "active" : "")" 
-               asp-controller="PartOrders" asp-action="Manage">
+               asp-area="" asp-controller="PartOrders" asp-action="Manage">
                 <i class="bi bi-file-earmark-text text-info"></i> Quản lý đơn phụ tùng
             </a>
             
             <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" 
-               asp-controller="MaintenancePackages" asp-action="Index">
+               asp-area="" asp-controller="MaintenancePackages" asp-action="Index">
                 <i class="bi bi-ui-checks-grid text-success"></i> Quản lý gói bảo dưỡng
             </a>
 
@@ -183,7 +192,7 @@
             
             <div class="d-flex align-items-center">
                 <span class="me-3 d-none d-sm-inline-block">Xin chào, <b class="text-dark">@User.Identity?.Name</b>!</span>
-                <a class="btn btn-outline-danger btn-sm fw-bold border-2 rounded-pill px-3" asp-controller="Auth" asp-action="Logout">
+                <a class="btn btn-outline-danger btn-sm fw-bold border-2 rounded-pill px-3" asp-area="" asp-controller="Auth" asp-action="Logout">
                     <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
                 </a>
             </div>

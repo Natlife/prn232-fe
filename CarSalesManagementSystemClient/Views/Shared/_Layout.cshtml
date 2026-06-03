@@ -40,7 +40,7 @@
                         <span class="me-3">Xin chào, <b>@User.Identity.Name</b>!</span>
                         @if (User.IsInRole("Admin"))
                         {
-                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/MaintenanceAppointments"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
+                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/Cars"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
                         }
                         <a class="text-white text-decoration-none" asp-area="" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
                     }
@@ -138,10 +138,10 @@
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Admin" asp-action="Cars">QUẢN LÝ XE</a>
+                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Admin" asp-action="Captchas">QUẢN LÝ CAPTCHA</a>
+                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
                                     </li>
                                 }
                             }
