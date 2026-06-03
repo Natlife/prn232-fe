@@ -53,3 +53,22 @@ public class PagedResultViewModel<T>
     public bool HasPreviousPage { get; set; }
     public bool HasNextPage { get; set; }
 }
+
+public class PurchaseRequestHistoryViewModel
+{
+    public int RequestId { get; set; }
+    public int CarId { get; set; }
+    public int CustomerId { get; set; }
+    public string CustomerName { get; set; } = null!;
+    public string CustomerPhone { get; set; } = null!;
+    public string? CustomerEmail { get; set; }
+    public string? Message { get; set; }
+    public string Status { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public decimal? DepositAmount { get; set; }
+    public DateTime? DepositDate { get; set; }
+    public DateTime? DepositExpiry { get; set; }
+    public string? CaptchaCode { get; set; }
+    public CarViewModel Car { get; set; } = null!;
+}

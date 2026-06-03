@@ -378,7 +378,11 @@
                         </button>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-action-buy w-100 d-flex align-items-center justify-content-center gap-2" onclick="alert('Tính năng Mua Đứt sẽ được tích hợp ở luồng thanh toán sắp tới.')">
+                        <button id="btnBuyoutOpen"
+                                class="btn btn-action-buy w-100 d-flex align-items-center justify-content-center gap-2"
+                                data-carid="@Model.CarId"
+                                data-carname="@Model.CarName"
+                                data-price="@Model.Price">
                             <i class="bi bi-cart-check fs-5"></i>
                             <span>Mua Đứt Xe</span>
                         </button>
@@ -398,14 +402,14 @@
         <div id="depositStep1" class="deposit-step active">
             <div class="text-center mb-3">
                 <span style="font-size:2.5rem;">📞</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1">Đặt cọc giữ xe</h4>
-                <p class="text-muted" style="font-size:14px;">Liên hệ showroom để xác nhận và hoàn tất đặt cọc</p>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step1Title">Đặt cọc giữ xe</h4>
+                <p class="text-muted" style="font-size:14px;" id="step1Subtitle">Liên hệ showroom để xác nhận và hoàn tất đặt cọc</p>
             </div>
 
             <div class="deposit-phone-badge">
                 <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">📱 HOTLINE SHOWROOM</div>
                 <div class="phone-number">0987 173 229</div>
-                <div class="text-muted mt-1" style="font-size:12px;">Liên hệ trực tiếp để trao đổi và đặt cọc xe</div>
+                <div class="text-muted mt-1" style="font-size:12px;" id="step1HotlineDesc">Liên hệ trực tiếp để trao đổi và đặt cọc xe</div>
             </div>
 
             <div class="deposit-info-row">
@@ -413,17 +417,17 @@
                 <span class="value" id="step1CarName"></span>
             </div>
             <div class="deposit-info-row">
-                <span class="label"><i class="bi bi-cash me-1"></i> Tiền cọc (5%)</span>
+                <span class="label" id="step1AmountLabel"><i class="bi bi-cash me-1"></i> Tiền cọc (5%)</span>
                 <span class="value text-danger" id="step1DepositAmt"></span>
             </div>
-            <div class="deposit-info-row">
-                <span class="label"><i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc</span>
-                <span class="value">14 ngày</span>
+            <div class="deposit-info-row" id="step1ExpiryRow">
+                <span class="label" id="step1ExpiryLabel"><i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc</span>
+                <span class="value" id="step1ExpiryVal">14 ngày</span>
             </div>
 
-            <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;">
+            <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;" id="step1Alert">
                 <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
-                <span>Sau 14 ngày nếu không hoàn tất mua xe, tiền cọc sẽ <strong>bị mất</strong> và xe được trả lại showroom.</span>
+                <span id="step1AlertText">Sau 14 ngày nếu không hoàn tất mua xe, tiền cọc sẽ <strong>bị mất</strong> và xe được trả lại showroom.</span>
             </div>
 
             <button id="btnGoStep2" class="btn-deposit-submit">
@@ -434,12 +438,12 @@
         <div id="depositStep2" class="deposit-step">
             <div class="text-center mb-4">
                 <span style="font-size:2.5rem;">🔐</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1">Nhập mã xác nhận</h4>
-                <p class="text-muted" style="font-size:14px;">Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc</p>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step2Title">Nhập mã xác nhận</h4>
+                <p class="text-muted" style="font-size:14px;" id="step2Subtitle">Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc</p>
             </div>
 
             <div id="depositLoginWarning" class="alert alert-info d-none" style="font-size:13px; border-radius:10px;">
-                <i class="bi bi-info-circle me-1"></i> Bạn cần <a href="/Auth/Login" class="fw-bold">đăng nhập</a> để đặt cọc.
+                <i class="bi bi-info-circle me-1 text-warning"></i> <span id="loginWarningText">Bạn cần đăng nhập để đặt cọc.</span>
             </div>
 
             <label class="fw-bold text-dark mb-2" style="font-size:14px;">
@@ -455,7 +459,7 @@
             </div>
 
             <button id="btnSubmitDeposit" class="btn-deposit-submit">
-                <i class="bi bi-lock-fill me-2"></i> Xác nhận đặt cọc
+                <i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">Xác nhận đặt cọc</span>
             </button>
 
             <button id="btnBackStep1" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;">
@@ -466,19 +470,19 @@
         <div id="depositStep3" class="deposit-step">
             <div class="text-center">
                 <div class="deposit-success-icon">✅</div>
-                <h4 class="fw-bold text-success mb-2">Đặt cọc thành công!</h4>
-                <p class="text-muted" style="font-size:14px;">Xe đã được giữ riêng cho bạn.</p>
+                <h4 class="fw-bold text-success mb-2" id="step3Title">Đặt cọc thành công!</h4>
+                <p class="text-muted" style="font-size:14px;" id="step3Subtitle">Xe đã được giữ riêng cho bạn.</p>
 
                 <div class="deposit-info-row mt-3">
-                    <span class="label">Số tiền cọc</span>
+                    <span class="label" id="step3AmtLabel">Số tiền cọc</span>
                     <span class="value text-danger" id="step3DepositAmt"></span>
                 </div>
-                <div class="deposit-info-row">
+                <div class="deposit-info-row" id="step3ExpiryRow">
                     <span class="label">Hạn hoàn tất mua xe</span>
                     <span class="value" id="step3Expiry"></span>
                 </div>
                 <div class="deposit-info-row">
-                    <span class="label">Mã yêu cầu</span>
+                    <span class="label">Mã giao dịch</span>
                     <span class="value" id="step3RequestId"></span>
                 </div>
 
@@ -785,10 +789,11 @@
     });
 
     // ══════════════════════════════════════════════════════
-    //  DEPOSIT MODAL LOGIC
+    //  DEPOSIT / BUYOUT MODAL LOGIC
     // ══════════════════════════════════════════════════════
     const depositOverlay  = document.getElementById('depositModalOverlay');
     const btnOpen         = document.getElementById('btnDepositOpen');
+    const btnBuyoutOpen   = document.getElementById('btnBuyoutOpen');
     const btnClose        = document.getElementById('btnDepositClose');
     const btnGoStep2      = document.getElementById('btnGoStep2');
     const btnBackStep1    = document.getElementById('btnBackStep1');
@@ -801,6 +806,7 @@
 
     let currentCarId    = null;
     let currentCarPrice = null;
+    let modalMode       = 'deposit'; // 'deposit' | 'buyout'
 
     function showStep(n) {
         ['depositStep1','depositStep2','depositStep3'].forEach((id, i) => {
@@ -812,15 +818,49 @@
         return Number(amount).toLocaleString('vi-VN') + ' VND';
     }
 
-    function openModal() {
-        const btn   = document.getElementById('btnDepositOpen');
+    function openModal(mode) {
+        modalMode = mode;
+        const btn = (mode === 'deposit') ? btnOpen : btnBuyoutOpen;
+        if (!btn) return;
+
         currentCarId    = parseInt(btn.dataset.carid);
         currentCarPrice = parseFloat(btn.dataset.price);
         const carName   = btn.dataset.carname;
-        const deposit   = Math.round(currentCarPrice * 0.05);
 
-        document.getElementById('step1CarName').textContent    = carName;
-        document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
+        document.getElementById('step1CarName').textContent = carName;
+
+        if (mode === 'deposit') {
+            const deposit = Math.round(currentCarPrice * 0.05);
+            document.getElementById('step1Title').textContent = 'Đặt cọc giữ xe';
+            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để xác nhận và hoàn tất đặt cọc';
+            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để trao đổi và đặt cọc xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Tiền cọc (5%)';
+            document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc';
+            document.getElementById('step1ExpiryVal').textContent = '14 ngày';
+            document.getElementById('step1Alert').style.display = 'flex';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận';
+            
+            document.getElementById('step2Title').textContent = 'Nhập mã xác nhận';
+            document.getElementById('step2Subtitle').textContent = 'Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc';
+            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để đặt cọc.';
+            document.getElementById('btnSubmitText').textContent = 'Xác nhận đặt cọc';
+        } else {
+            document.getElementById('step1Title').textContent = 'Mua đứt xe';
+            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để thanh toán và hoàn tất mua đứt';
+            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để chuyển khoản thanh toán mua đứt xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Giá bán xe (100%)';
+            document.getElementById('step1DepositAmt').textContent = formatVnd(currentCarPrice);
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> Bàn giao dự kiến';
+            document.getElementById('step1ExpiryVal').textContent = 'Sớm nhất';
+            document.getElementById('step1Alert').style.display = 'none';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã thanh toán — Nhập mã giao dịch';
+
+            document.getElementById('step2Title').textContent = 'Nhập mã giao dịch';
+            document.getElementById('step2Subtitle').textContent = 'Nhập mã giao dịch do nhân viên cung cấp sau khi thanh toán thành công';
+            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để mua đứt.';
+            document.getElementById('btnSubmitText').textContent = 'Xác nhận mua đứt';
+        }
 
         captchaInput.value = '';
         depositError.style.display = 'none';
@@ -835,9 +875,13 @@
         document.body.style.overflow = '';
     }
 
-    btnOpen?.addEventListener('click', openModal);
+    btnOpen?.addEventListener('click', () => openModal('deposit'));
+    btnBuyoutOpen?.addEventListener('click', () => openModal('buyout'));
     btnClose?.addEventListener('click', closeModal);
-    btnDone?.addEventListener('click', closeModal);
+    btnDone?.addEventListener('click', () => {
+        closeModal();
+        window.location.reload();
+    });
 
     // Close on overlay click
     depositOverlay?.addEventListener('click', (e) => {
@@ -849,8 +893,6 @@
 
     // Helper: parse JWT from cookie claims (user identity)
     function getUserInfo() {
-        // Claims are baked into server-side render; we use a hidden meta tag approach
-        // We pass UserId/FullName/Phone from Razor via JS variables
         const userId   = @(User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
         const fullName = "@(User.FindFirst("name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "")";
         const email    = "@(User.FindFirst("email")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")";
@@ -868,7 +910,7 @@
         const user = getUserInfo();
         if (!user.userId || user.userId <= 0) {
             loginWarning.classList.remove('d-none');
-            depositErrorMsg.textContent = 'Bạn cần đăng nhập để đặt cọc.';
+            depositErrorMsg.textContent = modalMode === 'deposit' ? 'Bạn cần đăng nhập để đặt cọc.' : 'Bạn cần đăng nhập để mua đứt.';
             depositError.style.display = 'block';
             return;
         }
@@ -882,12 +924,13 @@
                 carId:        currentCarId,
                 customerId:   user.userId,
                 customerName: user.fullName || 'Khách hàng',
-                customerPhone: '0987173229', // will be updated when we have profile page
+                customerPhone: '0987173229',
                 customerEmail: user.email,
                 captchaCode:  code
             };
 
-            const resp = await fetch('http://localhost:5084/api/PurchaseRequests/deposit', {
+            const endpoint = modalMode === 'deposit' ? 'deposit' : 'buyout';
+            const resp = await fetch(`http://localhost:5084/api/PurchaseRequests/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -901,13 +944,26 @@
             const message = (data.message !== undefined) ? data.message : data.Message;
 
             if (resp.ok && success) {
-                // Show success step
-                document.getElementById('step3DepositAmt').textContent  = formatVnd(depositAmount);
-                document.getElementById('step3Expiry').textContent      = new Date(depositExpiry).toLocaleDateString('vi-VN');
+                if (modalMode === 'deposit') {
+                    document.getElementById('step3Title').textContent = 'Đặt cọc thành công!';
+                    document.getElementById('step3Subtitle').textContent = 'Xe đã được giữ riêng cho bạn.';
+                    document.getElementById('step3AmtLabel').textContent = 'Số tiền cọc';
+                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
+                    document.getElementById('step3ExpiryRow').style.display = 'flex';
+                    if (depositExpiry) {
+                        document.getElementById('step3Expiry').textContent = new Date(depositExpiry).toLocaleDateString('vi-VN');
+                    }
+                } else {
+                    document.getElementById('step3Title').textContent = 'Mua đứt thành công!';
+                    document.getElementById('step3Subtitle').textContent = 'Cảm ơn bạn đã mua xe tại showroom chúng tôi.';
+                    document.getElementById('step3AmtLabel').textContent = 'Tổng số tiền';
+                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
+                    document.getElementById('step3ExpiryRow').style.display = 'none';
+                }
                 document.getElementById('step3RequestId').textContent   = '#' + requestId;
                 showStep(3);
             } else {
-                depositErrorMsg.textContent = message || 'Đặt cọc không thành công.';
+                depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'Đặt cọc không thành công.' : 'Mua đứt không thành công.');
                 depositError.style.display = 'block';
             }
         } catch (err) {
@@ -915,7 +971,7 @@
             depositError.style.display = 'block';
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="bi bi-lock-fill me-2"></i> Xác nhận đặt cọc';
+            btnSubmit.innerHTML = `<i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">${modalMode === 'deposit' ? 'Xác nhận đặt cọc' : 'Xác nhận mua đứt'}</span>`;
         }
     });
 

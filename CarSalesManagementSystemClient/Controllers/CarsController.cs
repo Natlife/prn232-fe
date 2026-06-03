@@ -127,6 +127,41 @@ namespace CarSalesManagementSystemClient.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        // GET: Cars/History
+        [HttpGet]
+        public async Task<IActionResult> History()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            try
+            {
+                var customerIdClaim = User.FindFirst("sub")?.Value 
+                    ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(customerIdClaim))
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy thông tin tài khoản người dùng.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                int customerId = int.Parse(customerIdClaim);
+                
+                var requestUri = $"http://localhost:5084/odata/PurchaseRequests?$filter=CustomerId eq {customerId}&$expand=Car&$orderby=CreatedAt desc";
+                var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PurchaseRequestHistoryViewModel>>(requestUri);
+                var historyList = odataResponse?.Value ?? new List<PurchaseRequestHistoryViewModel>();
+
+                return View(historyList);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải lịch sử: " + ex.Message;
+                return View(new List<PurchaseRequestHistoryViewModel>());
+            }
+        }
     }
 
     public class ODataResponse<T>
