@@ -123,6 +123,14 @@
                                             else if (item.Status == "Cancelled")
                                             {
                                                 <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>
+                                                @if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[Lý do hủy:"))
+                                                {
+                                                    var reasonStartIndex = item.Note.LastIndexOf("[Lý do hủy:");
+                                                    var reasonText = item.Note.Substring(reasonStartIndex).Replace("[Lý do hủy:", "").Replace("]", "").Trim();
+                                                    <div class="mt-2 text-danger small" style="font-size: 0.75rem;">
+                                                        <i class="bi bi-info-circle me-1"></i>Lý do: @reasonText
+                                                    </div>
+                                                }
                                             }
                                             else if (item.Status == "Completed")
                                             {

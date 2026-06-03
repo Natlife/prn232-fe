@@ -49,7 +49,7 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label class="fw-bold mb-2 text-secondary small" asp-for="AppointmentDate">NGÀY HẸN *</label>
-                                <input type="date" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentDate" />
+                                <input type="date" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                                 <span asp-validation-for="AppointmentDate" class="text-danger small mt-1 d-block"></span>
                             </div>
                             <div class="col-md-6 mt-4 mt-md-0">
