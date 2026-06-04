@@ -166,8 +166,13 @@
             </a>
             
             <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" 
-               asp-area="" asp-controller="MaintenancePackages" asp-action="Index">
+               asp-area="Admin" asp-controller="MaintenancePackages" asp-action="Index">
                 <i class="bi bi-ui-checks-grid text-success"></i> Quản lý gói bảo dưỡng
+            </a>
+
+            <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenanceAppointments" ? "active" : "")" 
+               href="/Admin/MaintenanceAppointments">
+                <i class="bi bi-calendar-check text-primary"></i> Lịch hẹn bảo dưỡng
             </a>
 
             <div class="px-4 py-3 border-top border-secondary border-opacity-10 text-uppercase text-secondary fw-bold" style="font-size: 10px; letter-spacing: 1px; margin-top: 1rem;">Giao diện</div>
