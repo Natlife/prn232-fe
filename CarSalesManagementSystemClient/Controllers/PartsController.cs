@@ -333,5 +333,45 @@ namespace CarSalesManagementSystemClient.Controllers
                 return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
             }
         }
+
+        // POST: Parts/Resell/5 (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Resell(int id, int quantity)
+        {
+            try
+            {
+                if (quantity <= 0)
+                {
+                    return Json(new { success = false, message = "Số lượng bán lại phải lớn hơn 0." });
+                }
+
+                // Fetch existing details
+                var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{id}");
+                if (part == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phụ tùng cần cập nhật." });
+                }
+
+                // Update quantity and set status to Available (đang bán)
+                part.Quantity = quantity;
+                part.Status = "Available";
+
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PutAsJsonAsync($"{_partsApiUrl}/{id}", part);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, message = "Bán lại phụ tùng thành công và chuyển trạng thái sang đang bán!" });
+                }
+
+                string errMsg = await ExtractErrorMessageAsync(response, "Không thể bán lại phụ tùng.");
+                return Json(new { success = false, message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
     }
 }
