@@ -108,11 +108,30 @@
 
 @section Scripts {
     <script>
+        function getPackageModal() {
+            return bootstrap.Modal.getOrCreateInstance(document.getElementById('packageModal'));
+        }
+
+        const adminAlert = window.Swal || {
+            fire: function(title, text, icon) {
+                if (typeof title === 'object') {
+                    return Promise.resolve({ isConfirmed: confirm(title.text || title.title || 'Xac nhan thao tac?') });
+                }
+
+                if (icon === 'warning') {
+                    return Promise.resolve({ isConfirmed: confirm(text || title) });
+                }
+
+                alert(text || title);
+                return Promise.resolve({ isConfirmed: true });
+            }
+        };
+
         function openAddModal() {
             $('#packageForm')[0].reset();
             $('#PackageId').val(0);
-            $('#modalTitle').text('Thêm Gói Bảo Dưỡng');
-            $('#packageModal').modal('show');
+            $('#modalTitle').text('Them goi bao duong');
+            getPackageModal().show();
         }
 
         function openEditModal(id) {
@@ -127,15 +146,14 @@
                         $('#EstimatedDuration').val(res.data.estimatedDuration);
                         $('#Description').val(res.data.description);
                         $('#Status').val(res.data.status);
-                        
-                        $('#modalTitle').text('Cập Nhật Gói Bảo Dưỡng');
-                        $('#packageModal').modal('show');
+                        $('#modalTitle').text('Cap nhat goi bao duong');
+                        getPackageModal().show();
                     } else {
-                        Swal.fire('Lỗi!', res.message, 'error');
+                        adminAlert.fire('Loi!', res.message, 'error');
                     }
                 },
-                error: function() {
-                    Swal.fire('Lỗi!', 'Không thể tải dữ liệu.', 'error');
+                error: function(xhr) {
+                    adminAlert.fire('Loi!', xhr.responseText || 'Khong the tai du lieu.', 'error');
                 }
             });
         }
@@ -147,40 +165,36 @@
                 return;
             }
 
-            var formData = new FormData(form);
-
             $.ajax({
                 url: '/Admin/MaintenancePackages/Save',
                 type: 'POST',
-                data: formData,
+                data: new FormData(form),
                 processData: false,
                 contentType: false,
                 success: function(res) {
                     if (res.success) {
-                        $('#packageModal').modal('hide');
-                        Swal.fire('Thành công!', res.message, 'success').then(() => {
-                            location.reload();
-                        });
+                        getPackageModal().hide();
+                        adminAlert.fire('Thanh cong!', res.message, 'success').then(() => location.reload());
                     } else {
-                        Swal.fire('Thất bại!', res.message, 'error');
+                        adminAlert.fire('That bai!', res.message, 'error');
                     }
                 },
-                error: function() {
-                    Swal.fire('Lỗi!', 'Đã xảy ra lỗi khi lưu dữ liệu.', 'error');
+                error: function(xhr) {
+                    adminAlert.fire('Loi!', xhr.responseText || 'Da xay ra loi khi luu du lieu.', 'error');
                 }
             });
         }
 
         function deletePackage(id) {
-            Swal.fire({
-                title: 'Bạn có chắc chắn?',
-                text: "Bạn sẽ không thể khôi phục gói bảo dưỡng này!",
+            adminAlert.fire({
+                title: 'Ban co chac chan?',
+                text: 'Ban se khong the khoi phuc goi bao duong nay!',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Đồng ý, Xóa!',
-                cancelButtonText: 'Hủy'
+                confirmButtonText: 'Dong y, xoa!',
+                cancelButtonText: 'Huy'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -188,15 +202,15 @@
                         type: 'DELETE',
                         success: function(res) {
                             if (res.success) {
-                                Swal.fire('Đã xóa!', res.message, 'success').then(() => {
+                                adminAlert.fire('Da xoa!', res.message, 'success').then(() => {
                                     $('#row-' + id).fadeOut();
                                 });
                             } else {
-                                Swal.fire('Lỗi!', res.message, 'error');
+                                adminAlert.fire('Loi!', res.message, 'error');
                             }
                         },
-                        error: function() {
-                            Swal.fire('Lỗi!', 'Không thể xóa do lỗi mạng hoặc máy chủ.', 'error');
+                        error: function(xhr) {
+                            adminAlert.fire('Loi!', xhr.responseText || 'Khong the xoa do loi mang hoac may chu.', 'error');
                         }
                     });
                 }
