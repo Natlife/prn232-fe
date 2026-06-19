@@ -3,6 +3,75 @@
     ViewData["Title"] = "Lịch sử mua phụ tùng";
 }
 
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-secondary text-white",
+            "Preparing" or "Processing" => "bg-primary text-white",
+            "Shipping" or "Shipped" => "bg-info text-dark",
+            "Delivered" or "Completed" => "bg-success text-white",
+            "WaitingForInstallation" => "bg-info text-dark",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-dark text-white"
+        };
+    }
+
+    public string GetStatusDisplayName(string status, string deliveryMethod)
+    {
+        if (deliveryMethod == "GarageInstallation")
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Đang chuẩn bị",
+                "WaitingForInstallation" => "Chờ lắp đặt",
+                "Completed" => "Đã lắp đặt",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+        else if (deliveryMethod == "Pickup")
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Chờ nhận hàng",
+                "Completed" => "Đã nhận hàng",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+        else // HomeDelivery or default
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Đang chuẩn bị",
+                "Shipping" or "Shipped" => "Đang vận chuyển",
+                "Completed" or "Delivered" => "Đã giao hàng",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+    }
+    
+    public string GetDeliveryMethodName(string method)
+    {
+        return method switch
+        {
+            "HomeDelivery" => "Giao hàng tận nơi",
+            "GarageInstallation" => "Lắp đặt tại garage",
+            _ => "Nhận tại cửa hàng"
+        };
+    }
+}
+
 <div class="container py-5">
     <div class="row mb-4">
         <div class="col-12">
@@ -45,26 +114,7 @@
                             </div>
                             <div class="mt-2 mt-sm-0">
                                 <span class="me-3">Trạng thái: 
-                                    @if (order.Status == "Pending")
-                                    {
-                                        <span class="badge bg-warning text-dark">Chờ phê duyệt</span>
-                                    }
-                                    else if (order.Status == "Processing")
-                                    {
-                                        <span class="badge bg-primary">Đang xử lý</span>
-                                    }
-                                    else if (order.Status == "Shipped")
-                                    {
-                                        <span class="badge bg-info text-dark">Đang giao hàng</span>
-                                    }
-                                    else if (order.Status == "Completed")
-                                    {
-                                        <span class="badge bg-success">Đã giao hàng</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger">Đã hủy</span>
-                                    }
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">@GetStatusDisplayName(order.Status, order.DeliveryMethod)</span>
                                 </span>
 
                                 @if (order.Status == "Pending")
@@ -79,16 +129,21 @@
                         <!-- Card Body: Details -->
                         <div class="card-body p-4">
                             <div class="row">
-                                <!-- Customer Info -->
+                                <!-- Customer Info & Giao nhận -->
                                 <div class="col-md-4 border-end border-light mb-3 mb-md-0">
-                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-fill me-2 text-warning"></i> Người nhận hàng</h5>
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-fill me-2 text-warning"></i> Người nhận & Giao nhận</h5>
                                     <div class="mb-2"><b>Họ tên:</b> @order.CustomerName</div>
                                     <div class="mb-2"><b>Số điện thoại:</b> @order.CustomerPhone</div>
                                     @if (!string.IsNullOrEmpty(order.CustomerEmail))
                                     {
                                         <div class="mb-2"><b>Email:</b> @order.CustomerEmail</div>
                                     }
-                                    <div class="mb-2"><b>Địa chỉ nhận hàng:</b> @order.ShippingAddress</div>
+                                    <div class="mb-2"><b>Nhận hàng:</b> <span class="badge bg-secondary text-white">@GetDeliveryMethodName(order.DeliveryMethod)</span></div>
+                                    <div class="mb-2"><b>Phí giao nhận:</b> @(order.ShippingFee > 0 ? order.ShippingFee.ToString("N0") + " đ" : "Miễn phí")</div>
+                                    @if (order.DeliveryMethod == "HomeDelivery")
+                                    {
+                                        <div class="mb-2"><b>Địa chỉ giao:</b> @order.ShippingAddress</div>
+                                    }
                                 </div>
 
                                 <!-- Ordered Items -->
@@ -125,8 +180,15 @@
                                                         <td class="fw-bold text-end">@detail.SubTotal.ToString("N0") đ</td>
                                                     </tr>
                                                 }
+                                                @if (order.ShippingFee > 0)
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="text-end text-secondary small">Phí giao nhận:</td>
+                                                        <td class="text-end text-secondary small">@order.ShippingFee.ToString("N0") đ</td>
+                                                    </tr>
+                                                }
                                                 <tr class="table-light">
-                                                    <td colspan="4" class="text-end fw-bold">Tổng số tiền:</td>
+                                                    <td colspan="4" class="text-end fw-bold">Tổng thanh toán:</td>
                                                     <td class="text-end fw-bold text-danger fs-5">@order.TotalAmount.ToString("N0") đ</td>
                                                 </tr>
                                             </tbody>

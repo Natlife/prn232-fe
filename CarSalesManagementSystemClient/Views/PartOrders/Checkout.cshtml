@@ -43,7 +43,48 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <!-- Delivery Method Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">Phương thức nhận hàng <span class="text-danger">*</span></label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardPickup">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="DeliveryMethod" value="Pickup" checked id="deliveryPickup" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryPickup">
+                                                Tại cửa hàng
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">Miễn phí ship</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardHomeDelivery">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="DeliveryMethod" value="HomeDelivery" id="deliveryHomeDelivery" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryHomeDelivery">
+                                                Giao tận nơi
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">+ 30,000 đ</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardGarageInstallation">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="DeliveryMethod" value="GarageInstallation" id="deliveryGarageInstallation" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryGarageInstallation">
+                                                Lắp tại garage
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">+ 50,000 đ</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="DeliveryMethod" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3" id="addressGroup" style="display: none;">
                             <label asp-for="ShippingAddress" class="form-label fw-bold">Địa chỉ chi tiết (Số nhà, đường, phường/xã, quận/huyện, tỉnh) <span class="text-danger">*</span></label>
                             <textarea asp-for="ShippingAddress" class="form-control" rows="3" placeholder="Nhập địa chỉ giao hàng cụ thể"></textarea>
                             <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
@@ -103,9 +144,13 @@
                             <span class="text-secondary">Tạm tính:</span>
                             <span class="fw-bold">@total.ToString("N0") đ</span>
                         </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary">Phí giao hàng:</span>
+                            <span class="fw-bold" id="shippingFeeText">0 đ</span>
+                        </div>
                         <div class="d-flex justify-content-between mb-3 border-top pt-3 fs-5">
                             <span class="text-secondary fw-bold">Tổng thanh toán:</span>
-                            <span class="fw-bold text-danger">@total.ToString("N0") đ</span>
+                            <span class="fw-bold text-danger text-end" id="totalPaymentText">@total.ToString("N0") đ</span>
                         </div>
                     }
                     else
@@ -122,10 +167,81 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function() {
+            var baseTotal = @total;
+            
+            function updateCheckoutUI() {
+                var method = $('input[name="DeliveryMethod"]:checked').val();
+                
+                // Update card active classes
+                $('.delivery-card').removeClass('active');
+                if (method === 'Pickup') {
+                    $('#cardPickup').addClass('active');
+                    $('#addressGroup').slideUp();
+                } else if (method === 'HomeDelivery') {
+                    $('#cardHomeDelivery').addClass('active');
+                    $('#addressGroup').slideDown();
+                } else if (method === 'GarageInstallation') {
+                    $('#cardGarageInstallation').addClass('active');
+                    $('#addressGroup').slideUp();
+                }
+                
+                // Calculate fee
+                var fee = 0;
+                if (method === 'HomeDelivery') {
+                    fee = 30000;
+                } else if (method === 'GarageInstallation') {
+                    fee = 50000;
+                }
+                
+                // Update shipping fee text
+                if (fee === 0) {
+                    $('#shippingFeeText').text('Miễn phí');
+                } else {
+                    $('#shippingFeeText').text(fee.toLocaleString('vi-VN') + ' đ');
+                }
+                
+                // Update total payment
+                var grandTotal = baseTotal + fee;
+                $('#totalPaymentText').text(grandTotal.toLocaleString('vi-VN') + ' đ');
+            }
+            
+            // Listen to radio changes
+            $('input[name="DeliveryMethod"]').change(updateCheckoutUI);
+            
+            // Also click on the card selects the radio
+            $('.delivery-card').click(function(e) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                    $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
+                }
+            });
+            
+            // Initial call
+            updateCheckoutUI();
+        });
+    </script>
 }
 
 <style>
     .object-fit-cover {
         object-fit: cover;
+    }
+    .delivery-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border-color: #dee2e6 !important;
+    }
+    .delivery-card:hover {
+        border-color: #ffc107 !important;
+        transform: translateY(-2px);
+    }
+    .delivery-card.active {
+        border-color: #ffc107 !important;
+        background-color: #fffbeb !important;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .delivery-card label {
+        margin-bottom: 0;
     }
 </style>

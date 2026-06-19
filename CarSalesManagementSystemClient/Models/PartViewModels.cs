@@ -96,7 +96,9 @@ namespace CarSalesManagementSystemClient.Models
         public string CustomerName { get; set; } = null!;
         public string CustomerPhone { get; set; } = null!;
         public string? CustomerEmail { get; set; }
-        public string ShippingAddress { get; set; } = null!;
+        public string? ShippingAddress { get; set; }
+        public string DeliveryMethod { get; set; } = "Pickup";
+        public decimal ShippingFee { get; set; }
         public decimal TotalAmount { get; set; }
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
@@ -119,8 +121,10 @@ namespace CarSalesManagementSystemClient.Models
         [StringLength(100, ErrorMessage = "Email không vượt quá 100 ký tự")]
         public string? CustomerEmail { get; set; }
 
-        [Required(ErrorMessage = "Địa chỉ nhận hàng không được để trống")]
+        [Required(ErrorMessage = "Vui lòng chọn phương thức nhận hàng")]
+        public string DeliveryMethod { get; set; } = "Pickup";
+
         [StringLength(255, ErrorMessage = "Địa chỉ nhận hàng không vượt quá 255 ký tự")]
-        public string ShippingAddress { get; set; } = null!;
+        public string? ShippingAddress { get; set; }
     }
 }

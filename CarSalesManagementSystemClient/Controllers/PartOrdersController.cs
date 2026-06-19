@@ -223,6 +223,11 @@ namespace CarSalesManagementSystemClient.Controllers
                 return View(model);
             }
 
+            if (model.DeliveryMethod == "HomeDelivery" && string.IsNullOrWhiteSpace(model.ShippingAddress))
+            {
+                ModelState.AddModelError("ShippingAddress", "Địa chỉ giao hàng là bắt buộc khi chọn phương thức Giao hàng tận nơi.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -239,13 +244,21 @@ namespace CarSalesManagementSystemClient.Controllers
                     SubTotal = c.Price * c.Quantity
                 }).ToList();
 
+                decimal deliveryFee = model.DeliveryMethod switch
+                {
+                    "HomeDelivery" => 30000m,
+                    "GarageInstallation" => 50000m,
+                    _ => 0m
+                };
+
                 var payload = new
                 {
                     CustomerName = model.CustomerName,
                     CustomerPhone = model.CustomerPhone,
                     CustomerEmail = model.CustomerEmail,
                     ShippingAddress = model.ShippingAddress,
-                    TotalAmount = cart.Sum(c => c.Price * c.Quantity),
+                    DeliveryMethod = model.DeliveryMethod,
+                    TotalAmount = cart.Sum(c => c.Price * c.Quantity) + deliveryFee,
                     Status = "Pending",
                     PartOrderDetails = orderDetails
                 };
