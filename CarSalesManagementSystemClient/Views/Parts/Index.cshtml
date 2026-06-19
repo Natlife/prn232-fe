@@ -144,12 +144,12 @@
                         <div class="col">
                             <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden part-card">
                                 <!-- Part Image and Category Badge -->
-                                <div class="position-relative overflow-hidden" style="height: 180px;">
+                                <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId" class="d-block position-relative overflow-hidden" style="height: 180px;">
                                     <img src="@displayImageUrl" alt="@part.PartName" class="w-100 h-100 object-fit-cover part-image transition-transform duration-300">
                                     <span class="position-absolute top-0 start-0 m-3 badge bg-dark fs-7 px-3 py-2 shadow-sm text-warning">
                                         @part.Category?.CategoryName
                                     </span>
-                                </div>
+                                </a>
 
                                 <!-- Part Info Body -->
                                 <div class="card-body p-4 d-flex flex-column">
@@ -158,8 +158,8 @@
                                             <small class="text-secondary fw-bold text-uppercase" style="letter-spacing: 0.5px;">@part.Brand</small>
                                             <small class="text-secondary" style="font-family: monospace;">@part.PartCode</small>
                                         </div>
-                                        <h5 class="card-title fw-bold text-dark mb-0 mt-1" style="font-size: 16px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                            @part.PartName
+                                        <h5 class="card-title fw-bold mb-0 mt-1" style="font-size: 16px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                            <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId" class="text-dark text-decoration-none part-name-link">@part.PartName</a>
                                         </h5>
                                     </div>
                                     
@@ -180,24 +180,26 @@
                                     </div>
 
                                     <!-- Price and Actions -->
-                                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
-                                        <div>
+                                    <div class="border-top pt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="fs-6 fw-bold text-danger">@part.Price.ToString("N0") đ</span>
+                                            <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId"
+                                               class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size:12px;">
+                                                <i class="bi bi-eye me-1"></i>Chi tiết
+                                            </a>
                                         </div>
-                                        <div>
-                                            @if (part.Quantity > 0)
-                                            {
-                                                <button class="btn btn-warning btn-sm fw-bold px-3 py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="addToCart(@part.PartId, @part.Quantity)">
-                                                    Thêm vào giỏ hàng <i class="bi bi-cart-plus-fill ms-1"></i>
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn btn-secondary btn-sm fw-bold px-3 py-2 border-0 text-white" disabled>
-                                                    Hết hàng
-                                                </button>
-                                            }
-                                        </div>
+                                        @if (part.Quantity > 0)
+                                        {
+                                            <button class="btn btn-warning btn-sm fw-bold w-100 py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="addToCart(@part.PartId, @part.Quantity)">
+                                                <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào giỏ hàng
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm fw-bold w-100 py-2 border-0 text-white" disabled>
+                                                Hết hàng
+                                            </button>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -372,6 +374,7 @@
 }
 
 <style>
+    .part-name-link:hover { color: #ffc107 !important; text-decoration: underline !important; }
     .part-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }

@@ -119,6 +119,32 @@ namespace CarSalesManagementSystemClient.Controllers
             }
         }
 
+        // GET: Parts/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            try
+            {
+                // Fetch the single part with category expanded
+                var part = await _httpClient.GetFromJsonAsync<PartViewModel>(
+                    $"http://localhost:5084/odata/Parts({id})?$expand=Category");
+
+                if (part == null)
+                    return NotFound();
+
+                // Fetch related parts from same category (exclude current, limit 4)
+                var relatedUri = $"http://localhost:5084/odata/Parts?$expand=Category&$filter=CategoryId eq {part.CategoryId} and PartId ne {id} and Status ne 'Inactive'&$top=4&$orderby=CreatedAt desc";
+                var relatedResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>(relatedUri);
+                ViewBag.RelatedParts = relatedResponse?.Value ?? new List<PartViewModel>();
+
+                return View(part);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Không thể tải thông tin phụ tùng: " + ex.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
         // GET: Parts/Manage (Admin CRUD view)
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Manage()
