@@ -210,5 +210,67 @@ namespace CarSalesManagementSystemClient.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi kết nối máy chủ: " + ex.Message });
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> DetectImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return Json(new { success = false, message = "Vui lòng chọn một file ảnh hợp lệ." });
+            }
+
+            try
+            {
+                AttachJwtToken();
+                using var form = new MultipartFormDataContent();
+                using var fileStream = file.OpenReadStream();
+                using var streamContent = new StreamContent(fileStream);
+                streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                form.Add(streamContent, "file", file.FileName);
+
+                var detectApiUrl = $"{_apiBaseUrl}/api/CarDetection/detect";
+                var response = await _httpClient.PostAsync(detectApiUrl, form);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
+                    return Json(new { success = true, data = result });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Lỗi nhận diện ảnh từ API: " + content });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi xử lý nhận diện ảnh: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SyncVectorDb()
+        {
+            try
+            {
+                AttachJwtToken();
+                var syncApiUrl = $"{_apiBaseUrl}/api/CarDetection/sync";
+                var response = await _httpClient.PostAsync(syncApiUrl, null);
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, message = "Đồng bộ Vector DB thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Lỗi đồng bộ từ API: " + content });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi kết nối khi đồng bộ: " + ex.Message });
+            }
+        }
     }
 }
