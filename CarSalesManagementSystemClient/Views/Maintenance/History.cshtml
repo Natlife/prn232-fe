@@ -1,4 +1,4 @@
-@model IEnumerable<CarSalesManagementSystemClient.Models.AppointmentHistoryViewModel>
+@model CarSalesManagementSystemClient.Models.PagedResultViewModel<CarSalesManagementSystemClient.Models.AppointmentHistoryViewModel>
 @{
     ViewData["Title"] = "Lịch sử Đặt lịch";
 }
@@ -38,9 +38,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (Model.Items != null && Model.Items.Any())
                         {
-                            foreach (var item in Model.OrderByDescending(x => x.CreatedAt))
+                            foreach (var item in Model.Items)
                             {
                                 <tr class="border-bottom">
                                     <td class="py-4 px-4 text-secondary small">
@@ -65,6 +65,15 @@
                                         else if (item.Status == "Cancelled")
                                         {
                                             <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>
+                                            @if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[Lý do hủy:"))
+                                            {
+                                                var reasonStart = item.Note.LastIndexOf("[Lý do hủy:") + 12;
+                                                var reasonText = item.Note.Substring(reasonStart).Replace("]", "").Trim();
+                                                if (reasonText != "Khách hàng tự hủy")
+                                                {
+                                                    <div class="mt-2 small text-danger fw-bold"><i class="bi bi-info-circle me-1"></i>Lý do: @reasonText</div>
+                                                }
+                                            }
                                         }
                                         else if (item.Status == "Completed")
                                         {
@@ -83,6 +92,12 @@
                                                     <i class="bi bi-x-circle me-1"></i>Hủy
                                                 </button>
                                             </form>
+                                        }
+                                        else if (item.Status == "Confirmed" || item.Status == "In-Progress")
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" disabled title="Vui lòng liên hệ Admin nếu muốn hủy lịch">
+                                                <i class="bi bi-info-circle me-1"></i>Liên hệ Admin nếu muốn hủy
+                                            </button>
                                         }
                                         else
                                         {
@@ -106,6 +121,32 @@
                     </tbody>
                 </table>
             </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer bg-white border-top py-3">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link text-dark" asp-action="History" asp-route-pageNumber="@(Model.PageNumber - 1)" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                                    <a class="page-link @(Model.PageNumber == i ? "bg-warning border-warning text-dark fw-bold" : "text-dark")" asp-action="History" asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link text-dark" asp-action="History" asp-route-pageNumber="@(Model.PageNumber + 1)" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
         </div>
     </div>
 </div>

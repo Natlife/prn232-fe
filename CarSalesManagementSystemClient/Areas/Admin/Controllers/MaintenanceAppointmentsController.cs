@@ -40,8 +40,9 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
         }
 
         // GET: Admin/MaintenanceAppointments
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 10;
             AppendAuthorizationHeader();
             var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenanceAppointments");
             if (response.IsSuccessStatusCode)
@@ -53,9 +54,23 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                 {
                     // Sort descending by date
                     var sortedData = apiResult.Data.OrderByDescending(a => a.CreatedAt).ToList();
-                    return View(sortedData);
+
+                    int totalItems = sortedData.Count;
+                    int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
+                    if (totalPages == 0) totalPages = 1;
+                    if (page < 1) page = 1;
+                    if (page > totalPages) page = totalPages;
+
+                    ViewBag.CurrentPage = page;
+                    ViewBag.TotalPages = totalPages;
+
+                    var paginatedData = sortedData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                    return View(paginatedData);
                 }
             }
+
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = 1;
             return View(new List<AppointmentHistoryViewModel>());
         }
 

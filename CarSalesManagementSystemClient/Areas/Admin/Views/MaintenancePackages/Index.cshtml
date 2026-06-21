@@ -18,7 +18,7 @@
                     <tr>
                         <th class="ps-4 py-3">Tên Gói</th>
                         <th class="py-3">Giá (VNĐ)</th>
-                        <th class="py-3">Thời gian (phút)</th>
+                        <th class="py-3">Thời gian (giờ)</th>
                         <th class="py-3">Trạng thái</th>
                         <th class="py-3 text-end pe-4">Thao tác</th>
                     </tr>
@@ -29,7 +29,7 @@
                         <tr id="row-@item.PackageId">
                             <td class="ps-4 fw-bold">@item.PackageName</td>
                             <td class="text-danger fw-bold">@item.Price.ToString("N0")</td>
-                            <td><i class="bi bi-clock me-1 text-muted"></i>@item.EstimatedDuration</td>
+                            <td><i class="bi bi-clock me-1 text-muted"></i>@item.EstimatedDuration giờ</td>
                             <td>
                                 @if (item.Status == "Available")
                                 {
@@ -53,6 +53,26 @@
                 </tbody>
             </table>
         </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-4 mb-3">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)">Trước</a>
+                    </li>
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="?page=@i">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
 </div>
 
@@ -79,7 +99,7 @@
                             <input type="number" class="form-control" id="Price" name="Price" required min="0">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Thời gian (phút) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Thời gian (giờ) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="EstimatedDuration" name="EstimatedDuration" required min="1">
                         </div>
                     </div>
