@@ -1,0 +1,236 @@
+@page
+@model CarSalesRazorPages.Pages.MaintenancePackages.ManageModel
+@{ 
+    Layout = "_AdminLayout"; 
+    ViewData["Title"] = "Quản lý Gói Bảo Dưỡng";
+}
+
+<div class="container py-5" style="min-height: 80vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">🛠️ Quản lý Gói Bảo Dưỡng</h2>
+            <p class="text-muted mb-0">Thiết lập các gói bảo dưỡng và giá dịch vụ cho trung tâm</p>
+        </div>
+        <div>
+            <button class="btn btn-warning fw-bold rounded-3 text-dark" onclick="openCreateModal()">
+                <i class="bi bi-plus-circle-fill me-1"></i> Thêm gói mới
+            </button>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+        <div class="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold"><i class="bi bi-gear-wide-connected me-2"></i>Các gói bảo dưỡng hiện có</h5>
+            <span class="badge bg-secondary rounded-pill">@Model.Packages.Count gói</span>
+        </div>
+        
+        @if (!Model.Packages.Any())
+        {
+            <div class="text-center py-5">
+                <span class="display-3">🛠️</span>
+                <h5 class="fw-bold mt-3">Chưa có gói bảo dưỡng nào</h5>
+                <button class="btn btn-dark mt-2 rounded-3" onclick="openCreateModal()">+ Thêm gói đầu tiên</button>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 px-4" style="font-size: 13px;">Tên gói bảo dưỡng</th>
+                            <th class="py-3" style="font-size: 13px;">Giá dịch vụ</th>
+                            <th class="py-3" style="font-size: 13px;">Trạng thái</th>
+                            <th class="py-3 text-center" style="font-size: 13px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Packages)
+                        {
+                            <tr>
+                                <td class="py-3 px-4">
+                                    <div class="fw-bold text-dark">@item.PackageName</div>
+                                    <small class="text-muted">Mã gói: #@item.PackageId</small>
+                                </td>
+                                <td class="py-3 fw-bold text-danger">
+                                    @item.Price.ToString("N0") đ
+                                </td>
+                                <td class="py-3">
+                                    @if (item.Status == "Available")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3">Có sẵn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary rounded-pill px-3">Ẩn</span>
+                                    }
+                                </td>
+                                <td class="py-3 text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <button class="btn btn-sm btn-outline-warning rounded-2 px-2" title="Sửa" 
+                                                onclick="openEditModal(@item.PackageId, '@Html.Raw(JavaScriptEncoder.Default.Encode(item.PackageName))', @item.Price, '@item.Status')">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger rounded-2 px-2" title="Xóa" onclick="deletePackage(@item.PackageId)">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Form (Create / Edit) -->
+<div class="modal fade" id="packageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold" id="modalTitle">Gói bảo dưỡng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="packageForm">
+                    <input type="hidden" id="pkgId" />
+                    
+                    <div class="mb-3">
+                        <label for="pkgName" class="form-label fw-bold">Tên gói bảo dưỡng *</label>
+                        <input type="text" id="pkgName" class="form-control" placeholder="VD: Bảo dưỡng định kỳ 10.000 km" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pkgPrice" class="form-label fw-bold">Giá dịch vụ (VNĐ) *</label>
+                        <input type="number" id="pkgPrice" class="form-control" min="0" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pkgStatus" class="form-label fw-bold">Trạng thái *</label>
+                        <select id="pkgStatus" class="form-select">
+                            <option value="Available">Có sẵn (Available)</option>
+                            <option value="Inactive">Ẩn (Inactive)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning fw-bold px-4 text-dark" id="btnSave" onclick="savePackage()">Lưu lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        let pkgModal = null;
+
+        $(document).ready(function() {
+            pkgModal = new bootstrap.Modal(document.getElementById('packageModal'));
+        });
+
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+            };
+        }
+
+        function openCreateModal() {
+            $('#pkgId').val('');
+            $('#pkgName').val('');
+            $('#pkgPrice').val('');
+            $('#pkgStatus').val('Available');
+            $('#modalTitle').text('➕ Thêm Gói Bảo Dưỡng');
+            pkgModal.show();
+        }
+
+        function openEditModal(id, name, price, status) {
+            $('#pkgId').val(id);
+            $('#pkgName').val(name);
+            $('#pkgPrice').val(price);
+            $('#pkgStatus').val(status);
+            $('#modalTitle').text('✏️ Chỉnh Sửa Gói Bảo Dưỡng');
+            pkgModal.show();
+        }
+
+        function savePackage() {
+            const id = $('#pkgId').val();
+            const payload = {
+                PackageName: $('#pkgName').val().trim(),
+                Price: parseFloat($('#pkgPrice').val()),
+                Status: $('#pkgStatus').val()
+            };
+
+            if (id) {
+                payload.PackageId = parseInt(id);
+            }
+
+            if (!payload.PackageName || isNaN(payload.Price)) {
+                Swal.fire('Lỗi!', 'Vui lòng nhập đầy đủ thông tin hợp lệ.', 'error');
+                return;
+            }
+
+            const url = id ? `/MaintenancePackages/Manage?handler=Update&id=${id}` : '/MaintenancePackages/Manage?handler=Create';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                headers: getHeaders(),
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire('Thành công!', res.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi!', res.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Lỗi!', 'Không thể gửi yêu cầu đến máy chủ.', 'error');
+                }
+            });
+        }
+
+        function deletePackage(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc chắn muốn xóa gói bảo dưỡng này?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý xóa',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: `/MaintenancePackages/Manage?handler=Delete&id=${id}`,
+                        type: 'POST',
+                        headers: getHeaders(),
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Đã xóa!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Lỗi!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Không thể thực hiện xóa.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

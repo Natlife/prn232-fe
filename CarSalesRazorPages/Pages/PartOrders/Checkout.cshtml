@@ -1,0 +1,249 @@
+@page
+@model CarSalesRazorPages.Pages.PartOrders.CheckoutModel
+
+@{
+    ViewData["Title"] = "Thanh toán Đơn hàng Phụ tùng";
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
+                THÔNG TIN GIAO HÀNG
+            </h1>
+            <p class="text-secondary m-0 ps-3">Nhập địa chỉ giao hàng và thông tin liên hệ của bạn</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Side: Shipping Form -->
+        <div class="col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4 pb-2 border-bottom">Địa chỉ nhận hàng</h4>
+                    
+                    <form method="post" id="checkoutForm">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="OrderModel.CustomerName" class="form-label fw-bold">Họ và tên người nhận <span class="text-danger">*</span></label>
+                            <input asp-for="OrderModel.CustomerName" class="form-control py-2" placeholder="Nhập đầy đủ họ và tên" />
+                            <span asp-validation-for="OrderModel.CustomerName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="OrderModel.CustomerPhone" class="form-label fw-bold">Số điện thoại nhận hàng <span class="text-danger">*</span></label>
+                                <input asp-for="OrderModel.CustomerPhone" class="form-control py-2" placeholder="Số điện thoại liên lạc" />
+                                <span asp-validation-for="OrderModel.CustomerPhone" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="OrderModel.CustomerEmail" class="form-label fw-bold">Địa chỉ Email</label>
+                                <input asp-for="OrderModel.CustomerEmail" class="form-control py-2" placeholder="để nhận thông tin đơn hàng" readonly />
+                                <span asp-validation-for="OrderModel.CustomerEmail" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Method Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">Phương thức nhận hàng <span class="text-danger">*</span></label>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardPickup">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="OrderModel.DeliveryMethod" value="Pickup" checked id="deliveryPickup" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryPickup">
+                                                Tại cửa hàng
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">Miễn phí ship</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardHomeDelivery">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="OrderModel.DeliveryMethod" value="HomeDelivery" id="deliveryHomeDelivery" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryHomeDelivery">
+                                                Giao tận nơi
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">+ 30,000 đ</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check card border p-3 h-100 delivery-card" id="cardGarageInstallation">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <input class="form-check-input ms-0 me-2" type="radio" asp-for="OrderModel.DeliveryMethod" value="GarageInstallation" id="deliveryGarageInstallation" />
+                                            <label class="form-check-label fw-bold text-dark cursor-pointer" for="deliveryGarageInstallation">
+                                                Lắp tại garage
+                                            </label>
+                                        </div>
+                                        <small class="text-secondary d-block ps-4">+ 50,000 đ</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="OrderModel.DeliveryMethod" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3" id="addressGroup" style="display: none;">
+                            <label asp-for="OrderModel.ShippingAddress" class="form-label fw-bold">Địa chỉ chi tiết (Số nhà, đường, phường/xã, quận/huyện, tỉnh) <span class="text-danger">*</span></label>
+                            <textarea asp-for="OrderModel.ShippingAddress" class="form-control" rows="3" placeholder="Nhập địa chỉ giao hàng cụ thể"></textarea>
+                            <span asp-validation-for="OrderModel.ShippingAddress" class="text-danger small"></span>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <a asp-page="/PartOrders/Cart" class="btn btn-light px-4 py-3 fw-bold text-secondary me-2">
+                                <i class="bi bi-chevron-left me-1"></i> Trở lại Giỏ hàng
+                            </a>
+                            <button type="submit" class="btn btn-warning px-5 py-3 fw-bold border-0 text-dark" style="background-color: #ffc107;">
+                                ĐẶT MUA NGAY <i class="bi bi-check-circle-fill ms-1"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Order Items read-only Summary -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-4 pb-2 border-bottom">Sản phẩm đặt mua</h4>
+                    
+                    @{
+                        // Read cart items directly from session for display helper
+                        var json = HttpContext.Session.GetString("PartCart");
+                        var cartItems = string.IsNullOrEmpty(json) 
+                            ? new List<CarSalesRazorPages.Models.CartItemViewModel>() 
+                            : System.Text.Json.JsonSerializer.Deserialize<List<CarSalesRazorPages.Models.CartItemViewModel>>(json);
+                        var total = cartItems?.Sum(x => x.Price * x.Quantity) ?? 0;
+                    }
+
+                    @if (cartItems != null && cartItems.Any())
+                    {
+                        <div class="mb-4">
+                            @foreach (var item in cartItems)
+                            {
+                                var displayImageUrl = string.IsNullOrWhiteSpace(item.ImageUrl) 
+                                    ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=50&q=80" 
+                                    : item.ImageUrl;
+                                    
+                                <div class="d-flex align-items-center mb-3 pb-3 border-bottom border-light">
+                                    <img src="@displayImageUrl" alt="@item.PartName" class="rounded object-fit-cover me-3" style="width: 50px; height: 50px;" />
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 14px;">@item.PartName</div>
+                                        <small class="text-secondary">@item.Quantity x @item.Price.ToString("N0") đ</small>
+                                    </div>
+                                    <div class="fw-bold text-dark text-end ms-2" style="font-size: 14px; min-width: 90px;">
+                                        @((item.Price * item.Quantity).ToString("N0")) đ
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary">Tạm tính:</span>
+                            <span class="fw-bold">@total.ToString("N0") đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-secondary">Phí giao hàng:</span>
+                            <span class="fw-bold" id="shippingFeeText">0 đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 border-top pt-3 fs-5">
+                            <span class="text-secondary fw-bold">Tổng thanh toán:</span>
+                            <span class="fw-bold text-danger text-end" id="totalPaymentText">@total.ToString("N0") đ</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-secondary">
+                            Chưa có sản phẩm nào trong giỏ hàng.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        $(document).ready(function() {
+            var baseTotal = @total;
+            
+            function updateCheckoutUI() {
+                var method = $('input[name="OrderModel.DeliveryMethod"]:checked').val();
+                
+                // Update card active classes
+                $('.delivery-card').removeClass('active');
+                if (method === 'Pickup') {
+                    $('#cardPickup').addClass('active');
+                    $('#addressGroup').slideUp();
+                } else if (method === 'HomeDelivery') {
+                    $('#cardHomeDelivery').addClass('active');
+                    $('#addressGroup').slideDown();
+                } else if (method === 'GarageInstallation') {
+                    $('#cardGarageInstallation').addClass('active');
+                    $('#addressGroup').slideUp();
+                }
+                
+                // Calculate fee
+                var fee = 0;
+                if (method === 'HomeDelivery') {
+                    fee = 30000;
+                } else if (method === 'GarageInstallation') {
+                    fee = 50000;
+                }
+                
+                // Update shipping fee text
+                if (fee === 0) {
+                    $('#shippingFeeText').text('Miễn phí');
+                } else {
+                    $('#shippingFeeText').text(fee.toLocaleString('vi-VN') + ' đ');
+                }
+                
+                // Update total payment
+                var grandTotal = baseTotal + fee;
+                $('#totalPaymentText').text(grandTotal.toLocaleString('vi-VN') + ' đ');
+            }
+            
+            // Listen to radio changes
+            $('input[name="OrderModel.DeliveryMethod"]').change(updateCheckoutUI);
+            
+            // Also click on the card selects the radio
+            $('.delivery-card').click(function(e) {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+                    $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
+                }
+            });
+            
+            // Initial call
+            updateCheckoutUI();
+        });
+    </script>
+}
+
+<style>
+    .object-fit-cover {
+        object-fit: cover;
+    }
+    .delivery-card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        border-color: #dee2e6 !important;
+    }
+    .delivery-card:hover {
+        border-color: #ffc107 !important;
+        transform: translateY(-2px);
+    }
+    .delivery-card.active {
+        border-color: #ffc107 !important;
+        background-color: #fffbeb !important;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .delivery-card label {
+        margin-bottom: 0;
+    }
+</style>

@@ -1,0 +1,260 @@
+@page
+@model CarSalesRazorPages.Pages.PartOrders.MyOrdersModel
+@{
+    ViewData["Title"] = "Lịch sử mua phụ tùng";
+}
+
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Confirmed" => "bg-secondary text-white",
+            "Preparing" or "Processing" => "bg-primary text-white",
+            "Shipping" or "Shipped" => "bg-info text-dark",
+            "Delivered" or "Completed" => "bg-success text-white",
+            "WaitingForInstallation" => "bg-info text-dark",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-dark text-white"
+        };
+    }
+
+    public string GetStatusDisplayName(string status, string deliveryMethod)
+    {
+        if (deliveryMethod == "GarageInstallation")
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Đang chuẩn bị",
+                "WaitingForInstallation" => "Chờ lắp đặt",
+                "Completed" => "Đã lắp đặt",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+        else if (deliveryMethod == "Pickup")
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Chờ nhận hàng",
+                "Completed" => "Đã nhận hàng",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+        else // HomeDelivery or default
+        {
+            return status switch
+            {
+                "Pending" => "Chờ phê duyệt",
+                "Confirmed" => "Đã xác nhận",
+                "Preparing" or "Processing" => "Đang chuẩn bị",
+                "Shipping" or "Shipped" => "Đang vận chuyển",
+                "Completed" or "Delivered" => "Đã giao hàng",
+                "Cancelled" => "Đã hủy",
+                _ => status
+            };
+        }
+    }
+    
+    public string GetDeliveryMethodName(string method)
+    {
+        return method switch
+        {
+            "HomeDelivery" => "Giao hàng tận nơi",
+            "GarageInstallation" => "Lắp đặt tại garage",
+            _ => "Nhận tại cửa hàng"
+        };
+    }
+}
+
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
+                LỊCH SỬ ĐƠN HÀNG PHỤ TÙNG
+            </h1>
+            <p class="text-secondary m-0 ps-3">Theo dõi tiến độ giao hàng và thông tin các đơn hàng đã đặt</p>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+        </div>
+    }
+
+    @if (Model.Orders == null || !Model.Orders.Any())
+    {
+        <div class="text-center py-5 bg-white shadow-sm rounded-3">
+            <i class="bi bi-box-seam text-secondary" style="font-size: 5rem;"></i>
+            <h4 class="mt-3 fw-bold text-dark">Bạn chưa đặt đơn hàng phụ tùng nào!</h4>
+            <p class="text-secondary">Hãy khám phá cửa hàng phụ tùng chính hãng của chúng tôi.</p>
+            <a asp-page="/Parts/Index" class="btn btn-warning fw-bold border-0 px-4 py-2 mt-2 text-dark" style="background-color: #ffc107;">Mua sắm ngay</a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                @foreach (var order in Model.Orders)
+                {
+                    <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="card-header bg-dark text-white p-3 d-flex flex-wrap justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-warning me-3">Đơn hàng #@order.OrderId</span>
+                                <span class="text-secondary me-3"><i class="bi bi-calendar3 me-1"></i> @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                            <div class="mt-2 mt-sm-0">
+                                <span class="me-3">Trạng thái: 
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">@GetStatusDisplayName(order.Status, order.DeliveryMethod)</span>
+                                </span>
+
+                                @if (order.Status == "Pending")
+                                {
+                                    <button class="btn btn-danger btn-sm fw-bold px-3 border-0" onclick="cancelOrder(@order.OrderId)">
+                                        Hủy đơn hàng <i class="bi bi-x-circle-fill ms-1"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Card Body: Details -->
+                        <div class="card-body p-4">
+                            <div class="row">
+                                <!-- Customer Info & Giao nhận -->
+                                <div class="col-md-4 border-end border-light mb-3 mb-md-0">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-fill me-2 text-warning"></i> Người nhận & Giao nhận</h5>
+                                    <div class="mb-2"><b>Họ tên:</b> @order.CustomerName</div>
+                                    <div class="mb-2"><b>Số điện thoại:</b> @order.CustomerPhone</div>
+                                    @if (!string.IsNullOrEmpty(order.CustomerEmail))
+                                    {
+                                        <div class="mb-2"><b>Email:</b> @order.CustomerEmail</div>
+                                    }
+                                    <div class="mb-2"><b>Nhận hàng:</b> <span class="badge bg-secondary text-white">@GetDeliveryMethodName(order.DeliveryMethod)</span></div>
+                                    <div class="mb-2"><b>Phí giao nhận:</b> @(order.ShippingFee > 0 ? order.ShippingFee.ToString("N0") + " đ" : "Miễn phí")</div>
+                                    @if (order.DeliveryMethod == "HomeDelivery")
+                                    {
+                                        <div class="mb-2"><b>Địa chỉ giao:</b> @order.ShippingAddress</div>
+                                    }
+                                </div>
+
+                                <!-- Ordered Items -->
+                                <div class="col-md-8">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-tools me-2 text-warning"></i> Danh sách phụ tùng đặt mua</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle mb-0" style="font-size: 14px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Hình ảnh</th>
+                                                    <th>Tên phụ tùng</th>
+                                                    <th>Đơn giá</th>
+                                                    <th>Số lượng</th>
+                                                    <th class="text-end">Thành tiền</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var detail in order.PartOrderDetails)
+                                                {
+                                                    var imgUrl = string.IsNullOrWhiteSpace(detail.Part?.ImageUrl) 
+                                                        ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=50&q=80" 
+                                                        : detail.Part.ImageUrl;
+                                                        
+                                                    <tr>
+                                                        <td>
+                                                            <img src="@imgUrl" class="rounded object-fit-cover" style="width: 40px; height: 40px;" alt="" />
+                                                        </td>
+                                                        <td>
+                                                            <span class="fw-bold">@detail.Part?.PartName</span>
+                                                            <span class="d-block text-secondary small" style="font-family: monospace;">@detail.Part?.PartCode</span>
+                                                        </td>
+                                                        <td>@detail.UnitPrice.ToString("N0") đ</td>
+                                                        <td>@detail.Quantity</td>
+                                                        <td class="fw-bold text-end">@detail.SubTotal.ToString("N0") đ</td>
+                                                    </tr>
+                                                }
+                                                @if (order.ShippingFee > 0)
+                                                {
+                                                    <tr>
+                                                        <td colspan="4" class="text-end text-secondary small">Phí giao nhận:</td>
+                                                        <td class="text-end text-secondary small">@order.ShippingFee.ToString("N0") đ</td>
+                                                    </tr>
+                                                }
+                                                <tr class="table-light">
+                                                    <td colspan="4" class="text-end fw-bold">Tổng thanh toán:</td>
+                                                    <td class="text-end fw-bold text-danger fs-5">@order.TotalAmount.ToString("N0") đ</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function cancelOrder(orderId) {
+            Swal.fire({
+                title: 'Hủy đơn hàng?',
+                text: "Bạn có chắc chắn muốn hủy đơn hàng này? Thao tác không thể rút lại!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Không hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/PartOrders/MyOrders?handler=UpdateStatus',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { id: orderId, status: 'Cancelled' },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Đã hủy!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#ffc107'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Lỗi kết nối máy chủ.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .object-fit-cover {
+        object-fit: cover;
+    }
+</style>

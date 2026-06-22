@@ -1,0 +1,43 @@
+@page
+@{
+    ViewData["Title"] = "Từ chối truy cập";
+}
+
+<div class="access-denied-wrapper py-5 d-flex align-items-center justify-content-center" style="min-height: 80vh; background: radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(30, 30, 30) 90.2%);">
+    <div class="card border-0 shadow-lg error-card overflow-hidden" style="width: 500px; border-radius: 16px; background: rgba(38, 38, 38, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1) !important;">
+        <div class="card-body p-5 text-center">
+            <!-- Alert Icon -->
+            <div class="icon-box mb-4 d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(220, 53, 69, 0.1); border: 2px solid rgba(220, 53, 69, 0.3);">
+                <i class="bi bi-shield-lock-fill text-danger" style="font-size: 3.5rem;"></i>
+            </div>
+
+            <!-- Error Message -->
+            <h3 class="fw-bold text-white mb-2" style="font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">TỪ CHỐI TRUY CẬP</h3>
+            <p class="text-danger fw-bold mb-4" style="font-size: 14px; letter-spacing: 1px;">ERROR 403: FORBIDDEN</p>
+            
+            <p class="text-secondary mb-5" style="font-size: 15px; line-height: 1.6;">
+                Bạn không có quyền truy cập vào tài nguyên này. Trang yêu cầu bạn phải có vai trò hoặc đặc quyền cấp cao hơn (ví dụ: Quản trị viên).
+            </p>
+
+            <!-- Back Buttons -->
+            <div class="d-grid gap-2">
+                <a asp-page="/Index" class="btn btn-warning py-3 fw-bold text-dark border-0 transition-all" style="background-color: #ffc107; border-radius: 8px;">
+                    <i class="bi bi-house-door-fill me-2"></i> QUAY VỀ TRANG CHỦ
+                </a>
+                <a href="javascript:history.back()" class="btn btn-outline-light py-2 fw-bold" style="border-radius: 8px;">
+                    <i class="bi bi-arrow-left me-2"></i> Quay lại trang trước
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .error-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.15) !important;
+    }
+</style>
