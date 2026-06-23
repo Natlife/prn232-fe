@@ -1,0 +1,220 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.MaintenancePackageViewModel>
+@{
+    ViewData["Title"] = "Quản lý Gói Bảo dưỡng";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0 text-gray-800">Danh sách Gói Bảo dưỡng</h2>
+    <button type="button" class="btn btn-warning fw-bold shadow-sm" onclick="openAddModal()">
+        <i class="bi bi-plus-circle me-1"></i> Thêm Gói Mới
+    </button>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-4 py-3">Tên Gói</th>
+                        <th class="py-3">Giá (VNĐ)</th>
+                        <th class="py-3">Thời gian (phút)</th>
+                        <th class="py-3">Trạng thái</th>
+                        <th class="py-3 text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr id="row-@item.PackageId">
+                            <td class="ps-4 fw-bold">@item.PackageName</td>
+                            <td class="text-danger fw-bold">@item.Price.ToString("N0")</td>
+                            <td><i class="bi bi-clock me-1 text-muted"></i>@item.EstimatedDuration</td>
+                            <td>
+                                @if (item.Status == "Available")
+                                {
+                                    <span class="badge bg-success">Sẵn sàng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ngừng CC</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="openEditModal(@item.PackageId)">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deletePackage(@item.PackageId)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form -->
+<div class="modal fade" id="packageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold" id="modalTitle">Thêm Gói Bảo Dưỡng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="packageForm">
+                <div class="modal-body">
+                    <input type="hidden" id="PackageId" name="PackageId" value="0" />
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên gói <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="PackageName" name="PackageName" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="Price" name="Price" required min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Thời gian (phút) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="EstimatedDuration" name="EstimatedDuration" required min="1">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea class="form-control" id="Description" name="Description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Trạng thái</label>
+                        <select class="form-select" id="Status" name="Status">
+                            <option value="Available">Sẵn sàng</option>
+                            <option value="Unavailable">Ngừng cung cấp</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning fw-bold" onclick="savePackage()">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function getPackageModal() {
+            return bootstrap.Modal.getOrCreateInstance(document.getElementById('packageModal'));
+        }
+
+        const adminAlert = window.Swal || {
+            fire: function(title, text, icon) {
+                if (typeof title === 'object') {
+                    return Promise.resolve({ isConfirmed: confirm(title.text || title.title || 'Xac nhan thao tac?') });
+                }
+
+                if (icon === 'warning') {
+                    return Promise.resolve({ isConfirmed: confirm(text || title) });
+                }
+
+                alert(text || title);
+                return Promise.resolve({ isConfirmed: true });
+            }
+        };
+
+        function openAddModal() {
+            $('#packageForm')[0].reset();
+            $('#PackageId').val(0);
+            $('#modalTitle').text('Them goi bao duong');
+            getPackageModal().show();
+        }
+
+        function openEditModal(id) {
+            $.ajax({
+                url: '/Admin/MaintenancePackages/Get/' + id,
+                type: 'GET',
+                success: function(res) {
+                    if (res.success) {
+                        $('#PackageId').val(res.data.packageId);
+                        $('#PackageName').val(res.data.packageName);
+                        $('#Price').val(res.data.price);
+                        $('#EstimatedDuration').val(res.data.estimatedDuration);
+                        $('#Description').val(res.data.description);
+                        $('#Status').val(res.data.status);
+                        $('#modalTitle').text('Cap nhat goi bao duong');
+                        getPackageModal().show();
+                    } else {
+                        adminAlert.fire('Loi!', res.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    adminAlert.fire('Loi!', xhr.responseText || 'Khong the tai du lieu.', 'error');
+                }
+            });
+        }
+
+        function savePackage() {
+            var form = $('#packageForm')[0];
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/MaintenancePackages/Save',
+                type: 'POST',
+                data: new FormData(form),
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        getPackageModal().hide();
+                        adminAlert.fire('Thanh cong!', res.message, 'success').then(() => location.reload());
+                    } else {
+                        adminAlert.fire('That bai!', res.message, 'error');
+                    }
+                },
+                error: function(xhr) {
+                    adminAlert.fire('Loi!', xhr.responseText || 'Da xay ra loi khi luu du lieu.', 'error');
+                }
+            });
+        }
+
+        function deletePackage(id) {
+            adminAlert.fire({
+                title: 'Ban co chac chan?',
+                text: 'Ban se khong the khoi phuc goi bao duong nay!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Dong y, xoa!',
+                cancelButtonText: 'Huy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Admin/MaintenancePackages/Delete/' + id,
+                        type: 'DELETE',
+                        success: function(res) {
+                            if (res.success) {
+                                adminAlert.fire('Da xoa!', res.message, 'success').then(() => {
+                                    $('#row-' + id).fadeOut();
+                                });
+                            } else {
+                                adminAlert.fire('Loi!', res.message, 'error');
+                            }
+                        },
+                        error: function(xhr) {
+                            adminAlert.fire('Loi!', xhr.responseText || 'Khong the xoa do loi mang hoac may chu.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,215 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.PartOrderViewModel>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý đơn hàng phụ tùng - Admin";
+}
+
+<div class="container-fluid py-5 px-md-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
+                QUẢN LÝ ĐƠN HÀNG PHỤ TÙNG
+            </h1>
+            <p class="text-secondary m-0 ps-3">Danh sách toàn bộ đơn đặt mua phụ tùng trên hệ thống</p>
+        </div>
+    </div>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.ErrorMessage
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5 bg-white shadow-sm rounded-3">
+            <i class="bi bi-box-seam text-secondary" style="font-size: 5rem;"></i>
+            <h4 class="mt-3 fw-bold text-dark">Chưa có đơn hàng nào được đặt!</h4>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark text-white">
+                                <tr>
+                                    <th class="ps-4">Mã đơn</th>
+                                    <th>Khách hàng</th>
+                                    <th>Liên hệ nhận hàng</th>
+                                    <th>Thời gian đặt</th>
+                                    <th>Địa chỉ giao</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end pe-4">Hành động duyệt đơn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in Model)
+                                {
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-warning">#@order.OrderId</td>
+                                        <td>
+                                            <div class="fw-bold text-dark">@order.CustomerName</div>
+                                            @if (!string.IsNullOrEmpty(order.CustomerEmail))
+                                            {
+                                                <small class="text-muted d-block" style="font-size: 11px;">@order.CustomerEmail</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div><i class="bi bi-telephone-fill small text-secondary me-1"></i> @order.CustomerPhone</div>
+                                        </td>
+                                        <td>@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 200px;" title="@order.ShippingAddress">@order.ShippingAddress</div>
+                                        </td>
+                                        <td class="fw-bold text-danger">@order.TotalAmount.ToString("N0") đ</td>
+                                        <td>
+                                            @if (order.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Chờ phê duyệt</span>
+                                            }
+                                            else if (order.Status == "Processing")
+                                            {
+                                                <span class="badge bg-primary">Đang xử lý</span>
+                                            }
+                                            else if (order.Status == "Shipped")
+                                            {
+                                                <span class="badge bg-info text-dark">Đang giao</span>
+                                            }
+                                            else if (order.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Đã giao</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Đã hủy</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <!-- Detail Button -->
+                                            <button class="btn btn-outline-secondary btn-sm me-1 fw-bold" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#items-@order.OrderId" 
+                                                    aria-expanded="false">
+                                                <i class="bi bi-eye me-1"></i> Chi tiết
+                                            </button>
+
+                                            <!-- Approval buttons based on status -->
+                                            @if (order.Status == "Pending")
+                                            {
+                                                <button class="btn btn-success btn-sm me-1 fw-bold" onclick="updateOrderStatus(@order.OrderId, 'Processing', 'Duyệt đơn hàng và đưa vào sản xuất/chuẩn bị kho?')">
+                                                    Duyệt đơn
+                                                </button>
+                                                <button class="btn btn-danger btn-sm fw-bold" onclick="updateOrderStatus(@order.OrderId, 'Cancelled', 'Hủy đơn hàng này và hoàn lại tồn kho phụ tùng?')">
+                                                    Hủy
+                                                </button>
+                                            }
+                                            else if (order.Status == "Processing")
+                                            {
+                                                <button class="btn btn-info btn-sm me-1 fw-bold text-dark" onclick="updateOrderStatus(@order.OrderId, 'Shipped', 'Giao hàng cho đơn vị vận chuyển?')">
+                                                    Giao hàng
+                                                </button>
+                                            }
+                                            else if (order.Status == "Shipped")
+                                            {
+                                                <button class="btn btn-success btn-sm fw-bold" onclick="updateOrderStatus(@order.OrderId, 'Completed', 'Xác nhận đơn hàng đã giao thành công và hoàn tất giao dịch?')">
+                                                    Hoàn thành
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                    <!-- Collapsible Detail Row -->
+                                    <tr class="collapse" id="items-@order.OrderId">
+                                        <td colspan="8" class="bg-light p-4">
+                                            <div class="card border border-warning shadow-sm rounded">
+                                                <div class="card-header bg-dark text-white fw-bold">
+                                                    <i class="bi bi-list-task me-2 text-warning"></i> CHI TIẾT SẢN PHẨM ĐƠN HÀNG #@order.OrderId
+                                                </div>
+                                                <div class="card-body p-0">
+                                                    <table class="table table-sm align-middle table-borderless mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th class="ps-3">Sản phẩm</th>
+                                                                <th>Mã phụ tùng</th>
+                                                                <th>Số lượng đặt</th>
+                                                                <th>Đơn giá</th>
+                                                                <th class="text-end pe-3">Thành tiền</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var detail in order.PartOrderDetails)
+                                                            {
+                                                                <tr>
+                                                                    <td class="ps-3">
+                                                                        <span class="fw-bold">@detail.Part?.PartName</span>
+                                                                    </td>
+                                                                    <td><code class="text-secondary">@detail.Part?.PartCode</code></td>
+                                                                    <td>@detail.Quantity</td>
+                                                                    <td>@detail.UnitPrice.ToString("N0") đ</td>
+                                                                    <td class="text-end pe-3 fw-bold text-danger">@detail.SubTotal.ToString("N0") đ</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function updateOrderStatus(orderId, status, confirmMsg) {
+            Swal.fire({
+                title: 'Xác nhận thay đổi?',
+                text: confirmMsg,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("UpdateStatus", "PartOrders")',
+                        type: 'POST',
+                        data: { id: orderId, status: status },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire({
+                                    title: 'Thành công!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#ffc107'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Lỗi hệ thống hoặc kết nối mạng.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}
