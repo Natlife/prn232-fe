@@ -1,10 +1,40 @@
 (function () {
+    const STORAGE_KEY_SESSION   = "chat_session_id";
+    const STORAGE_KEY_OPEN      = "chat_panel_open";
+    const STORAGE_KEY_MESSAGES  = "chat_messages_cache";  // sessionStorage – clears on tab close
+
     // ─── INIT SESSION ────────────────────────────────────────────────────────
-    let sessionId = localStorage.getItem("chat_session_id");
+    let sessionId = localStorage.getItem(STORAGE_KEY_SESSION);
     if (!sessionId) {
         sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-        localStorage.setItem("chat_session_id", sessionId);
+        localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
     }
+
+    // ─── MESSAGE CACHE (sessionStorage) ──────────────────────────────────────
+    // Format: [{role, text, suggestedItems, orderLink}]
+    // Uses sessionStorage so data survives page navigation within same tab,
+    // but is cleared when user closes the tab/browser.
+    function loadCachedMessages() {
+        try {
+            const raw = sessionStorage.getItem(STORAGE_KEY_MESSAGES);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    }
+
+    function saveCachedMessages(messages) {
+        try {
+            // Keep last 60 messages max to avoid storage bloat
+            const trimmed = messages.slice(-60);
+            sessionStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(trimmed));
+        } catch { /* sessionStorage full – ignore */ }
+    }
+
+    function clearCachedMessages() {
+        sessionStorage.removeItem(STORAGE_KEY_MESSAGES);
+    }
+
+    // In-memory message array (source of truth for this page load)
+    let _messages = loadCachedMessages() || [];
 
     // ─── DOM INJECTION ───────────────────────────────────────────────────────
     const widgetHtml = `
@@ -56,71 +86,97 @@
     // Append to body
     document.body.insertAdjacentHTML('beforeend', widgetHtml);
 
-    const chatBtn = document.getElementById("ai-chat-btn");
-    const chatPanel = document.getElementById("ai-chat-panel");
-    const chatClose = document.getElementById("ai-chat-close");
-    const chatClear = document.getElementById("ai-chat-clear");
-    const chatInput = document.getElementById("ai-chat-input");
-    const chatSend = document.getElementById("ai-chat-send");
+    const chatBtn      = document.getElementById("ai-chat-btn");
+    const chatPanel    = document.getElementById("ai-chat-panel");
+    const chatClose    = document.getElementById("ai-chat-close");
+    const chatClear    = document.getElementById("ai-chat-clear");
+    const chatInput    = document.getElementById("ai-chat-input");
+    const chatSend     = document.getElementById("ai-chat-send");
     const chatMessages = document.getElementById("ai-chat-messages");
 
-    let isHistoryLoaded = false;
+    // ─── RESTORE MESSAGES FROM CACHE ─────────────────────────────────────────
+    function restoreMessagesFromCache() {
+        if (_messages.length === 0) return;
+        chatMessages.innerHTML = ""; // clear default greeting
+        _messages.forEach(msg => {
+            renderBubble(msg.role, msg.text, msg.suggestedItems || null, msg.orderLink || null, /*save=*/false);
+        });
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ─── RESTORE PANEL STATE (open/close) ────────────────────────────────────
+    const chatWasOpen = localStorage.getItem(STORAGE_KEY_OPEN) === "true";
+    if (chatWasOpen) {
+        // Show instantly, no animation flash on page load
+        chatPanel.style.transition = "none";
+        chatPanel.classList.add("active");
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            chatPanel.style.transition = "";
+        }));
+        // Restore messages immediately from sessionStorage cache
+        restoreMessagesFromCache();
+    }
 
     // ─── ACTIONS ─────────────────────────────────────────────────────────────
     chatBtn.addEventListener("click", () => {
-        chatPanel.classList.toggle("active");
-        if (chatPanel.classList.contains("active")) {
+        const isNowOpen = chatPanel.classList.toggle("active");
+        localStorage.setItem(STORAGE_KEY_OPEN, isNowOpen ? "true" : "false");
+        if (isNowOpen) {
             chatInput.focus();
-            if (!isHistoryLoaded) {
-                loadHistory();
+            // If no cached messages, try fetching from server
+            if (_messages.length === 0) {
+                fetchHistoryFromServer();
+            } else {
+                restoreMessagesFromCache();
             }
         }
     });
 
     chatClose.addEventListener("click", () => {
         chatPanel.classList.remove("active");
+        localStorage.setItem(STORAGE_KEY_OPEN, "false");
     });
 
     chatClear.addEventListener("click", () => {
         if (confirm("Bạn có chắc chắn muốn xóa lịch sử cuộc trò chuyện và bắt đầu phiên mới?")) {
+            // New session
             sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-            localStorage.setItem("chat_session_id", sessionId);
+            localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+            // Clear cache
+            _messages = [];
+            clearCachedMessages();
+            // Reset UI
             chatMessages.innerHTML = `
                 <div class="message-bubble message-ai">
                     Hội thoại đã được làm mới. Tôi có thể hỗ trợ gì cho bạn ngay bây giờ?
                 </div>
             `;
-            isHistoryLoaded = true;
         }
     });
 
     chatInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            sendMessage();
-        }
+        if (e.key === "Enter") sendMessage();
     });
-
     chatSend.addEventListener("click", sendMessage);
 
-    // ─── LOAD HISTORY ────────────────────────────────────────────────────────
-    async function loadHistory() {
+    // ─── FETCH HISTORY FROM SERVER (fallback only) ───────────────────────────
+    async function fetchHistoryFromServer() {
         try {
             const res = await fetch(`/Chat/History?sessionId=${sessionId}`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.messages && data.messages.length > 0) {
-                    chatMessages.innerHTML = "";
-                    data.messages.forEach(msg => {
-                        // ignore system prompt messages
-                        if (msg.role === "user") {
-                            appendMessageBubble("user", msg.content);
-                        } else if (msg.role === "assistant") {
-                            appendMessageBubble("ai", msg.content);
-                        }
-                    });
-                }
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.messages && data.messages.length > 0) {
+                chatMessages.innerHTML = "";
+                _messages = [];
+                data.messages.forEach(msg => {
+                    if (msg.role === "user") {
+                        pushAndRender("user", msg.content);
+                    } else if (msg.role === "assistant") {
+                        pushAndRender("ai", msg.content);
+                    }
+                });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
             }
-            isHistoryLoaded = true;
         } catch (ex) {
             console.error("Lỗi khi tải lịch sử chat:", ex);
         }
@@ -132,21 +188,15 @@
         if (!text) return;
 
         chatInput.value = "";
-        appendMessageBubble("user", text);
+        pushAndRender("user", text);
 
-        // Show typing indicator
         const typingId = showTypingIndicator();
 
         try {
             const res = await fetch("/Chat/Message", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    sessionId: sessionId,
-                    message: text
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionId, message: text })
             });
 
             removeTypingIndicator(typingId);
@@ -155,53 +205,61 @@
                 const apiResult = await res.json();
                 if (apiResult && apiResult.success && apiResult.data) {
                     const data = apiResult.data;
-                    appendMessageBubble("ai", data.reply, data.suggestedItems, data.orderLink);
+                    pushAndRender("ai", data.reply, data.suggestedItems, data.orderLink);
                 } else {
                     const msg = apiResult?.message || "Đã xảy ra lỗi không mong muốn.";
-                    appendMessageBubble("ai", "Lỗi: " + msg);
+                    pushAndRender("ai", "Lỗi: " + msg);
                 }
             } else {
-                appendMessageBubble("ai", "Dịch vụ AI đang gặp sự cố. Vui lòng thử lại sau.");
+                pushAndRender("ai", "Dịch vụ AI đang gặp sự cố. Vui lòng thử lại sau.");
             }
         } catch (ex) {
             removeTypingIndicator(typingId);
-            appendMessageBubble("ai", "Lỗi kết nối tới máy chủ.");
+            pushAndRender("ai", "Lỗi kết nối tới máy chủ.");
         }
     }
 
-    // ─── HELPERS ─────────────────────────────────────────────────────────────
-    function appendMessageBubble(role, text, suggestedItems = null, orderLink = null) {
+    // ─── CORE: Push to cache + render ────────────────────────────────────────
+    function pushAndRender(role, text, suggestedItems = null, orderLink = null) {
+        _messages.push({ role, text, suggestedItems: suggestedItems || null, orderLink: orderLink || null });
+        saveCachedMessages(_messages);
+        renderBubble(role, text, suggestedItems, orderLink, /*save=*/false);
+    }
+
+    // ─── RENDER BUBBLE ───────────────────────────────────────────────────────
+    function renderBubble(role, text, suggestedItems = null, orderLink = null) {
         const bubble = document.createElement("div");
         bubble.className = `message-bubble ${role === "user" ? "message-user" : "message-ai"}`;
-        
-        // Format simple markdown-like elements
+
+        // Format markdown-like elements
         let formattedText = escapeHtml(text)
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="img-fluid rounded my-2 d-block" style="max-height:180px; width:auto; object-fit:cover; border: 1px solid #ddd;" />')
             .replace(/\n/g, '<br/>');
 
-        // Parse tables if present in markdown format
+        // Parse tables
         if (formattedText.includes('|')) {
             formattedText = parseMarkdownTable(formattedText);
         }
 
         bubble.innerHTML = formattedText;
 
-        // If AI reply has suggested products
+        // Suggested product cards
         if (suggestedItems && suggestedItems.length > 0) {
             const container = document.createElement("div");
             container.className = "ai-suggested-container";
-            
+
             suggestedItems.forEach(item => {
                 const a = document.createElement("a");
                 a.className = "ai-suggested-item";
                 a.href = item.detailUrl;
                 a.target = "_blank";
-                
-                const imgHtml = item.imageUrl 
+
+                const imgHtml = item.imageUrl
                     ? `<img src="${item.imageUrl}" alt="${item.name}" />`
                     : `<div class="d-flex align-items-center justify-content-center bg-white border text-secondary" style="width:40px;height:40px;border-radius:6px;"><i class="bi bi-box"></i></div>`;
-                
+
                 a.innerHTML = `
                     ${imgHtml}
                     <div class="ai-suggested-item-info">
@@ -215,12 +273,16 @@
             bubble.appendChild(container);
         }
 
-        // If AI suggestions trigger checkout/draft creation link
+        // Order / deposit button
         if (orderLink) {
             const btn = document.createElement("a");
             btn.className = "ai-draft-order-btn";
             btn.href = orderLink;
-            btn.innerHTML = `<i class="bi bi-lightning-charge-fill me-1"></i> Bấm để Đặt Hàng Nháp`;
+            if (orderLink.includes("/Cars/Details/")) {
+                btn.innerHTML = `<i class="bi bi-car-front-fill me-1"></i> Bấm để Đặt Cọc / Mua Đứt Xe`;
+            } else {
+                btn.innerHTML = `<i class="bi bi-cart-fill me-1"></i> Bấm để Xem &amp; Xác Nhận Đơn Hàng`;
+            }
             bubble.appendChild(btn);
         }
 
@@ -228,6 +290,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // ─── TYPING INDICATOR ────────────────────────────────────────────────────
     function showTypingIndicator() {
         const bubble = document.createElement("div");
         const typingId = "typing_" + Date.now();
@@ -250,6 +313,7 @@
         if (el) el.remove();
     }
 
+    // ─── UTILITIES ───────────────────────────────────────────────────────────
     function escapeHtml(str) {
         return str
             .replace(/&/g, "&amp;")
@@ -271,20 +335,14 @@
 
         lines.forEach(line => {
             if (line.trim().startsWith('|')) {
-                if (!inTable) {
-                    inTable = true;
-                }
-                // Skip separator row: | --- | --- |
-                if (line.includes('---') || line.includes('-:-')) {
-                    return;
-                }
+                if (!inTable) inTable = true;
+                if (line.includes('---') || line.includes('-:-')) return;
+
                 const cells = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
                 const tag = htmlTable.includes('<tbody>') ? 'td' : 'th';
-                
+
                 let row = '<tr>';
-                cells.forEach(cell => {
-                    row += `<${tag}>${cell}</${tag}>`;
-                });
+                cells.forEach(cell => { row += `<${tag}>${cell}</${tag}>`; });
                 row += '</tr>';
 
                 if (tag === 'th') {

@@ -171,23 +171,60 @@
 <!-- Modal Success Order -->
 <div class="modal fade" id="orderSuccessModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg text-center p-4 rounded-4">
+        <div class="modal-content border-0 shadow-lg p-4 rounded-4">
             <div class="modal-body">
-                <div class="text-success mb-3" style="font-size: 5rem;">
-                    <i class="bi bi-check-circle-fill"></i>
+                
+                <!-- State 1: Captcha Verification -->
+                <div id="modalStateVerify">
+                    <div class="text-warning mb-3 text-center" style="font-size: 4rem;">
+                        <i class="bi bi-shield-lock-fill animate-pulse"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark text-center mb-2">Xác Thực Giao Dịch</h3>
+                    <p class="text-secondary small text-center mb-3">
+                        Đơn hàng Combo <strong class="text-primary">#<span id="comboOrderIdText"></span></strong> đã được khởi tạo thành công.
+                    </p>
+                    
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="text-muted small text-center fw-bold mb-1"><i class="bi bi-telephone-fill text-warning me-1"></i> HOTLINE SHOWROOM</div>
+                        <div class="text-center fs-4 fw-extrabold text-dark letter-spacing-1">0987 173 229</div>
+                        <div class="text-muted small text-center mt-1">
+                            Vui lòng gọi hotline để nhận mã Captcha giao dịch xác thực thanh toán/đặt cọc cho đơn hàng này.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="comboOrderCaptchaInput" class="form-label small fw-bold">Nhập mã xác nhận từ nhân viên <span class="text-danger">*</span></label>
+                        <input id="comboOrderCaptchaInput" type="text" class="form-control text-center fw-bold fs-5 py-2" 
+                               placeholder="VD: ABC123" maxlength="20" style="text-transform: uppercase; letter-spacing: 2px;" autocomplete="off" />
+                        <div id="captchaError" class="text-danger small mt-1 text-center d-none">
+                            <i class="bi bi-exclamation-circle-fill me-1"></i> Mã xác thực không hợp lệ. Vui lòng thử lại.
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnVerifyCaptcha" class="btn btn-warning btn-lg w-100 fw-bold py-2.5 shadow-sm border-0">
+                        <i class="bi bi-check-circle-fill me-1"></i> Xác Thực & Hoàn Tất
+                    </button>
                 </div>
-                <h3 class="fw-bold text-dark mb-2">Đặt Hàng Thành Công!</h3>
-                <p class="text-secondary small mb-4">
-                    Yêu cầu đặt mua của bạn đã được tiếp nhận và xử lý. Hệ thống đã lập hồ sơ chờ duyệt. Tư vấn viên sẽ liên hệ lại qua số điện thoại để hỗ trợ giao xe và hoàn tất thủ tục.
-                </p>
-                <div class="d-grid gap-2">
-                    <a href="/ComboOrder/History" class="btn btn-primary py-2 fw-bold rounded-3">
-                        Xem lịch sử đơn hàng
-                    </a>
-                    <a href="/" class="btn btn-light py-2 fw-bold border rounded-3">
-                        Về trang chủ
-                    </a>
+
+                <!-- State 2: Final Success -->
+                <div id="modalStateSuccess" class="d-none">
+                    <div class="text-success mb-3 text-center" style="font-size: 5rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark text-center mb-2">Đặt Hàng Thành Công!</h3>
+                    <p class="text-secondary small text-center mb-4">
+                        Đơn hàng Combo <strong class="text-primary">#<span id="finalComboOrderIdText"></span></strong> đã được xác thực mã Captcha thành công! Hệ thống đã ghi nhận cọc tiền/thanh toán hoàn tất. Tư vấn viên sẽ liên hệ lại qua số điện thoại để hỗ trợ giao xe và hoàn tất thủ tục bàn giao.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a href="/ComboOrder/History" class="btn btn-primary py-2 fw-bold rounded-3">
+                            Xem lịch sử đơn hàng
+                        </a>
+                        <a href="/" class="btn btn-light py-2 fw-bold border rounded-3">
+                            Về trang chủ
+                        </a>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -240,6 +277,15 @@
                         // clear chat shopping cart if any
                         localStorage.removeItem("draft_combo_cart");
                         
+                        // Setup captcha step in modal
+                        const orderId = result.orderId || 0;
+                        $("#comboOrderIdText").text(orderId);
+                        $("#finalComboOrderIdText").text(orderId);
+                        $("#comboOrderCaptchaInput").val("");
+                        $("#captchaError").addClass("d-none");
+                        $("#modalStateVerify").removeClass("d-none");
+                        $("#modalStateSuccess").addClass("d-none");
+                        
                         // Show success modal
                         const successModal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
                         successModal.show();
@@ -251,6 +297,31 @@
                     alert("Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại mạng.");
                     btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua');
                 }
+            });
+
+            // Auto-uppercase captcha input
+            $("#comboOrderCaptchaInput").on("input", function() {
+                this.value = this.value.toUpperCase();
+            });
+
+            // Verify Captcha
+            $("#btnVerifyCaptcha").on("click", function() {
+                const captchaCode = $("#comboOrderCaptchaInput").val().trim();
+                if (!captchaCode) {
+                    $("#captchaError").text("Vui lòng nhập mã Captcha do nhân viên cung cấp.").removeClass("d-none");
+                    return;
+                }
+
+                const btn = $(this);
+                btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Đang xác thực giao dịch...');
+                $("#captchaError").addClass("d-none");
+
+                // Simulate verifying captcha code
+                setTimeout(function() {
+                    btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-1"></i> Xác Thực & Hoàn Tất');
+                    $("#modalStateVerify").addClass("d-none");
+                    $("#modalStateSuccess").removeClass("d-none");
+                }, 1200);
             });
         });
     </script>

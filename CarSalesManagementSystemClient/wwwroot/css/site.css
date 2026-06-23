@@ -196,6 +196,28 @@ html {
     animation: bubbleAppear 0.25s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
 }
 
+.message-bubble table {
+    width: 100%;
+    max-width: 100%;
+    margin: 10px 0;
+    border-collapse: collapse;
+    display: block;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+.message-bubble th, .message-bubble td {
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.message-bubble th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
 .message-user {
     background-color: #7928ca;
     color: white;

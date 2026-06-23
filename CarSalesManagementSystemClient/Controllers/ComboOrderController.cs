@@ -112,7 +112,17 @@ public class ComboOrderController : Controller
 
             if (response.IsSuccessStatusCode && success)
             {
-                return Json(new { success = true, message });
+                int orderId = 0;
+                try
+                {
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp) &&
+                        dataProp.TryGetProperty("comboOrderId", out var idProp))
+                    {
+                        orderId = idProp.GetInt32();
+                    }
+                }
+                catch { }
+                return Json(new { success = true, message, orderId });
             }
             else
             {
