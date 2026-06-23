@@ -1,0 +1,196 @@
+@{
+    ViewData["Title"] = "Liên hệ - Group7 ECO DRIVE";
+}
+
+<style>
+    /* Custom Styles for Contact Page */
+    .contact-hero-wrapper {
+        background-color: #ffffff; /* White background */
+    }
+    .page-header-banner {
+        background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1920') center/cover no-repeat;
+        padding: 120px 0;
+        margin-bottom: 0;
+    }
+    .contact-hero {
+        padding-top: 60px;
+        padding-bottom: 50px;
+    }
+    
+    .section-title {
+        font-family: 'Arial Black', sans-serif;
+        letter-spacing: -1px;
+        text-transform: uppercase;
+    }
+
+    .contact-icon-box {
+        text-align: center;
+        padding: 40px 30px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa; /* Light background */
+        border-radius: 15px;
+        border: 1px solid #eaeaea;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    }
+    .contact-icon-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        border-bottom: 4px solid #dc3545;
+    }
+    .contact-icon-inner {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #fff;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        color: #dc3545; /* Danger red */
+        font-size: 2rem;
+    }
+    
+    .gallery-row {
+        background-color: #eef4f8; /* Light blue-gray to alternate */
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+    
+    .gallery-img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        transition: all 0.5s ease;
+    }
+    .gallery-item {
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .gallery-item:hover .gallery-img {
+        transform: scale(1.05);
+    }
+    
+    .connect-section {
+        background-color: #ffffff; /* Back to white */
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+    
+    .social-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.2rem;
+        margin: 0 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+    .social-btn.facebook { background-color: #1877F2; box-shadow: 0 5px 15px rgba(24,119,242,0.3); }
+    .social-btn.tiktok { background-color: #000000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .social-btn.email { background-color: #EA4335; box-shadow: 0 5px 15px rgba(234,67,53,0.3); }
+    .social-btn.phone { background-color: #28a745; box-shadow: 0 5px 15px rgba(40,167,69,0.3); }
+    
+    .social-btn:hover {
+        transform: translateY(-5px);
+        color: #fff;
+    }
+</style>
+
+<!-- Page Header Banner -->
+<div class="page-header-banner">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold section-title text-white">GROUP7 <span class="text-warning">ECO DRIVE</span></h1>
+        <p class="fs-5 text-light mt-3" style="letter-spacing: 1px;">Liên hệ với chúng tôi.</p>
+    </div>
+</div>
+
+<!-- Contact Info Section -->
+<div class="contact-hero-wrapper">
+    <div class="container contact-hero">
+        <div class="row pt-4 mb-5 pb-5">
+            <!-- Email -->
+            <div class="col-md-4 mb-4">
+                <div class="contact-icon-box h-100">
+                    <div class="contact-icon-inner">
+                        <i class="bi bi-envelope-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Gửi Email</h4>
+                    <p class="text-secondary">dinhnhatquan0311@gmail.com</p>
+                </div>
+            </div>
+            <!-- Address -->
+            <div class="col-md-4 mb-4">
+                <div class="contact-icon-box h-100">
+                    <div class="contact-icon-inner">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Đến Văn Phòng</h4>
+                    <p class="text-secondary">Trường Đại học FPT<br>Khu Công nghệ cao Hòa Lạc</p>
+                </div>
+            </div>
+            <!-- Phone -->
+            <div class="col-md-4 mb-4">
+                <div class="contact-icon-box h-100">
+                    <div class="contact-icon-inner">
+                        <i class="bi bi-telephone-fill"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">Gọi Cho Chúng Tôi</h4>
+                    <p class="text-secondary">(+84) 035 949 2991</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Gallery Section -->
+<div class="gallery-row">
+    <div class="container-fluid">
+        <div class="text-center mb-5">
+            <h2 class="display-6 fw-bold section-title text-dark text-uppercase">Không gian trưng bày</h2>
+            <div style="width: 50px; height: 3px; background-color: #dc3545; margin: 10px auto 0;"></div>
+        </div>
+        <div class="row g-2 px-md-3">
+            <div class="col-md-4">
+                <div class="gallery-item shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1000" class="gallery-img" alt="Showroom">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="gallery-item shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1000" class="gallery-img" alt="Luxury Car">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="gallery-item shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?q=80&w=1000" class="gallery-img" alt="Car Detail">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Let's Connect Section -->
+<div class="connect-section">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-5 section-title text-uppercase">Let's Connect</h2>
+        <div class="d-flex justify-content-center flex-wrap mb-5">
+            <a href="javascript:void(0);" class="social-btn facebook" title="Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a href="javascript:void(0);" class="social-btn tiktok" title="TikTok">
+                <i class="bi bi-tiktok"></i>
+            </a>
+            <a href="mailto:dinhnhatquan0311@gmail.com" class="social-btn email" title="Email">
+                <i class="bi bi-envelope-fill"></i>
+            </a>
+            <a href="tel:0359492991" class="social-btn phone" title="Phone">
+                <i class="bi bi-telephone-fill"></i>
+            </a>
+        </div>
+    </div>
+</div>

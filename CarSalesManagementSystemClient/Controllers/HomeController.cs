@@ -27,6 +27,16 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult Warranty()
+    {
+        return View();
+    }
+
+    public IActionResult Contact()
+    {
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();

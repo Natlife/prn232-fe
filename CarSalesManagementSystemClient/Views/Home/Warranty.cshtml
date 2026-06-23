@@ -1,0 +1,274 @@
+@{
+    ViewData["Title"] = "Chính sách Bảo hành - Group7 ECO DRIVE";
+}
+
+<style>
+    /* Custom Styles for Warranty Page */
+    .hero-banner-warranty {
+        position: relative;
+        height: 50vh;
+        min-height: 400px;
+        background: url('https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2000') no-repeat center center;
+        background-attachment: fixed;
+        background-size: cover;
+    }
+    .hero-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .section-title {
+        font-family: 'Arial Black', sans-serif;
+        letter-spacing: -1px;
+    }
+
+    .warranty-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        background-color: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .warranty-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.2); /* Danger shadow */
+    }
+    .warranty-icon {
+        width: 70px;
+        height: 70px;
+        background-color: #fff3cd; /* Warning light */
+        color: #ffc107;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: -40px auto 20px;
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    }
+
+    .gift-box {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 5px solid #dc3545;
+        border-radius: 10px;
+    }
+
+    .accordion-button:not(.collapsed) {
+        color: #dc3545;
+        background-color: #f8d7da;
+        font-weight: bold;
+    }
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+    
+    .contact-footer {
+        background-color: #2b2b2c;
+    }
+</style>
+
+<!-- Hero Banner -->
+<div class="hero-banner-warranty d-flex align-items-center justify-content-center text-center text-white mb-5">
+    <div class="hero-overlay"></div>
+    <div class="hero-content container mt-5">
+        <h6 class="text-warning fw-bold text-uppercase mb-3" style="letter-spacing: 3px;">Group7 ECO DRIVE</h6>
+        <h1 class="display-3 fw-bold text-uppercase mb-3 section-title">CHÍNH SÁCH BẢO HÀNH</h1>
+        <p class="fs-5 text-light fw-light mx-auto" style="max-width: 700px;">
+            Cam kết đồng hành cùng quý khách trên mọi cung đường với chế độ bảo hành chuyên nghiệp, minh bạch và tận tâm nhất.
+        </p>
+    </div>
+</div>
+
+<!-- Thời gian bảo hành -->
+<div class="container py-5">
+    <div class="text-center mb-5 pb-3">
+        <h6 class="text-danger fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">Cam kết chất lượng</h6>
+        <h2 class="display-6 fw-bold section-title text-dark">THỜI GIAN BẢO HÀNH</h2>
+        <div style="width: 80px; height: 5px; background-color: #ffc107; margin: 20px auto 0;"></div>
+    </div>
+
+    <div class="row pt-4">
+        <!-- Động cơ -->
+        <div class="col-md-4 mb-5">
+            <div class="warranty-card h-100 p-4 text-center border-top border-warning border-3">
+                <div class="warranty-icon">
+                    <i class="bi bi-gear-fill"></i>
+                </div>
+                <h4 class="fw-bold mb-3 text-uppercase fs-5">Động cơ & Hộp số</h4>
+                <div class="text-danger fw-bold fs-3 mb-3">3 Năm</div>
+                <p class="text-secondary small">Hoặc 100.000 km tùy điều kiện nào đến trước. Bảo hành các lỗi kỹ thuật từ nhà sản xuất.</p>
+            </div>
+        </div>
+        <!-- Khung gầm -->
+        <div class="col-md-4 mb-5">
+            <div class="warranty-card h-100 p-4 text-center border-top border-warning border-3">
+                <div class="warranty-icon">
+                    <i class="bi bi-car-front-fill"></i>
+                </div>
+                <h4 class="fw-bold mb-3 text-uppercase fs-5">Hệ thống Khung gầm</h4>
+                <div class="text-danger fw-bold fs-3 mb-3">5 Năm</div>
+                <p class="text-secondary small">Hoặc 150.000 km. Đảm bảo an toàn tuyệt đối và sự bền bỉ cho khung xe trước các lỗi rạn nứt kết cấu.</p>
+            </div>
+        </div>
+        <!-- Ắc quy / Phụ tùng -->
+        <div class="col-md-4 mb-5">
+            <div class="warranty-card h-100 p-4 text-center border-top border-warning border-3">
+                <div class="warranty-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <h4 class="fw-bold mb-3 text-uppercase fs-5">Ắc quy & Hệ thống điện</h4>
+                <div class="text-danger fw-bold fs-3 mb-3">1 Năm</div>
+                <p class="text-secondary small">Hoặc 20.000 km. Hỗ trợ thay thế và sửa chữa nhanh chóng khi có sự cố về điện.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quà tặng & Điều khoản -->
+<div class="py-5" style="background-color: #eef4f8;">
+    <div class="container my-4">
+        <div class="row">
+            <!-- Cột trái: Quà tặng -->
+            <div class="col-lg-4 mb-5 mb-lg-0 pe-lg-4">
+                <div class="gift-box p-4 shadow-sm h-100">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-danger text-white rounded-circle d-flex justify-content-center align-items-center me-3" style="width: 50px; height: 50px;">
+                            <i class="bi bi-gift fs-4"></i>
+                        </div>
+                        <h4 class="fw-bold m-0 text-uppercase">Quà Tặng Đi Kèm</h4>
+                    </div>
+                    <p class="text-secondary mb-4">Tri ân khách hàng mua xe tại hệ thống Group7 ECO DRIVE với bộ quà tặng đặc biệt:</p>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                            <span class="fw-semibold">1 Bộ thảm lót sàn cao cấp</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                            <span class="fw-semibold">1 Gói phủ Ceramic bảo vệ sơn</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                            <span class="fw-semibold">1 Camera hành trình chính hãng</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                            <span class="fw-semibold">1 Bộ dụng cụ cứu hộ tiêu chuẩn</span>
+                        </li>
+                        <li class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                            <span class="fw-semibold">Miễn phí công bảo dưỡng lần đầu</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Cột phải: Accordion Điều khoản -->
+            <div class="col-lg-8">
+                <h3 class="fw-bold mb-4">Điều Khoản & Chính Sách Chi Tiết</h3>
+                <div class="accordion shadow-sm" id="warrantyAccordion">
+                    
+                    <!-- Item 1 -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                1. Thời gian tính bảo hành
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#warrantyAccordion">
+                            <div class="accordion-body text-secondary lh-lg">
+                                <ul>
+                                    <li>Thời gian bảo hành được tính chính thức từ <strong>ngày giao xe</strong> ghi trên Biên bản bàn giao xe hoặc Hóa đơn mua bán.</li>
+                                    <li>Áp dụng theo thời hạn (tháng/năm) hoặc số quãng đường di chuyển (km) tùy theo điều kiện kiện nào đến trước.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                2. Điều kiện được bảo hành
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#warrantyAccordion">
+                            <div class="accordion-body text-secondary lh-lg">
+                                <ul>
+                                    <li>Xe đang trong thời gian và giới hạn bảo hành.</li>
+                                    <li>Lỗi xảy ra được xác định là do khuyết tật vật liệu hoặc do lỗi lắp ráp từ phía Nhà sản xuất.</li>
+                                    <li>Xe phải được bảo dưỡng định kỳ đầy đủ tại các Đại lý ủy quyền hoặc Trung tâm dịch vụ của Group7 ECO DRIVE.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                3. Trường hợp KHÔNG bảo hành
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#warrantyAccordion">
+                            <div class="accordion-body text-secondary lh-lg">
+                                <ul>
+                                    <li>Xe đã hết thời hạn hoặc số Km bảo hành.</li>
+                                    <li>Các chi tiết hao mòn tự nhiên theo thời gian: Săm lốp, má phanh, chổi gạt mưa, các bộ lọc, dung dịch làm mát...</li>
+                                    <li>Hư hỏng do sử dụng sai mục đích, chở quá tải, đua xe hoặc không tuân thủ Sách hướng dẫn sử dụng.</li>
+                                    <li>Xe bị đâm đụng, tai nạn, đổ vỡ, ngập nước, cháy nổ, hoặc do thiên tai.</li>
+                                    <li>Tự ý can thiệp, độ chế, thay đổi kết cấu điện, động cơ mà không được sự cho phép của hãng.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                4. Chính sách hỗ trợ sau bán hàng
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#warrantyAccordion">
+                            <div class="accordion-body text-secondary lh-lg">
+                                <ul>
+                                    <li>Trong 1 tháng đầu tiên theo giấy tờ, công ty sẽ hỗ trợ hoàn toàn chi phí kiểm tra và các chi phí phát sinh nhỏ khác ngoài danh mục từ chối bảo hành.</li>
+                                    <li>Với những xe đã <strong>hết hạn bảo hành</strong>: Công ty vẫn sẵn sàng đồng hành và hỗ trợ khách hàng kiểm tra, sửa chữa với mức chi phí nhân công vật tư ưu đãi và <strong>thấp nhất có thể</strong>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liên hệ Footer -->
+<div class="contact-footer text-white py-5">
+    <div class="container text-center">
+        <h3 class="fw-bold text-uppercase mb-4 section-title" style="letter-spacing: 2px;">GROUP7 ECO DRIVE</h3>
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-3">
+                <i class="bi bi-geo-alt-fill text-danger fs-4 d-block mb-2"></i>
+                <p class="m-0">Trường Đại học FPT, Khu CNC Hòa Lạc</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <i class="bi bi-telephone-fill text-warning fs-4 d-block mb-2"></i>
+                <h4 class="fw-bold m-0">0359 492 991</h4>
+                <small class="text-muted">Hotline hỗ trợ kỹ thuật</small>
+            </div>
+            <div class="col-md-4 mb-3">
+                <i class="bi bi-clock-fill text-primary fs-4 d-block mb-2"></i>
+                <p class="m-0">Thứ 2 - Chủ Nhật<br>08:00 AM - 06:00 PM</p>
+            </div>
+        </div>
+    </div>
+</div>
