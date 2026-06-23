@@ -102,6 +102,9 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="History">LỊCH SỬ COMBO</a>
+                                </li>
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <li class="nav-item">
@@ -109,6 +112,9 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Admin" asp-action="Captchas">QUẢN LÝ CAPTCHA</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
                                     </li>
                                 }
                             }
@@ -364,6 +370,7 @@
             }
         });
     </script>
+    <script src="~/js/chatbot.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,269 @@
+@model CarSalesManagementSystemClient.Models.ComboOrderPreviewViewModel
+@{
+    ViewData["Title"] = "Xác nhận Đơn hàng";
+    var isAuthenticated = ViewBag.IsAuthenticated as bool? ?? false;
+    var draftToken = ViewBag.DraftToken as string;
+}
+
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-secondary text-decoration-none">Trang chủ</a></li>
+            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Xác nhận đơn hàng</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Left: Product List (Draft Summary) -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="m-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-cart3 me-2"></i> Chi tiết đơn hàng của bạn
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model.Items != null && Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle m-0">
+                                <thead>
+                                    <tr class="text-secondary border-bottom" style="font-size: 13px;">
+                                        <th scope="col" colspan="2">Sản phẩm</th>
+                                        <th scope="col" class="text-center">Số lượng</th>
+                                        <th scope="col" class="text-end">Đơn giá</th>
+                                        <th scope="col" class="text-end">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        <tr class="border-bottom-dashed">
+                                            <td style="width: 80px;">
+                                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                                {
+                                                    <img src="@item.ImageUrl" class="img-fluid rounded-3 border bg-light" style="max-height: 60px; object-fit: cover;" alt="@item.Name" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="d-flex align-items-center justify-content-center rounded-3 border bg-light text-secondary" style="width: 60px; height: 60px;">
+                                                        <i class="bi bi-tools fs-4"></i>
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold text-dark">@item.Name</div>
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 10px;">
+                                                    @if (item.ItemType == "Car") { <text>Ô Tô</text> }
+                                                    else if (item.ItemType == "Part") { <text>Phụ Tùng</text> }
+                                                    else { <text>Dịch Vụ</text> }
+                                                </span>
+                                            </td>
+                                            <td class="text-center fw-bold text-secondary">
+                                                @item.Quantity
+                                            </td>
+                                            <td class="text-end text-dark">
+                                                @item.UnitPrice.ToString("N0") VNĐ
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">
+                                                @item.SubTotal.ToString("N0") VNĐ
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center text-muted my-4">Không có sản phẩm nào trong đơn hàng nháp.</p>
+                    }
+                </div>
+            </div>
+            
+            <!-- Safe shopping notice -->
+            <div class="alert alert-info border-0 rounded-4 shadow-sm p-4 d-flex align-items-start">
+                <i class="bi bi-shield-check fs-2 text-primary me-3"></i>
+                <div>
+                    <h6 class="fw-bold text-primary-emphasis mb-1">Quy trình đặt hàng an toàn & nhanh chóng</h6>
+                    <p class="small text-secondary m-0">
+                        Sau khi bạn nhấn xác nhận đơn hàng, tư vấn viên của chúng tôi sẽ liên hệ trực tiếp qua số điện thoại của bạn trong vòng 15-30 phút để xác thực và hỗ trợ các bước tiếp theo. Bạn hoàn toàn không chịu bất cứ rủi ro tài chính nào trước khi kiểm duyệt trực tiếp tại showroom.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Order Form & Checkout -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden position-sticky" style="top: 100px;">
+                <div class="card-header bg-warning py-3">
+                    <h5 class="m-0 fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text-fill me-2"></i> Thông tin liên hệ nhận xe
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Total breakdown -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-secondary fw-semibold">Tổng giá trị đơn hàng:</span>
+                        <h4 class="text-danger fw-extrabold m-0">@Model.TotalAmount.ToString("N0") VNĐ</h4>
+                    </div>
+                    
+                    <hr class="my-4" />
+
+                    @if (isAuthenticated)
+                    {
+                        <form id="comboOrderConfirmForm">
+                            <input type="hidden" id="draftToken" value="@draftToken" />
+                            
+                            <div class="mb-3">
+                                <label for="customerPhone" class="form-label small fw-bold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input type="tel" class="form-control" id="customerPhone" required placeholder="Ví dụ: 0987654321" />
+                                </div>
+                                <div class="form-text small text-muted">Showroom sẽ gọi điện qua số này để chốt lịch.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="shippingAddress" class="form-label small fw-bold">Địa chỉ giao nhận xe / Thiết lập dịch vụ <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                    <input type="text" class="form-control" id="shippingAddress" required placeholder="Nhập địa chỉ nhà cụ thể của bạn" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="orderNote" class="form-label small fw-bold">Ghi chú yêu cầu thêm (Tùy chọn)</label>
+                                <textarea class="form-control" id="orderNote" rows="3" placeholder="Ghi chú thời gian gọi, thông tin màu sắc, các ưu đãi đi kèm bạn mong muốn..."></textarea>
+                            </div>
+
+                            <!-- Button Actions -->
+                            <button type="submit" id="btnSubmitOrder" class="btn btn-warning btn-lg w-100 fw-bold py-3 mt-3 shadow border-0 hover-scale">
+                                <i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Not logged in section -->
+                        <div class="text-center py-4">
+                            <i class="bi bi-lock-fill text-muted" style="font-size: 4rem;"></i>
+                            <h5 class="fw-bold mt-3">Đăng Nhập Để Tiếp Tục</h5>
+                            <p class="text-secondary small px-3">
+                                Vui lòng đăng nhập tài khoản của bạn để xác thực đơn hàng. Mọi lịch sử giao dịch và tích điểm hội viên của bạn sẽ được lưu trữ an toàn.
+                            </p>
+                            
+                            <button class="btn btn-primary btn-lg w-100 fw-bold py-3 mt-3 border-0 shadow" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Đăng Nhập Ngay
+                            </button>
+                            <p class="small text-muted mt-3">
+                                Chưa có tài khoản? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-primary text-decoration-none fw-bold">Đăng ký tại đây</a>
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Success Order -->
+<div class="modal fade" id="orderSuccessModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg text-center p-4 rounded-4">
+            <div class="modal-body">
+                <div class="text-success mb-3" style="font-size: 5rem;">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">Đặt Hàng Thành Công!</h3>
+                <p class="text-secondary small mb-4">
+                    Yêu cầu đặt mua của bạn đã được tiếp nhận và xử lý. Hệ thống đã lập hồ sơ chờ duyệt. Tư vấn viên sẽ liên hệ lại qua số điện thoại để hỗ trợ giao xe và hoàn tất thủ tục.
+                </p>
+                <div class="d-grid gap-2">
+                    <a href="/ComboOrder/History" class="btn btn-primary py-2 fw-bold rounded-3">
+                        Xem lịch sử đơn hàng
+                    </a>
+                    <a href="/" class="btn btn-light py-2 fw-bold border rounded-3">
+                        Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Check if draft items data exists
+            const draftItems = [];
+            @if (Model.Items != null)
+            {
+                foreach(var item in Model.Items)
+                {
+                    <text>
+                    draftItems.push({
+                        itemType: "@item.ItemType",
+                        referenceId: parseInt("@item.ReferenceId"),
+                        quantity: parseInt("@item.Quantity")
+                    });
+                    </text>
+                }
+            }
+
+            $("#comboOrderConfirmForm").on("submit", async function(e) {
+                e.preventDefault();
+                
+                const btn = $("#btnSubmitOrder");
+                btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...');
+
+                const payload = {
+                    customerPhone: $("#customerPhone").val(),
+                    shippingAddress: $("#shippingAddress").val(),
+                    note: $("#orderNote").val(),
+                    chatSessionId: localStorage.getItem("chat_session_id") || "",
+                    items: draftItems
+                };
+
+                try {
+                    const response = await fetch("/ComboOrder/PlaceOrder", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // clear chat shopping cart if any
+                        localStorage.removeItem("draft_combo_cart");
+                        
+                        // Show success modal
+                        const successModal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
+                        successModal.show();
+                    } else {
+                        alert(result.message || "Đã xảy ra lỗi khi tạo đơn hàng.");
+                        btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua');
+                    }
+                } catch(ex) {
+                    alert("Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại mạng.");
+                    btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua');
+                }
+            });
+        });
+    </script>
+    <style>
+        .border-bottom-dashed {
+            border-bottom: 1px dashed #dee2e6 !important;
+        }
+        .hover-scale {
+            transition: all 0.2s ease-in-out;
+        }
+        .hover-scale:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+        }
+    </style>
+}

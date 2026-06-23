@@ -1,0 +1,163 @@
+@model List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng Combo";
+}
+
+<div class="container-fluid py-5 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0"><i class="bi bi-gear-fill me-2 text-warning"></i> Quản Lý Đơn Hàng Combo</h2>
+            <p class="text-secondary small m-0">Quản trị viên theo dõi trạng thái, cập nhật quy trình và liên hệ bàn giao xe/phụ tùng/dịch vụ.</p>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger border-0 rounded-3 shadow-sm mb-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold"><i class="bi bi-list-task me-2"></i> Tất cả đơn hàng combo (@(Model?.Count ?? 0))</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model == null || !Model.Any())
+            {
+                <p class="text-center text-muted my-5 py-5">Chưa có đơn hàng nào được đặt trên hệ thống.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0" style="min-width: 1000px;">
+                        <thead class="table-light">
+                            <tr class="text-secondary" style="font-size: 13px;">
+                                <th class="ps-4" style="width: 80px;">Mã Đơn</th>
+                                <th style="width: 150px;">Khách Hàng</th>
+                                <th style="width: 130px;">Điện Thoại</th>
+                                <th>Chi Tiết Sản Phẩm</th>
+                                <th class="text-end" style="width: 160px;">Tổng Tiền</th>
+                                <th style="width: 120px;">Nguồn Đơn</th>
+                                <th style="width: 180px;">Trạng Thái</th>
+                                <th class="pe-4" style="width: 100px;">Ngày Tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold text-dark">#@order.ComboOrderId</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@order.CustomerName</div>
+                                        <div class="text-secondary small text-truncate" style="max-width: 140px;">@order.CustomerEmail</div>
+                                    </td>
+                                    <td>
+                                        <a href="tel:@order.CustomerPhone" class="text-decoration-none fw-semibold"><i class="bi bi-telephone-fill small me-1"></i>@order.CustomerPhone</a>
+                                    </td>
+                                    <td>
+                                        <ul class="list-unstyled m-0 p-0 small">
+                                            @foreach (var item in order.Items)
+                                            {
+                                                <li class="mb-1 text-truncate" style="max-width: 320px;">
+                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 9px;">
+                                                        @if (item.ItemType == "Car") { <text>Xe</text> }
+                                                        else if (item.ItemType == "Part") { <text>Phụ tùng</text> }
+                                                        else { <text>Dịch vụ</text> }
+                                                    </span>
+                                                    <span class="fw-semibold">@item.ItemName</span>
+                                                    <span class="text-muted">(x@item.Quantity)</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                        @if (!string.IsNullOrEmpty(order.Note))
+                                        {
+                                            <div class="text-muted small mt-1 text-truncate" style="max-width: 320px;"><i class="bi bi-chat-left-dots-fill text-warning me-1"></i>Ghi chú: @order.Note</div>
+                                        }
+                                        <div class="text-secondary small mt-1 text-truncate" style="max-width: 320px;"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Địa chỉ: @order.ShippingAddress</div>
+                                    </td>
+                                    <td class="text-end fw-bold text-danger">@order.TotalAmount.ToString("N0") VNĐ</td>
+                                    <td>
+                                        @if (order.Source == "chatbot")
+                                        {
+                                            <span class="badge bg-purple-subtle text-purple border border-purple px-2 py-1 rounded-pill small">
+                                                <i class="bi bi-robot"></i> AI Chatbot
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill small">
+                                                Thủ công
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm status-dropdown rounded-3 py-1.5" 
+                                                data-order-id="@order.ComboOrderId"
+                                                style="font-size: 13px; font-weight: 600;">
+                                            <option value="Pending" selected="@(order.Status == "Pending")">⏳ Chờ xác nhận</option>
+                                            <option value="Confirmed" selected="@(order.Status == "Confirmed")">✅ Đã xác nhận</option>
+                                            <option value="Processing" selected="@(order.Status == "Processing")">⚙️ Đang xử lý</option>
+                                            <option value="Completed" selected="@(order.Status == "Completed")">🎉 Hoàn thành</option>
+                                            <option value="Cancelled" selected="@(order.Status == "Cancelled")">❌ Đã hủy</option>
+                                        </select>
+                                    </td>
+                                    <td class="pe-4 text-secondary small">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $(".status-dropdown").on("change", async function() {
+                const dropdown = $(this);
+                const orderId = dropdown.data("order-id");
+                const newStatus = dropdown.val();
+
+                dropdown.prop("disabled", true);
+                
+                try {
+                    const response = await fetch(`/ComboOrder/UpdateStatus/${orderId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        alert(`Cập nhật trạng thái đơn hàng #${orderId} thành công!`);
+                    } else {
+                        alert(result.message || "Cập nhật thất bại.");
+                    }
+                } catch(ex) {
+                    alert("Không thể kết nối đến máy chủ.");
+                } finally {
+                    dropdown.prop("disabled", false);
+                }
+            });
+        });
+    </script>
+    <style>
+        .bg-purple-subtle {
+            background-color: #f3e8ff;
+        }
+        .text-purple {
+            color: #7e22ce;
+        }
+        .border-purple {
+            border-color: #d8b4fe !important;
+        }
+        .status-dropdown {
+            cursor: pointer;
+        }
+    </style>
+}

@@ -1,0 +1,167 @@
+@model List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng Combo";
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">Lịch sử Đơn hàng Combo</h2>
+            <p class="text-secondary small m-0">Xem và theo dõi các đơn hàng gộp đa loại sản phẩm (Xe, Phụ tùng, Dịch vụ) bạn đã đặt.</p>
+        </div>
+        <a href="/" class="btn btn-outline-dark fw-bold"><i class="bi bi-arrow-left me-2"></i> Quay lại mua sắm</a>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger border-0 rounded-3 shadow-sm mb-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-5 bg-white">
+            <div class="text-secondary mb-3" style="font-size: 4rem;">
+                <i class="bi bi-inbox-fill"></i>
+            </div>
+            <h5 class="fw-bold">Bạn chưa có đơn hàng nào</h5>
+            <p class="text-secondary small">Hãy bắt đầu trò chuyện với AI Chatbot để chọn các sản phẩm phù hợp và tạo đơn hàng nhanh chóng.</p>
+            <div class="mt-3">
+                <a href="/Cars" class="btn btn-warning fw-bold border-0 px-4 py-2 text-dark shadow-sm">Xem Showroom Xe</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var order in Model)
+            {
+                var statusClass = order.Status switch
+                {
+                    "Pending" => "bg-warning-subtle text-warning-emphasis border border-warning",
+                    "Confirmed" => "bg-primary-subtle text-primary-emphasis border border-primary",
+                    "Processing" => "bg-info-subtle text-info-emphasis border border-info",
+                    "Completed" => "bg-success-subtle text-success-emphasis border border-success",
+                    "Cancelled" => "bg-danger-subtle text-danger-emphasis border border-danger",
+                    _ => "bg-secondary-subtle text-secondary-emphasis"
+                };
+
+                var statusName = order.Status switch
+                {
+                    "Pending" => "Chờ xác nhận",
+                    "Confirmed" => "Đã xác nhận",
+                    "Processing" => "Đang xử lý",
+                    "Completed" => "Đã hoàn thành",
+                    "Cancelled" => "Đã hủy",
+                    _ => order.Status
+                };
+
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 bg-white">
+                        <!-- Order Header -->
+                        <div class="card-header bg-light border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="fs-5 fw-bold text-dark">Mã Đơn: #@order.ComboOrderId</span>
+                                <span class="badge @statusClass px-3 py-2 rounded-pill small">@statusName</span>
+                                @if (order.Source == "chatbot")
+                                {
+                                    <span class="badge bg-purple-subtle text-purple border border-purple px-2 py-1 small rounded-pill">
+                                        <i class="bi bi-robot me-1"></i> Trực tuyến qua AI
+                                    </span>
+                                }
+                            </div>
+                            <div class="text-secondary small">
+                                <i class="bi bi-clock me-1"></i> Ngày đặt: @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <!-- Order Body -->
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <!-- Order Items List -->
+                                <div class="col-lg-8">
+                                    <h6 class="fw-bold mb-3 text-secondary-emphasis">Danh sách sản phẩm (@order.Items.Count)</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-borderless align-middle m-0">
+                                            <tbody>
+                                                @foreach (var item in order.Items)
+                                                {
+                                                    <tr class="border-bottom-dashed">
+                                                        <td>
+                                                            <div class="fw-bold text-dark">@item.ItemName</div>
+                                                            <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 10px;">
+                                                                @if (item.ItemType == "Car") { <text>Ô Tô</text> }
+                                                                else if (item.ItemType == "Part") { <text>Phụ Tùng</text> }
+                                                                else { <text>Dịch Vụ</text> }
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center text-secondary small">
+                                                            SL: <b class="text-dark">@item.Quantity</b>
+                                                        </td>
+                                                        <td class="text-end text-secondary small">
+                                                            Giá gốc: @item.UnitPrice.ToString("N0") VNĐ
+                                                        </td>
+                                                        <td class="text-end fw-bold text-danger">
+                                                            @item.SubTotal.ToString("N0") VNĐ
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Shipping & Total Summary -->
+                                <div class="col-lg-4 border-start-lg ps-lg-4">
+                                    <h6 class="fw-bold mb-3 text-secondary-emphasis">Thông tin bàn giao</h6>
+                                    <p class="small text-secondary mb-2">
+                                        <i class="bi bi-person me-2"></i> Người nhận: <b class="text-dark">@order.CustomerName</b>
+                                    </p>
+                                    <p class="small text-secondary mb-2">
+                                        <i class="bi bi-telephone me-2"></i> Điện thoại: <b class="text-dark">@order.CustomerPhone</b>
+                                    </p>
+                                    <p class="small text-secondary mb-2">
+                                        <i class="bi bi-geo-alt me-2"></i> Địa chỉ: <b class="text-dark">@order.ShippingAddress</b>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(order.Note))
+                                    {
+                                        <p class="small text-secondary mb-3">
+                                            <i class="bi bi-pencil-square me-2"></i> Ghi chú: <span class="text-dark italic">@order.Note</span>
+                                        </p>
+                                    }
+
+                                    <hr />
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="text-secondary fw-semibold">Tổng thanh toán:</span>
+                                        <h5 class="text-danger fw-bold m-0">@order.TotalAmount.ToString("N0") VNĐ</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .border-bottom-dashed {
+        border-bottom: 1px dashed #e9ecef !important;
+    }
+    .bg-purple-subtle {
+        background-color: #f3e8ff;
+    }
+    .text-purple {
+        color: #7e22ce;
+    }
+    .border-purple {
+        border-color: #d8b4fe !important;
+    }
+    @@media (min-width: 992px) {
+        .border-start-lg {
+            border-left: 1px solid #dee2e6 !important;
+        }
+    }
+</style>
