@@ -1,26 +1,26 @@
 @model IEnumerable<CarSalesManagementSystemClient.Models.PurchaseRequestHistoryViewModel>
 @{
-    ViewData["Title"] = "Lịch sử giao dịch";
+    ViewData["Title"] = "L?ch s? giao d?ch";
 }
 
 <div class="container py-5 font-outfit" style="min-height: 70vh;">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Trang ch?</a></li>
             <li class="breadcrumb-item"><a asp-controller="Cars" asp-action="Index" class="text-decoration-none text-dark">Showroom</a></li>
-            <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">Lịch sử giao dịch</li>
+            <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">L?ch s? giao d?ch</li>
         </ol>
     </nav>
 
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-extrabold text-dark m-0">Lịch sử giao dịch của bạn</h2>
-            <p class="text-muted mb-0">Theo dõi thông tin đặt cọc và mua đứt xe tại Group7</p>
+            <h2 class="fw-extrabold text-dark m-0">L?ch s? giao d?ch c?a b?n</h2>
+            <p class="text-muted mb-0">Theo d?i th?ng tin d?t c?c v? mua d?t xe t?i Group7</p>
         </div>
         <a asp-action="Index" class="btn btn-warning fw-bold px-4 py-2.5 rounded-3 shadow-sm border-0 text-dark">
-            <i class="bi bi-car-front-fill me-1"></i> Đến Showroom xem thêm xe
+            <i class="bi bi-car-front-fill me-1"></i> D?n Showroom xem th?m xe
         </a>
     </div>
 
@@ -37,12 +37,12 @@
     {
         <div class="card border-0 shadow-sm text-center py-5 px-4 rounded-4" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);">
             <div class="mb-4">
-                <span class="display-1 text-muted">📁</span>
+                <span class="display-1 text-muted">??</span>
             </div>
-            <h4 class="fw-bold text-dark mb-2">Chưa có giao dịch nào</h4>
-            <p class="text-muted mx-auto mb-4" style="max-width: 480px;">Bạn chưa thực hiện bất kỳ giao dịch đặt cọc giữ xe hoặc mua đứt nào trên hệ thống của chúng tôi.</p>
+            <h4 class="fw-bold text-dark mb-2">Chua c? giao d?ch n?o</h4>
+            <p class="text-muted mx-auto mb-4" style="max-width: 480px;">B?n chua th?c hi?n b?t k? giao d?ch d?t c?c gi? xe ho?c mua d?t n?o tr?n h? th?ng c?a ch?ng t?i.</p>
             <div>
-                <a asp-action="Index" class="btn btn-outline-dark fw-bold px-4 py-2 rounded-3">Khám phá Showroom ngay</a>
+                <a asp-action="Index" class="btn btn-outline-dark fw-bold px-4 py-2 rounded-3">Kh?m ph? Showroom ngay</a>
             </div>
         </div>
     }
@@ -53,14 +53,14 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-dark text-white">
                         <tr>
-                            <th class="py-3 px-4" style="font-weight: 600; font-size: 14px;">Mã GD</th>
+                            <th class="py-3 px-4" style="font-weight: 600; font-size: 14px;">M? GD</th>
                             <th class="py-3" style="font-weight: 600; font-size: 14px;">Xe</th>
-                            <th class="py-3" style="font-weight: 600; font-size: 14px;">Hình thức</th>
-                            <th class="py-3 text-end" style="font-weight: 600; font-size: 14px;">Số tiền</th>
-                            <th class="py-3" style="font-weight: 600; font-size: 14px; padding-left: 20px;">Trạng thái</th>
-                            <th class="py-3" style="font-weight: 600; font-size: 14px;">Ngày giao dịch</th>
-                            <th class="py-3" style="font-weight: 600; font-size: 14px;">Mã Captcha</th>
-                            <th class="py-3 px-4 text-center" style="font-weight: 600; font-size: 14px;">Thao tác</th>
+                            <th class="py-3" style="font-weight: 600; font-size: 14px;">H?nh th?c</th>
+                            <th class="py-3 text-end" style="font-weight: 600; font-size: 14px;">S? ti?n</th>
+                            <th class="py-3" style="font-weight: 600; font-size: 14px; padding-left: 20px;">Tr?ng th?i</th>
+                            <th class="py-3" style="font-weight: 600; font-size: 14px;">Ng?y giao d?ch</th>
+                            <th class="py-3" style="font-weight: 600; font-size: 14px;">M? Captcha</th>
+                            <th class="py-3 px-4 text-center" style="font-weight: 600; font-size: 14px;">Thao t?c</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,9 +82,9 @@
                                              onerror="this.src='@defaultCarImg'">
                                         <div>
                                             <a asp-action="Details" asp-route-id="@request.CarId" class="fw-bold text-dark text-decoration-none hover-text-warning">
-                                                @(request.Car?.CarName ?? "Thông tin xe không khả dụng")
+                                                @(request.Car?.CarName ?? "Th?ng tin xe kh?ng kh? d?ng")
                                             </a>
-                                            <div class="text-muted" style="font-size: 12px;">@request.Car?.Model - Đời @request.Car?.Year</div>
+                                            <div class="text-muted" style="font-size: 12px;">@request.Car?.Model - D?i @request.Car?.Year</div>
                                         </div>
                                     </div>
                                 </td>
@@ -92,13 +92,13 @@
                                     @if (isDeposit)
                                     {
                                         <span class="badge bg-info text-dark fw-bold px-2.5 py-1.5 rounded-2">
-                                            <i class="bi bi-cash-stack me-1"></i> Đặt cọc giữ xe
+                                            <i class="bi bi-cash-stack me-1"></i> D?t c?c gi? xe
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge bg-primary text-white fw-bold px-2.5 py-1.5 rounded-2">
-                                            <i class="bi bi-cart-check-fill me-1"></i> Mua đứt
+                                            <i class="bi bi-cart-check-fill me-1"></i> Mua d?t
                                         </span>
                                     }
                                 </td>
@@ -109,25 +109,25 @@
                                     @if (request.Status == "Deposited" || (request.Status == "Pending" && isDeposit))
                                     {
                                         <span class="badge bg-warning text-dark fw-bold px-2 py-1.5 rounded-pill">
-                                            <i class="bi bi-clock-history me-1"></i> Đang giữ cọc
+                                            <i class="bi bi-clock-history me-1"></i> Dang gi? c?c
                                         </span>
                                     }
                                     else if (request.Status == "Completed")
                                     {
                                         <span class="badge bg-success text-white fw-bold px-2 py-1.5 rounded-pill">
-                                            <i class="bi bi-check-circle-fill me-1"></i> Thành công
+                                            <i class="bi bi-check-circle-fill me-1"></i> Th?nh c?ng
                                         </span>
                                     }
                                     else if (request.Status == "DepositExpired" || (request.Status == "Rejected" && isDeposit))
                                     {
                                         <span class="badge bg-danger text-white fw-bold px-2 py-1.5 rounded-pill">
-                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Hết hạn cọc
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> H?t h?n c?c
                                         </span>
                                     }
                                     else if (request.Status == "Pending")
                                     {
                                         <span class="badge bg-secondary text-white fw-bold px-2 py-1.5 rounded-pill">
-                                            <i class="bi bi-hourglass-split me-1"></i> Đang xử lý
+                                            <i class="bi bi-hourglass-split me-1"></i> Dang x? l?
                                         </span>
                                     }
                                     else
@@ -142,7 +142,7 @@
                                     @if (isDeposit && (request.Status == "Deposited" || request.Status == "Pending"))
                                     {
                                         <div class="text-danger fw-bold" style="font-size: 11px;">
-                                            Hạn cọc: @request.DepositExpiry?.ToString("dd/MM/yyyy")
+                                            H?n c?c: @request.DepositExpiry?.ToString("dd/MM/yyyy")
                                         </div>
                                     }
                                 </td>
@@ -150,8 +150,8 @@
                                     @(request.CaptchaCode ?? "N/A")
                                 </td>
                                 <td class="py-3 px-4 text-center">
-                                    <button class="btn btn-sm btn-outline-dark fw-bold rounded-2 px-2.5" onclick="showTxDetails('@request.RequestId', '@(isDeposit ? "Đặt cọc xe" : "Mua đứt xe")', '@(request.Car?.CarName)', '@(request.DepositAmount?.ToString("N0"))', '@request.Status', '@request.CreatedAt.ToString("dd/MM/yyyy HH:mm")', '@request.CaptchaCode')">
-                                        <i class="bi bi-eye"></i> Chi tiết
+                                    <button class="btn btn-sm btn-outline-dark fw-bold rounded-2 px-2.5" onclick="showTxDetails('@request.RequestId', '@(isDeposit ? "D?t c?c xe" : "Mua d?t xe")', '@(request.Car?.CarName)', '@(request.DepositAmount?.ToString("N0"))', '@request.Status', '@request.CreatedAt.ToString("dd/MM/yyyy HH:mm")', '@request.CaptchaCode')">
+                                        <i class="bi bi-eye"></i> Chi ti?t
                                     </button>
                                 </td>
                             </tr>
@@ -168,49 +168,49 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-dark text-white border-0 py-3">
-                <h5 class="modal-title fw-bold"><i class="bi text-warning bi-receipt me-2"></i>Chi tiết giao dịch</h5>
+                <h5 class="modal-title fw-bold"><i class="bi text-warning bi-receipt me-2"></i>Chi ti?t giao d?ch</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="text-center mb-4">
-                    <span id="mdIcon" class="display-3">🛒</span>
+                    <span id="mdIcon" class="display-3">??</span>
                     <h4 class="fw-bold text-dark mt-2 mb-1" id="mdCarName">Toyota Camry</h4>
-                    <p class="text-muted mb-0" id="mdRequestId">Mã giao dịch: #12</p>
+                    <p class="text-muted mb-0" id="mdRequestId">M? giao d?ch: #12</p>
                 </div>
                 
                 <hr class="opacity-25 my-3">
                 
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-secondary">Loại hình giao dịch</span>
-                    <span class="fw-bold text-dark" id="mdType">Mua đứt xe</span>
+                    <span class="text-secondary">Lo?i h?nh giao d?ch</span>
+                    <span class="fw-bold text-dark" id="mdType">Mua d?t xe</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-secondary">Trạng thái</span>
-                    <span class="fw-bold" id="mdStatus">Hoàn tất</span>
+                    <span class="text-secondary">Tr?ng th?i</span>
+                    <span class="fw-bold" id="mdStatus">Ho?n t?t</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-secondary">Ngày thực hiện</span>
+                    <span class="text-secondary">Ng?y th?c hi?n</span>
                     <span class="fw-bold text-dark" id="mdDate">03/06/2026</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-secondary">Mã bảo mật xác thực</span>
+                    <span class="text-secondary">M? b?o m?t x?c th?c</span>
                     <span class="fw-bold font-monospace text-uppercase text-secondary" id="mdCaptcha">ABCXYZ</span>
                 </div>
                 
                 <hr class="opacity-25 my-3">
                 
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold text-dark" style="font-size: 16px;">Số tiền giao dịch</span>
+                    <span class="fw-bold text-dark" style="font-size: 16px;">S? ti?n giao d?ch</span>
                     <span class="fw-extrabold text-danger fs-5" id="mdAmount">1.350.000.000 VND</span>
                 </div>
                 
                 <div class="alert alert-secondary mt-3 mb-0" style="font-size: 13px; border-radius: 10px;">
                     <i class="bi bi-info-circle-fill me-1"></i>
-                    Nếu có bất kỳ thắc mắc nào về giao dịch này, quý khách vui lòng liên hệ Hotline hỗ trợ: <strong>0987 173 229</strong> để được trợ giúp sớm nhất.
+                    N?u c? b?t k? th?c m?c n?o v? giao d?ch n?y, qu? kh?ch vui l?ng li?n h? Hotline h? tr?: <strong>0987 173 229</strong> d? du?c tr? gi?p s?m nh?t.
                 </div>
             </div>
             <div class="modal-footer border-0 bg-light justify-content-center">
-                <button type="button" class="btn btn-dark fw-bold px-4 py-2 rounded-3" data-bs-dismiss="modal">Đóng cửa sổ</button>
+                <button type="button" class="btn btn-dark fw-bold px-4 py-2 rounded-3" data-bs-dismiss="modal">D?ng c?a s?</button>
             </div>
         </div>
     </div>
@@ -219,9 +219,9 @@
 @section Scripts {
     <script>
         function showTxDetails(id, type, car, amount, status, date, captcha) {
-            document.getElementById('mdRequestId').textContent = 'Mã giao dịch: #' + id;
+            document.getElementById('mdRequestId').textContent = 'M? giao d?ch: #' + id;
             document.getElementById('mdType').textContent = type;
-            document.getElementById('mdCarName').textContent = car || 'Không xác định';
+            document.getElementById('mdCarName').textContent = car || 'Kh?ng x?c d?nh';
             document.getElementById('mdAmount').textContent = amount + ' VND';
             document.getElementById('mdDate').textContent = date;
             document.getElementById('mdCaptcha').textContent = captcha || 'N/A';
@@ -229,18 +229,18 @@
             const statusEl = document.getElementById('mdStatus');
             statusEl.textContent = status;
             
-            if (status === 'Deposited' || (status === 'Pending' && type.includes('cá»c'))) {
+            if (status === 'Deposited' || (status === 'Pending' && type.includes('c?c'))) {
                 statusEl.className = 'fw-bold text-warning';
-                document.getElementById('mdIcon').textContent = '💸';
+                document.getElementById('mdIcon').textContent = '??';
             } else if (status === 'Completed') {
                 statusEl.className = 'fw-bold text-success';
-                document.getElementById('mdIcon').textContent = '✅';
-            } else if (status === 'DepositExpired' || (status === 'Rejected' && type.includes('cá»c'))) {
+                document.getElementById('mdIcon').textContent = '?';
+            } else if (status === 'DepositExpired' || (status === 'Rejected' && type.includes('c?c'))) {
                 statusEl.className = 'fw-bold text-danger';
-                document.getElementById('mdIcon').textContent = '❌';
+                document.getElementById('mdIcon').textContent = '?';
             } else {
                 statusEl.className = 'fw-bold text-secondary';
-                document.getElementById('mdIcon').textContent = '📄';
+                document.getElementById('mdIcon').textContent = '??';
             }
 
             const myModal = new bootstrap.Modal(document.getElementById('txDetailsModal'));

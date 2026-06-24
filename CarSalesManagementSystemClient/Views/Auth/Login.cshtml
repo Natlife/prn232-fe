@@ -92,13 +92,15 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang đăng nhập...';
 
             const formData = new FormData(form);
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('ReturnUrl');
+            if (returnUrl && !formData.get('returnUrl')) {
+                formData.append('returnUrl', returnUrl);
+            }
             try {
                 const res = await fetch('/Auth/Login', { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.success) {
-                    // Extract ReturnUrl from query params if any
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const returnUrl = urlParams.get('ReturnUrl');
                     window.location.href = returnUrl || result.redirectUrl || '/';
                 } else {
                     const err = document.getElementById('loginPageError');

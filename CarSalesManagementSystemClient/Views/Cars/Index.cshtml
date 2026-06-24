@@ -47,10 +47,13 @@
                         <!-- Search keyword -->
                         <div class="mb-4">
                             <label class="form-label fw-bold text-dark mb-2">Từ khóa tìm kiếm</label>
-                            <div class="input-group">
+                            <div class="input-group mb-2">
                                 <span class="input-group-text bg-light border-0"><i class="bi bi-search text-secondary"></i></span>
                                 <input type="text" name="SearchTerm" class="form-control bg-light border-0 py-2" placeholder="Tên xe, model..." value="@filter.SearchTerm" />
                             </div>
+                            <button type="button" class="btn btn-outline-warning w-100 py-2 fw-bold text-dark d-flex align-items-center justify-content-center border-warning hover-dark-shadow" data-bs-toggle="modal" data-bs-target="#imageSearchModal" style="border-width: 2px;">
+                                <i class="bi bi-camera-fill me-2 text-warning fs-5"></i> TÌM XE QUA ẢNH (AI)
+                            </button>
                         </div>
 
                         <!-- Brand filter -->
@@ -354,4 +357,316 @@
         background-color: #ffc107 !important;
         border-color: #ffc107 !important;
     }
+    .hover-dark-shadow:hover {
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+        background-color: #ffc107 !important;
+        color: #000 !important;
+    }
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+    #dropZone.dragover {
+        background-color: #e9ecef !important;
+        border-color: #ffc107 !important;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .object-fit-cover {
+        object-fit: cover;
+    }
 </style>
+
+<!-- Image Search Modal -->
+<div class="modal fade" id="imageSearchModal" tabindex="-1" aria-labelledby="imageSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-dark text-white py-3">
+                <h5 class="modal-title fw-bold" id="imageSearchModalLabel">
+                    <i class="bi bi-cpu-fill text-warning me-2"></i> TÌM XE BẰNG CÔNG NGHỆ NHẬN DIỆN AI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+                {
+                    <div class="mb-3 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold border-warning px-3" id="btnSyncVectorDb">
+                            <i class="bi bi-arrow-repeat me-1 animate-spin"></i> ĐỒNG BỘ VECTOR DB
+                        </button>
+                    </div>
+                }
+
+                <div class="row">
+                    <!-- Image upload column -->
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center d-flex flex-column align-items-center justify-content-center bg-light transition-all cursor-pointer" style="min-height: 280px; border-color: #dee2e6 !important;">
+                            <i class="bi bi-cloud-arrow-up-fill text-secondary mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="fw-bold mb-1 text-dark">Kéo thả ảnh ô tô vào đây</h6>
+                            <p class="text-secondary mb-3" style="font-size: 12px;">Hỗ trợ định dạng JPG, PNG, WEBP</p>
+                            <input type="file" id="imageInput" accept="image/*" class="d-none" />
+                            <button type="button" class="btn btn-warning btn-sm fw-bold border-0 text-dark px-4 py-2" onclick="document.getElementById('imageInput').click();">Chọn ảnh từ máy</button>
+                        </div>
+                        <div id="imagePreviewContainer" class="d-none position-relative rounded-3 overflow-hidden border" style="height: 280px;">
+                            <img id="imagePreview" class="w-100 h-100 object-fit-cover" />
+                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle d-flex align-items-center justify-content-center shadow" id="btnRemoveImage" style="width: 32px; height: 32px;">
+                                <i class="bi bi-x-lg fs-6"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Result column -->
+                    <div class="col-md-6">
+                        <div id="aiStateInitial" class="h-100 d-flex flex-column align-items-center justify-content-center text-center p-3">
+                            <i class="bi bi-file-earmark-image-fill text-muted mb-2" style="font-size: 2.5rem;"></i>
+                            <h6 class="fw-bold text-dark">Chưa có hình ảnh phân tích</h6>
+                            <p class="text-secondary" style="font-size: 13px;">Hãy upload một bức ảnh xe ô tô. AI của chúng tôi sẽ tự động nhận diện thương hiệu, dòng xe và gợi ý các mẫu xe phù hợp đang có trong showroom.</p>
+                        </div>
+
+                        <div id="aiStateLoading" class="d-none h-100 d-flex flex-column align-items-center justify-content-center text-center p-3">
+                            <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h6 class="fw-bold text-dark">Đang phân tích hình ảnh với AI...</h6>
+                            <p class="text-secondary" style="font-size: 13px;">Hệ thống đang chạy mô hình Deep Learning ViT để phân loại mẫu xe và thực hiện truy vấn Vector DB.</p>
+                        </div>
+
+                        <div id="aiStateResult" class="d-none h-100 d-flex flex-column">
+                            <div class="alert alert-success border-0 bg-success bg-opacity-10 py-3 px-3 mb-3">
+                                <h6 class="alert-heading fw-bold text-success mb-1" style="font-size: 14px;">
+                                    <i class="bi bi-check-circle-fill me-1"></i> NHẬN DIỆN THÀNH CÔNG
+                                </h6>
+                                <p class="mb-0 text-dark" style="font-size: 13px;">
+                                    Mẫu xe: <strong id="detectedModel" class="text-danger">--</strong> 
+                                    <span class="text-secondary ms-1">(Độ chính xác: <span id="detectionConfidence">0</span>%)</span>
+                                </p>
+                            </div>
+                            
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 14px;">Kết quả phù hợp tại Showroom:</h6>
+                            <div id="matchingCarsList" class="flex-grow-1 overflow-auto pe-1" style="max-height: 200px;">
+                                <!-- Matches injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm fw-bold px-3" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const dropZone = $('#dropZone');
+        const imageInput = $('#imageInput');
+        const previewContainer = $('#imagePreviewContainer');
+        const previewImg = $('#imagePreview');
+        const btnRemove = $('#btnRemoveImage');
+
+        // Drag and drop events
+        dropZone.on('dragover', function (e) {
+            e.preventDefault();
+            dropZone.addClass('dragover');
+        });
+
+        dropZone.on('dragleave', function () {
+            dropZone.removeClass('dragover');
+        });
+
+        dropZone.on('drop', function (e) {
+            e.preventDefault();
+            dropZone.removeClass('dragover');
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        dropZone.on('click', function () {
+            imageInput.click();
+        });
+
+        imageInput.on('change', function () {
+            if (this.files.length > 0) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        btnRemove.on('click', function (e) {
+            e.stopPropagation();
+            resetUploadState();
+        });
+
+        // Trigger vector synchronization from UI
+        $('#btnSyncVectorDb').on('click', function () {
+            const btn = $(this);
+            btn.prop('disabled', true);
+            
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Đang đồng bộ...',
+                    text: 'Hệ thống đang đồng bộ dữ liệu xe từ SQL Server vào Vector DB / Elasticsearch',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+
+            $.ajax({
+                url: '/Cars/SyncVectorDb',
+                type: 'POST',
+                success: function (res) {
+                    btn.prop('disabled', false);
+                    if (res.success) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: res.message
+                            });
+                        } else {
+                            alert(res.message);
+                        }
+                    } else {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi đồng bộ',
+                                text: res.message
+                            });
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                },
+                error: function () {
+                    btn.prop('disabled', false);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi kết nối',
+                            text: 'Không thể kết nối đến máy chủ.'
+                        });
+                    } else {
+                        alert('Không thể kết nối đến máy chủ.');
+                    }
+                }
+            });
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chỉ upload file hình ảnh.');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.attr('src', e.target.result);
+                dropZone.addClass('d-none');
+                previewContainer.removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
+
+            // Upload and analyze
+            uploadAndAnalyze(file);
+        }
+
+        function uploadAndAnalyze(file) {
+            // Update UI State to loading
+            $('#aiStateInitial').addClass('d-none');
+            $('#aiStateResult').addClass('d-none');
+            $('#aiStateLoading').removeClass('d-none');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            $.ajax({
+                url: '/Cars/DetectImage',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    $('#aiStateLoading').addClass('d-none');
+                    if (res.success && res.data) {
+                        const result = res.data;
+                        $('#detectedModel').text(result.predictedLabel);
+                        $('#detectionConfidence').text(Math.round(result.confidence * 100));
+
+                        // Populate matching cars
+                        const carList = $('#matchingCarsList');
+                        carList.empty();
+
+                        if (result.matchedCars && result.matchedCars.length > 0) {
+                            result.matchedCars.forEach(car => {
+                                const brandName = car.brand ? car.brand.brandName : 'Showroom';
+                                const imageUrl = car.imageUrl || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80';
+                                const priceText = Number(car.price).toLocaleString('vi-VN') + ' đ';
+                                const mileageText = Number(car.mileage).toLocaleString('vi-VN') + ' km';
+                                
+                                const carItem = `
+                                    <div class="card mb-2 border-0 shadow-sm bg-white overflow-hidden" style="border-radius: 8px;">
+                                        <div class="row g-0">
+                                            <div class="col-4" style="height: 90px;">
+                                                <img src="${imageUrl}" class="w-100 h-100 object-fit-cover" alt="${car.carName}" />
+                                            </div>
+                                            <div class="col-8">
+                                                <div class="card-body p-2 d-flex flex-column h-100 justify-content-between">
+                                                    <div>
+                                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 13px; display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">${car.carName}</h6>
+                                                        <small class="text-secondary" style="font-size: 11px;">Hãng: ${brandName} | Đời: ${car.year}</small>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="fw-bold text-danger" style="font-size: 13px;">${priceText}</span>
+                                                        <a href="/Cars/Details/${car.carId}" class="btn btn-warning btn-sm py-0 px-2 fw-bold text-dark" style="font-size: 11px; height: 20px; line-height: 20px; background-color: #ffc107; border: 0;">Xem</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                carList.append(carItem);
+                            });
+                        } else {
+                            carList.html(`
+                                <div class="text-center py-4 bg-light rounded border border-dashed">
+                                    <i class="bi bi-emoji-frown text-secondary fs-2 mb-1 d-block"></i>
+                                    <p class="text-secondary mb-0" style="font-size: 12px;">Không tìm thấy xe nào khớp tại showroom.</p>
+                                    <small class="text-muted" style="font-size: 11px;">Vector DB chưa được đồng bộ hoặc mẫu xe này hết hàng.</small>
+                                </div>
+                            `);
+                        }
+
+                        $('#aiStateResult').removeClass('d-none');
+                    } else {
+                        $('#aiStateInitial').removeClass('d-none');
+                        alert(res.message || 'Lỗi khi nhận dạng hình ảnh.');
+                    }
+                },
+                error: function () {
+                    $('#aiStateLoading').addClass('d-none');
+                    $('#aiStateInitial').removeClass('d-none');
+                    alert('Lỗi kết nối mạng hoặc server không phản hồi.');
+                }
+            });
+        }
+
+        function resetUploadState() {
+            imageInput.val('');
+            previewImg.attr('src', '');
+            previewContainer.addClass('d-none');
+            dropZone.removeClass('d-none');
+            
+            $('#aiStateResult').addClass('d-none');
+            $('#aiStateLoading').addClass('d-none');
+            $('#aiStateInitial').removeClass('d-none');
+        }
+    });
+</script>
+

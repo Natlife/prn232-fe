@@ -1,5 +1,6 @@
 @model IEnumerable<CarSalesManagementSystemClient.Models.DepositCaptchaViewModel>
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Quản lý Captcha Đặt cọc & Mua xe";
     var carsList = ViewBag.Cars as IEnumerable<CarSalesManagementSystemClient.Models.CarViewModel> ?? new List<CarSalesManagementSystemClient.Models.CarViewModel>();
 }
