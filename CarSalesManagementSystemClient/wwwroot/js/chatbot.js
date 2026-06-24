@@ -11,7 +11,7 @@
     }
 
     // ─── MESSAGE CACHE (sessionStorage) ──────────────────────────────────────
-    // Format: [{role, text, suggestedItems, orderLink}]
+    // Format: [{role, text, suggestedItems, orderLink, action}]
     // Uses sessionStorage so data survives page navigation within same tab,
     // but is cleared when user closes the tab/browser.
     function loadCachedMessages() {
@@ -99,7 +99,7 @@
         if (_messages.length === 0) return;
         chatMessages.innerHTML = ""; // clear default greeting
         _messages.forEach(msg => {
-            renderBubble(msg.role, msg.text, msg.suggestedItems || null, msg.orderLink || null, /*save=*/false);
+            renderBubble(msg.role, msg.text, msg.suggestedItems || null, msg.orderLink || null, msg.action || null, /*save=*/false);
         });
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -158,6 +158,20 @@
         if (e.key === "Enter") sendMessage();
     });
     chatSend.addEventListener("click", sendMessage);
+    document.addEventListener("click", (e) => {
+        const orderBtn = e.target.closest("a.ai-draft-order-btn");
+        if (!orderBtn) return;
+
+        const href = orderBtn.getAttribute("href");
+        if (!href || !href.includes("/Cars/Details/")) return;
+
+        const actionType = orderBtn.dataset.actionType || "";
+        const bubbleText = orderBtn.closest(".message-bubble")?.innerText || "";
+        const resolvedHref = appendChatActionToCarLink(href, bubbleText, actionType);
+        if (resolvedHref !== href) {
+            orderBtn.setAttribute("href", resolvedHref);
+        }
+    });
 
     // ─── FETCH HISTORY FROM SERVER (fallback only) ───────────────────────────
     async function fetchHistoryFromServer() {
@@ -205,7 +219,7 @@
                 const apiResult = await res.json();
                 if (apiResult && apiResult.success && apiResult.data) {
                     const data = apiResult.data;
-                    pushAndRender("ai", data.reply, data.suggestedItems, data.orderLink);
+                    pushAndRender("ai", data.reply, data.suggestedItems, data.orderLink, data.action);
                 } else {
                     const msg = apiResult?.message || "Đã xảy ra lỗi không mong muốn.";
                     pushAndRender("ai", "Lỗi: " + msg);
@@ -220,14 +234,14 @@
     }
 
     // ─── CORE: Push to cache + render ────────────────────────────────────────
-    function pushAndRender(role, text, suggestedItems = null, orderLink = null) {
-        _messages.push({ role, text, suggestedItems: suggestedItems || null, orderLink: orderLink || null });
+    function pushAndRender(role, text, suggestedItems = null, orderLink = null, action = null) {
+        _messages.push({ role, text, suggestedItems: suggestedItems || null, orderLink: orderLink || null, action: action || null });
         saveCachedMessages(_messages);
-        renderBubble(role, text, suggestedItems, orderLink, /*save=*/false);
+        renderBubble(role, text, suggestedItems, orderLink, action, /*save=*/false);
     }
 
     // ─── RENDER BUBBLE ───────────────────────────────────────────────────────
-    function renderBubble(role, text, suggestedItems = null, orderLink = null) {
+    function renderBubble(role, text, suggestedItems = null, orderLink = null, action = null) {
         const bubble = document.createElement("div");
         bubble.className = `message-bubble ${role === "user" ? "message-user" : "message-ai"}`;
 
@@ -274,14 +288,31 @@
         }
 
         // Order / deposit button
-        if (orderLink) {
+        const actionUrl = action?.url || orderLink;
+        if (actionUrl) {
             const btn = document.createElement("a");
             btn.className = "ai-draft-order-btn";
-            btn.href = orderLink;
-            if (orderLink.includes("/Cars/Details/")) {
+            btn.href = actionUrl;
+            if (actionUrl.includes("/Cars/Details/")) {
                 btn.innerHTML = `<i class="bi bi-car-front-fill me-1"></i> Bấm để Đặt Cọc / Mua Đứt Xe`;
             } else {
                 btn.innerHTML = `<i class="bi bi-cart-fill me-1"></i> Bấm để Xem &amp; Xác Nhận Đơn Hàng`;
+            }
+            if (action) {
+                btn.href = action.url || btn.href;
+                btn.dataset.actionType = action.type || "";
+                btn.dataset.targetType = action.targetType || "";
+                btn.dataset.actionLabel = action.label || "";
+
+                if (action.type === "deposit") {
+                    btn.innerHTML = `<i class="bi bi-cash-stack me-1"></i> ${escapeHtml(action.label || "Dat coc xe")}`;
+                } else if (action.type === "buyout") {
+                    btn.innerHTML = `<i class="bi bi-cart-check me-1"></i> ${escapeHtml(action.label || "Mua dut xe")}`;
+                } else if ((action.targetType || "").toLowerCase() === "car") {
+                    btn.innerHTML = `<i class="bi bi-car-front-fill me-1"></i> ${escapeHtml(action.label || "Xem xe va tiep tuc")}`;
+                } else {
+                    btn.innerHTML = `<i class="bi bi-cart-fill me-1"></i> ${escapeHtml(action.label || "Xem & xac nhan don hang")}`;
+                }
             }
             bubble.appendChild(btn);
         }
@@ -367,5 +398,36 @@
         }
 
         return outputLines.join('<br/>');
+    }
+
+    function appendChatActionToCarLink(href, bubbleText, actionType = "") {
+        const url = new URL(href, window.location.origin);
+        if (!url.pathname.includes("/Cars/Details/") || url.searchParams.has("chatAction")) {
+            return url.pathname + url.search + url.hash;
+        }
+
+        if (actionType === "deposit" || actionType === "buyout") {
+            url.searchParams.set("chatAction", actionType);
+            return url.pathname + url.search + url.hash;
+        }
+
+        const normalized = (bubbleText || "").toLowerCase();
+        if (
+            normalized.includes("đặt cọc") ||
+            normalized.includes("dat coc") ||
+            normalized.includes("cọc xe") ||
+            normalized.includes("coc xe")
+        ) {
+            url.searchParams.set("chatAction", "deposit");
+        } else if (
+            normalized.includes("mua đứt") ||
+            normalized.includes("mua dut") ||
+            normalized.includes("thanh toán đứt") ||
+            normalized.includes("thanh toan dut")
+        ) {
+            url.searchParams.set("chatAction", "buyout");
+        }
+
+        return url.pathname + url.search + url.hash;
     }
 })();

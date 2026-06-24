@@ -18,6 +18,9 @@ public class ComboOrderCreateViewModel
     [StringLength(20)]
     public string CustomerPhone { get; set; } = null!;
 
+    [Required]
+    public string PurchaseType { get; set; } = "Buyout";
+
     [Required(ErrorMessage = "Địa chỉ nhận hàng không được để trống")]
     [StringLength(255)]
     public string ShippingAddress { get; set; } = null!;
@@ -74,7 +77,13 @@ public class ComboOrderViewModel
     public string? Note { get; set; }
     public string Source { get; set; } = null!;
     public string? ChatSessionId { get; set; }
+    public string PurchaseType { get; set; } = "Buyout";
     public string Status { get; set; } = null!;
+    public decimal? DepositAmount { get; set; }
+    public string? CaptchaCode { get; set; }
+    public DateTime? CaptchaGeneratedAt { get; set; }
+    public bool IsCaptchaUsed { get; set; }
+    public DateTime? CaptchaUsedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public List<ComboOrderItemViewModel> Items { get; set; } = new();

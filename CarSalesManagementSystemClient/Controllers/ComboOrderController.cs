@@ -36,7 +36,7 @@ public class ComboOrderController : Controller
 
     // GET: /ComboOrder/Confirm?draft=xxx
     [HttpGet]
-    public async Task<IActionResult> Confirm(string draft)
+    public async Task<IActionResult> Confirm(string draft, string? type = null)
     {
         if (string.IsNullOrEmpty(draft))
         {
@@ -76,6 +76,9 @@ public class ComboOrderController : Controller
             // If user is authenticated, we prefill name/phone if possible
             ViewBag.IsAuthenticated = User.Identity?.IsAuthenticated ?? false;
             ViewBag.DraftToken = draft;
+            ViewBag.PurchaseType = string.Equals(type, "deposit", StringComparison.OrdinalIgnoreCase)
+                ? "Deposit"
+                : "Buyout";
 
             return View(apiResult.Data);
         }
@@ -225,11 +228,98 @@ public class ComboOrderController : Controller
             return Json(new { success = false, message = "Lỗi kết nối máy chủ: " + ex.Message });
         }
     }
+    [HttpPost]
+    public async Task<IActionResult> GenerateCaptcha(int id, [FromBody] GenerateComboCaptchaModel? model)
+    {
+        if (!User.Identity.IsAuthenticated || !User.IsInRole("Admin"))
+        {
+            return Json(new { success = false, message = "Báº¡n khÃ´ng cÃ³ quyá»n thá»±c hiá»‡n hÃ nh Ä‘á»™ng nÃ y." });
+        }
+
+        try
+        {
+            AttachJwtToken();
+            var response = await _httpClient.PostAsJsonAsync(
+                $"{_apiBaseUrl}/api/combo-orders/{id}/generate-captcha",
+                new { code = model?.Code });
+
+            var content = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(content);
+            var success = response.IsSuccessStatusCode &&
+                          doc.RootElement.TryGetProperty("success", out var sProp) &&
+                          sProp.GetBoolean();
+            var message = doc.RootElement.TryGetProperty("message", out var mProp)
+                ? mProp.GetString()
+                : "KhÃ´ng thá»ƒ táº¡o captcha.";
+
+            string? captchaCode = null;
+            if (doc.RootElement.TryGetProperty("data", out var dataProp) &&
+                dataProp.TryGetProperty("captchaCode", out var codeProp))
+            {
+                captchaCode = codeProp.GetString();
+            }
+
+            return Json(new { success, message, captchaCode });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Lá»—i káº¿t ná»‘i mÃ¡y chá»§: " + ex.Message });
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> VerifyCaptcha(int id, [FromBody] VerifyComboCaptchaModel model)
+    {
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Json(new { success = false, message = "Báº¡n cáº§n Ä‘Äƒng nháº­p Ä‘á»ƒ xÃ¡c thá»±c Ä‘Æ¡n hÃ ng." });
+        }
+
+        try
+        {
+            AttachJwtToken();
+            var response = await _httpClient.PostAsJsonAsync(
+                $"{_apiBaseUrl}/api/combo-orders/{id}/verify-captcha",
+                new { captchaCode = model.CaptchaCode });
+
+            var content = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(content);
+            var success = response.IsSuccessStatusCode &&
+                          doc.RootElement.TryGetProperty("success", out var sProp) &&
+                          sProp.GetBoolean();
+            var message = doc.RootElement.TryGetProperty("message", out var mProp)
+                ? mProp.GetString()
+                : "KhÃ´ng thá»ƒ xÃ¡c thá»±c captcha.";
+
+            string? status = null;
+            if (doc.RootElement.TryGetProperty("data", out var dataProp) &&
+                dataProp.TryGetProperty("status", out var statusProp))
+            {
+                status = statusProp.GetString();
+            }
+
+            return Json(new { success, message, status });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Lá»—i káº¿t ná»‘i mÃ¡y chá»§: " + ex.Message });
+        }
+    }
 }
 
 public class UpdateStatusModel
 {
     public string Status { get; set; } = null!;
+}
+
+public class GenerateComboCaptchaModel
+{
+    public string? Code { get; set; }
+}
+
+public class VerifyComboCaptchaModel
+{
+    public string CaptchaCode { get; set; } = null!;
 }
 
 // API generic wrapper helper

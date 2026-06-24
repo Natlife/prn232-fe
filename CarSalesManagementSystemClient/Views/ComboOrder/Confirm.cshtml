@@ -1,74 +1,58 @@
 @model CarSalesManagementSystemClient.Models.ComboOrderPreviewViewModel
 @{
-    ViewData["Title"] = "Xác nhận Đơn hàng";
+    ViewData["Title"] = "Xac nhan don combo";
     var isAuthenticated = ViewBag.IsAuthenticated as bool? ?? false;
-    var draftToken = ViewBag.DraftToken as string;
+    var draftToken = ViewBag.DraftToken as string ?? string.Empty;
+    var purchaseType = (ViewBag.PurchaseType as string ?? "Buyout").Equals("Deposit", StringComparison.OrdinalIgnoreCase)
+        ? "Deposit"
+        : "Buyout";
+    var payableAmount = purchaseType == "Deposit"
+        ? Math.Round(Model.TotalAmount * 0.05m, 0)
+        : Model.TotalAmount;
+    var purchaseTypeLabel = purchaseType == "Deposit" ? "Dat coc combo" : "Mua dut combo";
 }
 
 <div class="container py-5">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/" class="text-secondary text-decoration-none">Trang chủ</a></li>
-            <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">Xác nhận đơn hàng</li>
-        </ol>
-    </nav>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Xac nhan don combo</h2>
+            <p class="text-muted mb-0">Kiem tra lai san pham, tao don, lien he admin va nhap captcha de hoan tat giao dich.</p>
+        </div>
+        <span class="badge @(purchaseType == "Deposit" ? "bg-warning text-dark" : "bg-success") px-3 py-2 rounded-pill">
+            @purchaseTypeLabel
+        </span>
+    </div>
 
     <div class="row g-4">
-        <!-- Left: Product List (Draft Summary) -->
         <div class="col-lg-7">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="m-0 fw-bold d-flex align-items-center">
-                        <i class="bi bi-cart3 me-2"></i> Chi tiết đơn hàng của bạn
-                    </h5>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-dark text-white py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-bag-check me-2"></i>Danh sach san pham</h5>
                 </div>
                 <div class="card-body p-4">
-                    @if (Model.Items != null && Model.Items.Any())
+                    @if (Model.Items.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-borderless align-middle m-0">
+                            <table class="table align-middle">
                                 <thead>
-                                    <tr class="text-secondary border-bottom" style="font-size: 13px;">
-                                        <th scope="col" colspan="2">Sản phẩm</th>
-                                        <th scope="col" class="text-center">Số lượng</th>
-                                        <th scope="col" class="text-end">Đơn giá</th>
-                                        <th scope="col" class="text-end">Thành tiền</th>
+                                    <tr class="text-muted small">
+                                        <th>San pham</th>
+                                        <th class="text-center">SL</th>
+                                        <th class="text-end">Don gia</th>
+                                        <th class="text-end">Thanh tien</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var item in Model.Items)
                                     {
-                                        <tr class="border-bottom-dashed">
-                                            <td style="width: 80px;">
-                                                @if (!string.IsNullOrEmpty(item.ImageUrl))
-                                                {
-                                                    <img src="@item.ImageUrl" class="img-fluid rounded-3 border bg-light" style="max-height: 60px; object-fit: cover;" alt="@item.Name" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="d-flex align-items-center justify-content-center rounded-3 border bg-light text-secondary" style="width: 60px; height: 60px;">
-                                                        <i class="bi bi-tools fs-4"></i>
-                                                    </div>
-                                                }
-                                            </td>
+                                        <tr>
                                             <td>
-                                                <div class="fw-bold text-dark">@item.Name</div>
-                                                <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 10px;">
-                                                    @if (item.ItemType == "Car") { <text>Ô Tô</text> }
-                                                    else if (item.ItemType == "Part") { <text>Phụ Tùng</text> }
-                                                    else { <text>Dịch Vụ</text> }
-                                                </span>
+                                                <div class="fw-semibold text-dark">@item.Name</div>
+                                                <div class="small text-muted">@item.ItemType</div>
                                             </td>
-                                            <td class="text-center fw-bold text-secondary">
-                                                @item.Quantity
-                                            </td>
-                                            <td class="text-end text-dark">
-                                                @item.UnitPrice.ToString("N0") VNĐ
-                                            </td>
-                                            <td class="text-end fw-bold text-danger">
-                                                @item.SubTotal.ToString("N0") VNĐ
-                                            </td>
+                                            <td class="text-center">@item.Quantity</td>
+                                            <td class="text-end">@item.UnitPrice.ToString("N0") VND</td>
+                                            <td class="text-end fw-bold text-danger">@item.SubTotal.ToString("N0") VND</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -77,89 +61,70 @@
                     }
                     else
                     {
-                        <p class="text-center text-muted my-4">Không có sản phẩm nào trong đơn hàng nháp.</p>
+                        <div class="text-center py-5 text-muted">Khong co san pham nao trong combo.</div>
                     }
-                </div>
-            </div>
-            
-            <!-- Safe shopping notice -->
-            <div class="alert alert-info border-0 rounded-4 shadow-sm p-4 d-flex align-items-start">
-                <i class="bi bi-shield-check fs-2 text-primary me-3"></i>
-                <div>
-                    <h6 class="fw-bold text-primary-emphasis mb-1">Quy trình đặt hàng an toàn & nhanh chóng</h6>
-                    <p class="small text-secondary m-0">
-                        Sau khi bạn nhấn xác nhận đơn hàng, tư vấn viên của chúng tôi sẽ liên hệ trực tiếp qua số điện thoại của bạn trong vòng 15-30 phút để xác thực và hỗ trợ các bước tiếp theo. Bạn hoàn toàn không chịu bất cứ rủi ro tài chính nào trước khi kiểm duyệt trực tiếp tại showroom.
-                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Order Form & Checkout -->
         <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden position-sticky" style="top: 100px;">
-                <div class="card-header bg-warning py-3">
-                    <h5 class="m-0 fw-bold text-dark d-flex align-items-center">
-                        <i class="bi bi-file-earmark-text-fill me-2"></i> Thông tin liên hệ nhận xe
-                    </h5>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-warning py-3 rounded-top-4">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-receipt me-2"></i>Thong tin giao dich</h5>
                 </div>
                 <div class="card-body p-4">
-                    <!-- Total breakdown -->
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-secondary fw-semibold">Tổng giá trị đơn hàng:</span>
-                        <h4 class="text-danger fw-extrabold m-0">@Model.TotalAmount.ToString("N0") VNĐ</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tong gia tri combo</span>
+                        <span class="fw-bold text-dark">@Model.TotalAmount.ToString("N0") VND</span>
                     </div>
-                    
-                    <hr class="my-4" />
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="text-muted">So tien can thanh toan</span>
+                        <span class="fw-bold text-danger">@(payableAmount.ToString("N0")) VND</span>
+                    </div>
+
+                    @if (purchaseType == "Deposit")
+                    {
+                        <div class="alert alert-warning rounded-4 border-0">
+                            Dat coc combo se tam ghi nhan 5% tong gia tri don. Sau khi admin tao captcha va ban xac thuc thanh cong, he thong moi chot don.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success rounded-4 border-0">
+                            Mua dut combo yeu cau xac nhan thanh toan day du. Sau khi admin tao captcha va ban nhap dung ma, don se hoan tat.
+                        </div>
+                    }
 
                     @if (isAuthenticated)
                     {
                         <form id="comboOrderConfirmForm">
                             <input type="hidden" id="draftToken" value="@draftToken" />
-                            
-                            <div class="mb-3">
-                                <label for="customerPhone" class="form-label small fw-bold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                    <input type="tel" class="form-control" id="customerPhone" required placeholder="Ví dụ: 0987654321" />
-                                </div>
-                                <div class="form-text small text-muted">Showroom sẽ gọi điện qua số này để chốt lịch.</div>
-                            </div>
+                            <input type="hidden" id="purchaseType" value="@purchaseType" />
 
                             <div class="mb-3">
-                                <label for="shippingAddress" class="form-label small fw-bold">Địa chỉ giao nhận xe / Thiết lập dịch vụ <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                                    <input type="text" class="form-control" id="shippingAddress" required placeholder="Nhập địa chỉ nhà cụ thể của bạn" />
-                                </div>
+                                <label for="customerPhone" class="form-label fw-semibold">So dien thoai</label>
+                                <input type="tel" class="form-control" id="customerPhone" required maxlength="20" />
                             </div>
-
                             <div class="mb-3">
-                                <label for="orderNote" class="form-label small fw-bold">Ghi chú yêu cầu thêm (Tùy chọn)</label>
-                                <textarea class="form-control" id="orderNote" rows="3" placeholder="Ghi chú thời gian gọi, thông tin màu sắc, các ưu đãi đi kèm bạn mong muốn..."></textarea>
+                                <label for="shippingAddress" class="form-label fw-semibold">Dia chi giao nhan / lien he</label>
+                                <input type="text" class="form-control" id="shippingAddress" required maxlength="255" />
                             </div>
-
-                            <!-- Button Actions -->
-                            <button type="submit" id="btnSubmitOrder" class="btn btn-warning btn-lg w-100 fw-bold py-3 mt-3 shadow border-0 hover-scale">
-                                <i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua
+                            <div class="mb-3">
+                                <label for="orderNote" class="form-label fw-semibold">Ghi chu</label>
+                                <textarea class="form-control" id="orderNote" rows="3" maxlength="1000"></textarea>
+                            </div>
+                            <button type="submit" id="btnSubmitOrder" class="btn btn-warning w-100 fw-bold py-3">
+                                @(purchaseType == "Deposit" ? "Tao don dat coc combo" : "Tao don mua dut combo")
                             </button>
                         </form>
                     }
                     else
                     {
-                        <!-- Not logged in section -->
                         <div class="text-center py-4">
-                            <i class="bi bi-lock-fill text-muted" style="font-size: 4rem;"></i>
-                            <h5 class="fw-bold mt-3">Đăng Nhập Để Tiếp Tục</h5>
-                            <p class="text-secondary small px-3">
-                                Vui lòng đăng nhập tài khoản của bạn để xác thực đơn hàng. Mọi lịch sử giao dịch và tích điểm hội viên của bạn sẽ được lưu trữ an toàn.
-                            </p>
-                            
-                            <button class="btn btn-primary btn-lg w-100 fw-bold py-3 mt-3 border-0 shadow" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Đăng Nhập Ngay
-                            </button>
-                            <p class="small text-muted mt-3">
-                                Chưa có tài khoản? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-primary text-decoration-none fw-bold">Đăng ký tại đây</a>
-                            </p>
+                            <div class="display-5 text-muted mb-3"><i class="bi bi-lock-fill"></i></div>
+                            <h5 class="fw-bold">Can dang nhap de tiep tuc</h5>
+                            <p class="text-muted">Vui long dang nhap truoc khi tao don combo va xac thuc captcha.</p>
+                            <button class="btn btn-primary fw-bold px-4" data-bs-toggle="modal" data-bs-target="#loginModal">Dang nhap</button>
                         </div>
                     }
                 </div>
@@ -168,63 +133,48 @@
     </div>
 </div>
 
-<!-- Modal Success Order -->
-<div class="modal fade" id="orderSuccessModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+<div class="modal fade" id="comboOrderFlowModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg p-4 rounded-4">
-            <div class="modal-body">
-                
-                <!-- State 1: Captcha Verification -->
-                <div id="modalStateVerify">
-                    <div class="text-warning mb-3 text-center" style="font-size: 4rem;">
-                        <i class="bi bi-shield-lock-fill animate-pulse"></i>
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body p-4">
+                <div id="comboPendingState">
+                    <div class="text-center mb-3">
+                        <div class="display-4 text-warning"><i class="bi bi-shield-lock-fill"></i></div>
+                        <h4 class="fw-bold mt-3">Don combo da duoc tao</h4>
+                        <p class="text-muted mb-0">
+                            Ma don <strong>#<span id="comboOrderIdText"></span></strong> da duoc ghi nhan.
+                            Hay lien he admin, thanh toan, sau do nhap captcha de hoan tat.
+                        </p>
                     </div>
-                    <h3 class="fw-bold text-dark text-center mb-2">Xác Thực Giao Dịch</h3>
-                    <p class="text-secondary small text-center mb-3">
-                        Đơn hàng Combo <strong class="text-primary">#<span id="comboOrderIdText"></span></strong> đã được khởi tạo thành công.
-                    </p>
-                    
-                    <div class="p-3 bg-light rounded-3 border mb-3">
-                        <div class="text-muted small text-center fw-bold mb-1"><i class="bi bi-telephone-fill text-warning me-1"></i> HOTLINE SHOWROOM</div>
-                        <div class="text-center fs-4 fw-extrabold text-dark letter-spacing-1">0987 173 229</div>
-                        <div class="text-muted small text-center mt-1">
-                            Vui lòng gọi hotline để nhận mã Captcha giao dịch xác thực thanh toán/đặt cọc cho đơn hàng này.
-                        </div>
+                    <div class="bg-light rounded-4 p-3 mb-3">
+                        <div class="small text-muted mb-1">Loai giao dich</div>
+                        <div class="fw-bold" id="comboPurchaseTypeText"></div>
+                        <div class="small text-muted mt-3 mb-1">So tien can xac nhan</div>
+                        <div class="fw-bold text-danger" id="comboPayableText"></div>
                     </div>
-
                     <div class="mb-3">
-                        <label for="comboOrderCaptchaInput" class="form-label small fw-bold">Nhập mã xác nhận từ nhân viên <span class="text-danger">*</span></label>
-                        <input id="comboOrderCaptchaInput" type="text" class="form-control text-center fw-bold fs-5 py-2" 
-                               placeholder="VD: ABC123" maxlength="20" style="text-transform: uppercase; letter-spacing: 2px;" autocomplete="off" />
-                        <div id="captchaError" class="text-danger small mt-1 text-center d-none">
-                            <i class="bi bi-exclamation-circle-fill me-1"></i> Mã xác thực không hợp lệ. Vui lòng thử lại.
-                        </div>
+                        <label for="comboOrderCaptchaInput" class="form-label fw-semibold">Nhap captcha tu admin</label>
+                        <input id="comboOrderCaptchaInput" type="text" class="form-control text-uppercase" maxlength="20" />
+                        <div id="captchaError" class="text-danger small mt-2 d-none"></div>
                     </div>
-
-                    <button type="button" id="btnVerifyCaptcha" class="btn btn-warning btn-lg w-100 fw-bold py-2.5 shadow-sm border-0">
-                        <i class="bi bi-check-circle-fill me-1"></i> Xác Thực & Hoàn Tất
-                    </button>
+                    <div class="d-grid gap-2">
+                        <button type="button" id="btnVerifyCaptcha" class="btn btn-warning fw-bold">Xac thuc captcha</button>
+                        <a href="/ComboOrder/History" class="btn btn-outline-dark">Theo doi trong lich su don combo</a>
+                    </div>
                 </div>
 
-                <!-- State 2: Final Success -->
-                <div id="modalStateSuccess" class="d-none">
-                    <div class="text-success mb-3 text-center" style="font-size: 5rem;">
-                        <i class="bi bi-check-circle-fill"></i>
-                    </div>
-                    <h3 class="fw-bold text-dark text-center mb-2">Đặt Hàng Thành Công!</h3>
-                    <p class="text-secondary small text-center mb-4">
-                        Đơn hàng Combo <strong class="text-primary">#<span id="finalComboOrderIdText"></span></strong> đã được xác thực mã Captcha thành công! Hệ thống đã ghi nhận cọc tiền/thanh toán hoàn tất. Tư vấn viên sẽ liên hệ lại qua số điện thoại để hỗ trợ giao xe và hoàn tất thủ tục bàn giao.
+                <div id="comboSuccessState" class="d-none text-center">
+                    <div class="display-3 text-success mb-3"><i class="bi bi-check-circle-fill"></i></div>
+                    <h4 class="fw-bold">Xac thuc thanh cong</h4>
+                    <p class="text-muted">
+                        Don combo <strong>#<span id="finalComboOrderIdText"></span></strong> da duoc cap nhat thanh cong.
+                        Ban co the xem lai trang thai trong lich su don combo.
                     </p>
                     <div class="d-grid gap-2">
-                        <a href="/ComboOrder/History" class="btn btn-primary py-2 fw-bold rounded-3">
-                            Xem lịch sử đơn hàng
-                        </a>
-                        <a href="/" class="btn btn-light py-2 fw-bold border rounded-3">
-                            Về trang chủ
-                        </a>
+                        <a href="/ComboOrder/History" class="btn btn-primary">Xem lich su don combo</a>
+                        <a href="/" class="btn btn-light border">Ve trang chu</a>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -232,31 +182,26 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Check if draft items data exists
+        $(function () {
             const draftItems = [];
-            @if (Model.Items != null)
+            @foreach (var item in Model.Items)
             {
-                foreach(var item in Model.Items)
-                {
-                    <text>
-                    draftItems.push({
-                        itemType: "@item.ItemType",
-                        referenceId: parseInt("@item.ReferenceId"),
-                        quantity: parseInt("@item.Quantity")
-                    });
-                    </text>
-                }
+                @:draftItems.push({ itemType: "@item.ItemType", referenceId: @item.ReferenceId, quantity: @item.Quantity });
             }
 
-            $("#comboOrderConfirmForm").on("submit", async function(e) {
+            let currentOrderId = 0;
+            const payableAmount = @payableAmount;
+            const purchaseType = "@purchaseType";
+
+            $("#comboOrderConfirmForm").on("submit", async function (e) {
                 e.preventDefault();
-                
+
                 const btn = $("#btnSubmitOrder");
-                btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...');
+                btn.prop("disabled", true).text("Dang tao don...");
 
                 const payload = {
                     customerPhone: $("#customerPhone").val(),
+                    purchaseType: purchaseType,
                     shippingAddress: $("#shippingAddress").val(),
                     note: $("#orderNote").val(),
                     chatSessionId: localStorage.getItem("chat_session_id") || "",
@@ -266,75 +211,73 @@
                 try {
                     const response = await fetch("/ComboOrder/PlaceOrder", {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload)
                     });
 
                     const result = await response.json();
-                    if (result.success) {
-                        // clear chat shopping cart if any
-                        localStorage.removeItem("draft_combo_cart");
-                        
-                        // Setup captcha step in modal
-                        const orderId = result.orderId || 0;
-                        $("#comboOrderIdText").text(orderId);
-                        $("#finalComboOrderIdText").text(orderId);
-                        $("#comboOrderCaptchaInput").val("");
-                        $("#captchaError").addClass("d-none");
-                        $("#modalStateVerify").removeClass("d-none");
-                        $("#modalStateSuccess").addClass("d-none");
-                        
-                        // Show success modal
-                        const successModal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
-                        successModal.show();
-                    } else {
-                        alert(result.message || "Đã xảy ra lỗi khi tạo đơn hàng.");
-                        btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua');
+                    if (!result.success) {
+                        alert(result.message || "Khong the tao don combo.");
+                        btn.prop("disabled", false).text(purchaseType === "Deposit" ? "Tao don dat coc combo" : "Tao don mua dut combo");
+                        return;
                     }
-                } catch(ex) {
-                    alert("Không thể kết nối tới máy chủ. Vui lòng kiểm tra lại mạng.");
-                    btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-2"></i> Xác Nhận Đặt Mua');
+
+                    currentOrderId = result.orderId || 0;
+                    $("#comboOrderIdText").text(currentOrderId);
+                    $("#finalComboOrderIdText").text(currentOrderId);
+                    $("#comboPurchaseTypeText").text(purchaseType === "Deposit" ? "Dat coc combo" : "Mua dut combo");
+                    $("#comboPayableText").text(Number(payableAmount).toLocaleString("vi-VN") + " VND");
+                    $("#comboOrderCaptchaInput").val("");
+                    $("#captchaError").addClass("d-none").text("");
+                    $("#comboPendingState").removeClass("d-none");
+                    $("#comboSuccessState").addClass("d-none");
+
+                    const modal = new bootstrap.Modal(document.getElementById("comboOrderFlowModal"));
+                    modal.show();
+                    localStorage.removeItem("draft_combo_cart");
+                } catch (err) {
+                    alert("Khong the ket noi toi may chu.");
+                } finally {
+                    btn.prop("disabled", false).text(purchaseType === "Deposit" ? "Tao don dat coc combo" : "Tao don mua dut combo");
                 }
             });
 
-            // Auto-uppercase captcha input
-            $("#comboOrderCaptchaInput").on("input", function() {
+            $("#comboOrderCaptchaInput").on("input", function () {
                 this.value = this.value.toUpperCase();
             });
 
-            // Verify Captcha
-            $("#btnVerifyCaptcha").on("click", function() {
-                const captchaCode = $("#comboOrderCaptchaInput").val().trim();
+            $("#btnVerifyCaptcha").on("click", async function () {
+                const captchaCode = $("#comboOrderCaptchaInput").val().trim().toUpperCase();
                 if (!captchaCode) {
-                    $("#captchaError").text("Vui lòng nhập mã Captcha do nhân viên cung cấp.").removeClass("d-none");
+                    $("#captchaError").removeClass("d-none").text("Vui long nhap captcha do admin cung cap.");
                     return;
                 }
 
                 const btn = $(this);
-                btn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2"></span> Đang xác thực giao dịch...');
-                $("#captchaError").addClass("d-none");
+                btn.prop("disabled", true).text("Dang xac thuc...");
+                $("#captchaError").addClass("d-none").text("");
 
-                // Simulate verifying captcha code
-                setTimeout(function() {
-                    btn.prop("disabled", false).html('<i class="bi bi-check-circle-fill me-1"></i> Xác Thực & Hoàn Tất');
-                    $("#modalStateVerify").addClass("d-none");
-                    $("#modalStateSuccess").removeClass("d-none");
-                }, 1200);
+                try {
+                    const response = await fetch(`/ComboOrder/VerifyCaptcha?id=${currentOrderId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ captchaCode })
+                    });
+
+                    const result = await response.json();
+                    if (!result.success) {
+                        $("#captchaError").removeClass("d-none").text(result.message || "Khong the xac thuc captcha.");
+                        return;
+                    }
+
+                    $("#comboPendingState").addClass("d-none");
+                    $("#comboSuccessState").removeClass("d-none");
+                } catch (err) {
+                    $("#captchaError").removeClass("d-none").text("Khong the ket noi toi may chu.");
+                } finally {
+                    btn.prop("disabled", false).text("Xac thuc captcha");
+                }
             });
         });
     </script>
-    <style>
-        .border-bottom-dashed {
-            border-bottom: 1px dashed #dee2e6 !important;
-        }
-        .hover-scale {
-            transition: all 0.2s ease-in-out;
-        }
-        .hover-scale:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
-        }
-    </style>
 }

@@ -1,108 +1,75 @@
 @model List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>
+@using System.Text.Json
 @{
-    ViewData["Title"] = "Quản lý đơn hàng Combo";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quan ly don combo";
+    var ordersJson = JsonSerializer.Serialize(Model ?? new List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>());
 }
 
 <div class="container-fluid py-5 px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold text-dark m-0"><i class="bi bi-gear-fill me-2 text-warning"></i> Quản Lý Đơn Hàng Combo</h2>
-            <p class="text-secondary small m-0">Quản trị viên theo dõi trạng thái, cập nhật quy trình và liên hệ bàn giao xe/phụ tùng/dịch vụ.</p>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-box-seam me-2 text-warning"></i>Quan ly don combo</h2>
+            <p class="text-muted mb-0">Admin theo doi don, xem chi tiet, tao captcha va cap ma cho khach sau khi da nhan tien.</p>
         </div>
     </div>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger border-0 rounded-3 shadow-sm mb-4">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-        <div class="card-header bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center">
-            <h5 class="m-0 fw-bold"><i class="bi bi-list-task me-2"></i> Tất cả đơn hàng combo (@(Model?.Count ?? 0))</h5>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white py-3 px-4">
+            <h5 class="mb-0 fw-bold">Tat ca don combo (@(Model?.Count ?? 0))</h5>
         </div>
         <div class="card-body p-0">
             @if (Model == null || !Model.Any())
             {
-                <p class="text-center text-muted my-5 py-5">Chưa có đơn hàng nào được đặt trên hệ thống.</p>
+                <div class="p-5 text-center text-muted">Chua co don combo nao trong he thong.</div>
             }
             else
             {
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0" style="min-width: 1000px;">
+                    <table class="table align-middle mb-0">
                         <thead class="table-light">
-                            <tr class="text-secondary" style="font-size: 13px;">
-                                <th class="ps-4" style="width: 80px;">Mã Đơn</th>
-                                <th style="width: 150px;">Khách Hàng</th>
-                                <th style="width: 130px;">Điện Thoại</th>
-                                <th>Chi Tiết Sản Phẩm</th>
-                                <th class="text-end" style="width: 160px;">Tổng Tiền</th>
-                                <th style="width: 120px;">Nguồn Đơn</th>
-                                <th style="width: 180px;">Trạng Thái</th>
-                                <th class="pe-4" style="width: 100px;">Ngày Tạo</th>
+                            <tr>
+                                <th class="ps-4">Don</th>
+                                <th>Khach hang</th>
+                                <th>Loai giao dich</th>
+                                <th>Trang thai</th>
+                                <th>Tong gia tri</th>
+                                <th>Captcha</th>
+                                <th class="pe-4 text-end">Thao tac</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var order in Model)
                             {
                                 <tr>
-                                    <td class="ps-4 fw-bold text-dark">#@order.ComboOrderId</td>
-                                    <td>
-                                        <div class="fw-bold text-dark">@order.CustomerName</div>
-                                        <div class="text-secondary small text-truncate" style="max-width: 140px;">@order.CustomerEmail</div>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">#@order.ComboOrderId</div>
+                                        <div class="small text-muted">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                                     </td>
                                     <td>
-                                        <a href="tel:@order.CustomerPhone" class="text-decoration-none fw-semibold"><i class="bi bi-telephone-fill small me-1"></i>@order.CustomerPhone</a>
+                                        <div class="fw-semibold">@order.CustomerName</div>
+                                        <div class="small text-muted">@order.CustomerPhone</div>
                                     </td>
                                     <td>
-                                        <ul class="list-unstyled m-0 p-0 small">
-                                            @foreach (var item in order.Items)
-                                            {
-                                                <li class="mb-1 text-truncate" style="max-width: 320px;">
-                                                    <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 9px;">
-                                                        @if (item.ItemType == "Car") { <text>Xe</text> }
-                                                        else if (item.ItemType == "Part") { <text>Phụ tùng</text> }
-                                                        else { <text>Dịch vụ</text> }
-                                                    </span>
-                                                    <span class="fw-semibold">@item.ItemName</span>
-                                                    <span class="text-muted">(x@item.Quantity)</span>
-                                                </li>
-                                            }
-                                        </ul>
-                                        @if (!string.IsNullOrEmpty(order.Note))
-                                        {
-                                            <div class="text-muted small mt-1 text-truncate" style="max-width: 320px;"><i class="bi bi-chat-left-dots-fill text-warning me-1"></i>Ghi chú: @order.Note</div>
-                                        }
-                                        <div class="text-secondary small mt-1 text-truncate" style="max-width: 320px;"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Địa chỉ: @order.ShippingAddress</div>
-                                    </td>
-                                    <td class="text-end fw-bold text-danger">@order.TotalAmount.ToString("N0") VNĐ</td>
-                                    <td>
-                                        @if (order.Source == "chatbot")
-                                        {
-                                            <span class="badge bg-purple-subtle text-purple border border-purple px-2 py-1 rounded-pill small">
-                                                <i class="bi bi-robot"></i> AI Chatbot
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-light text-dark border px-2 py-1 rounded-pill small">
-                                                Thủ công
-                                            </span>
-                                        }
+                                        <span class="badge @(order.PurchaseType == "Deposit" ? "bg-warning text-dark" : "bg-success") px-3 py-2 rounded-pill">
+                                            @(order.PurchaseType == "Deposit" ? "Dat coc" : "Mua dut")
+                                        </span>
                                     </td>
                                     <td>
-                                        <select class="form-select form-select-sm status-dropdown rounded-3 py-1.5" 
-                                                data-order-id="@order.ComboOrderId"
-                                                style="font-size: 13px; font-weight: 600;">
-                                            <option value="Pending" selected="@(order.Status == "Pending")">⏳ Chờ xác nhận</option>
-                                            <option value="Confirmed" selected="@(order.Status == "Confirmed")">✅ Đã xác nhận</option>
-                                            <option value="Processing" selected="@(order.Status == "Processing")">⚙️ Đang xử lý</option>
-                                            <option value="Completed" selected="@(order.Status == "Completed")">🎉 Hoàn thành</option>
-                                            <option value="Cancelled" selected="@(order.Status == "Cancelled")">❌ Đã hủy</option>
-                                        </select>
+                                        <span class="badge bg-secondary px-3 py-2 rounded-pill">@order.Status</span>
                                     </td>
-                                    <td class="pe-4 text-secondary small">@order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="fw-bold text-danger">@order.TotalAmount.ToString("N0") VND</td>
+                                    <td>
+                                        <div class="fw-semibold">@(string.IsNullOrWhiteSpace(order.CaptchaCode) ? "Chua co" : order.CaptchaCode)</div>
+                                        <div class="small text-muted">@(order.CaptchaGeneratedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chua tao")</div>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <button type="button"
+                                                class="btn btn-dark btn-sm admin-order-btn"
+                                                data-order-id="@order.ComboOrderId">
+                                            Chi tiet / Gen captcha
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -113,51 +80,139 @@
     </div>
 </div>
 
+<div class="modal fade" id="adminComboOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h4 class="modal-title fw-bold" id="adminOrderTitle">Chi tiet don combo</h4>
+                    <div class="text-muted small" id="adminOrderSubTitle"></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="fw-semibold mb-2">San pham trong don</div>
+                        <div id="adminOrderItems" class="border rounded-4 p-3 bg-light-subtle"></div>
+                        <div class="mt-3 border rounded-4 p-3">
+                            <div class="small text-muted">Ghi chu</div>
+                            <div id="adminOrderNote" class="fw-semibold">Khong co</div>
+                            <div class="small text-muted mt-3">Dia chi</div>
+                            <div id="adminOrderAddress" class="fw-semibold"></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="border rounded-4 p-3 mb-3">
+                            <div class="small text-muted">Loai giao dich</div>
+                            <div class="fw-bold mb-2" id="adminPurchaseType"></div>
+                            <div class="small text-muted">Trang thai hien tai</div>
+                            <div class="fw-bold mb-2" id="adminOrderStatus"></div>
+                            <div class="small text-muted">So tien can giao dich</div>
+                            <div class="fw-bold text-danger mb-2" id="adminPayableAmount"></div>
+                            <div class="small text-muted">Captcha hien tai</div>
+                            <div class="fw-bold" id="adminCurrentCaptcha"></div>
+                        </div>
+
+                        <div class="border rounded-4 p-3">
+                            <label for="adminCustomCaptcha" class="form-label fw-semibold">Nhap captcha rieng neu muon</label>
+                            <input id="adminCustomCaptcha" type="text" class="form-control text-uppercase mb-2" maxlength="20" placeholder="De trong de he thong tu sinh" />
+                            <div id="adminCaptchaFeedback" class="small d-none mb-2"></div>
+                            <button type="button" id="btnAdminGenerateCaptcha" class="btn btn-warning w-100 fw-bold">
+                                Gen captcha cho don nay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            $(".status-dropdown").on("change", async function() {
-                const dropdown = $(this);
-                const orderId = dropdown.data("order-id");
-                const newStatus = dropdown.val();
+        const adminComboOrders = @Html.Raw(ordersJson);
+        let activeAdminOrder = null;
 
-                dropdown.prop("disabled", true);
-                
+        function readProp(source, camelKey, pascalKey) {
+            return source?.[camelKey] ?? source?.[pascalKey];
+        }
+
+        function renderAdminItems(items) {
+            if (!items || !items.length) {
+                return '<div class="text-muted">Khong co san pham.</div>';
+            }
+
+            return items.map(item => `
+                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                    <div>
+                        <div class="fw-semibold">${readProp(item, 'itemName', 'ItemName')}</div>
+                        <div class="small text-muted">${readProp(item, 'itemType', 'ItemType')} - SL ${readProp(item, 'quantity', 'Quantity')}</div>
+                    </div>
+                    <div class="fw-bold text-danger">${Number(readProp(item, 'subTotal', 'SubTotal') || 0).toLocaleString('vi-VN')} VND</div>
+                </div>
+            `).join('');
+        }
+
+        $(function () {
+            $(".admin-order-btn").on("click", function () {
+                const orderId = Number($(this).data("order-id"));
+                activeAdminOrder = adminComboOrders.find(x => Number(readProp(x, 'comboOrderId', 'ComboOrderId')) === orderId);
+                if (!activeAdminOrder) return;
+
+                const payable = readProp(activeAdminOrder, 'depositAmount', 'DepositAmount')
+                    || readProp(activeAdminOrder, 'totalAmount', 'TotalAmount')
+                    || 0;
+                const purchaseType = readProp(activeAdminOrder, 'purchaseType', 'PurchaseType');
+
+                $("#adminOrderTitle").text(`Don combo #${readProp(activeAdminOrder, 'comboOrderId', 'ComboOrderId')}`);
+                $("#adminOrderSubTitle").text(`${readProp(activeAdminOrder, 'customerName', 'CustomerName')} - ${readProp(activeAdminOrder, 'customerPhone', 'CustomerPhone')}`);
+                $("#adminOrderItems").html(renderAdminItems(readProp(activeAdminOrder, 'items', 'Items')));
+                $("#adminOrderNote").text(readProp(activeAdminOrder, 'note', 'Note') || "Khong co");
+                $("#adminOrderAddress").text(readProp(activeAdminOrder, 'shippingAddress', 'ShippingAddress') || "Khong co");
+                $("#adminPurchaseType").text(purchaseType === "Deposit" ? "Dat coc combo" : "Mua dut combo");
+                $("#adminOrderStatus").text(readProp(activeAdminOrder, 'status', 'Status'));
+                $("#adminPayableAmount").text(Number(payable).toLocaleString("vi-VN") + " VND");
+                $("#adminCurrentCaptcha").text(readProp(activeAdminOrder, 'captchaCode', 'CaptchaCode') || "Chua co captcha");
+                $("#adminCustomCaptcha").val("");
+                $("#adminCaptchaFeedback").addClass("d-none").removeClass("text-danger text-success").text("");
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("adminComboOrderModal")).show();
+            });
+
+            $("#adminCustomCaptcha").on("input", function () {
+                this.value = this.value.toUpperCase();
+            });
+
+            $("#btnAdminGenerateCaptcha").on("click", async function () {
+                if (!activeAdminOrder) return;
+
+                const btn = $(this);
+                btn.prop("disabled", true).text("Dang tao captcha...");
+                $("#adminCaptchaFeedback").addClass("d-none").removeClass("text-danger text-success").text("");
+
                 try {
-                    const response = await fetch(`/ComboOrder/UpdateStatus/${orderId}`, {
+                    const response = await fetch(`/ComboOrder/GenerateCaptcha?id=${readProp(activeAdminOrder, 'comboOrderId', 'ComboOrderId')}`, {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ status: newStatus })
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ code: $("#adminCustomCaptcha").val().trim().toUpperCase() || null })
                     });
-                    
                     const result = await response.json();
-                    if (result.success) {
-                        alert(`Cập nhật trạng thái đơn hàng #${orderId} thành công!`);
-                    } else {
-                        alert(result.message || "Cập nhật thất bại.");
+                    if (!result.success) {
+                        $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text(result.message || "Khong the tao captcha.");
+                        return;
                     }
-                } catch(ex) {
-                    alert("Không thể kết nối đến máy chủ.");
+
+                    $("#adminCurrentCaptcha").text(result.captchaCode || "Da tao");
+                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-success").text(result.message || "Da tao captcha.");
+                    activeAdminOrder.captchaCode = result.captchaCode;
+                    activeAdminOrder.CaptchaCode = result.captchaCode;
+                } catch (err) {
+                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text("Khong the ket noi toi may chu.");
                 } finally {
-                    dropdown.prop("disabled", false);
+                    btn.prop("disabled", false).text("Gen captcha cho don nay");
                 }
             });
         });
     </script>
-    <style>
-        .bg-purple-subtle {
-            background-color: #f3e8ff;
-        }
-        .text-purple {
-            color: #7e22ce;
-        }
-        .border-purple {
-            border-color: #d8b4fe !important;
-        }
-        .status-dropdown {
-            cursor: pointer;
-        }
-    </style>
 }

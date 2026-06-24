@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,14 +11,12 @@
 </head>
 <body class="bg-light">
     <header>
-        <!-- Top Bar -->
         <div class="bg-dark text-white py-1" style="font-size: 13px; border-bottom: 1px solid #333;">
             <div class="container d-flex justify-content-between align-items-center">
                 <div>
                     <span>Chào mừng bạn tới <span class="text-danger fw-bold">Group7</span></span>
                 </div>
                 <div class="d-flex align-items-center">
-                    <!-- Shopping Cart Icon Link -->
                     <a asp-controller="PartOrders" asp-action="Cart" class="text-white text-decoration-none me-4 position-relative">
                         <i class="bi bi-cart3 fs-5"></i>
                         @{
@@ -30,7 +28,6 @@
                         </span>
                     </a>
 
-                    <!-- User authentication / History Links -->
                     @if (User.Identity.IsAuthenticated)
                     {
                         @if (!User.IsInRole("Admin"))
@@ -40,7 +37,7 @@
                         <span class="me-3">Xin chào, <b>@User.Identity.Name</b>!</span>
                         @if (User.IsInRole("Admin"))
                         {
-                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/Cars"><i class="bi bi-gear-fill me-1"></i>Trang Quản Trị</a>
+                            <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/Cars"><i class="bi bi-gear-fill me-1"></i>Trang quản trị</a>
                         }
                         <a class="text-white text-decoration-none" asp-area="" asp-controller="Auth" asp-action="Logout">Đăng xuất</a>
                     }
@@ -55,110 +52,102 @@
         </div>
     </header>
 
-    <!-- Sticky Header Wrapper -->
     <div class="sticky-top shadow-sm" style="z-index: 1040;">
-            <!-- Middle Bar (Logo & Search) -->
-            <div class="bg-dark text-white py-3 border-bottom" style="border-color: #333 !important;">
-                <div class="container d-flex justify-content-between align-items-center">
-                    <!-- Logo -->
-                    <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center" style="width: 250px;">
-                        <i class="bi bi-car-front-fill fs-1 me-2 text-light"></i>
-                        <div class="lh-1">
-                            <h2 class="m-0 fw-bold fst-italic" style="font-family: 'Arial Black', sans-serif; letter-spacing: -1px;">
-                                Group<span class="text-light">7</span>
-                            </h2>
-                            <small class="text-secondary fw-bold" style="letter-spacing: 2px; font-size: 10px;">ECO DRIVE</small>
-                        </div>
-                    </a>
-                    
-                    <!-- Search Bar -->
-                    <div class="flex-grow-1 mx-4">
-                        <div class="input-group" style="max-width: 600px; margin: 0 auto;">
-                            <input type="text" class="form-control rounded-0 py-2 border-0" placeholder="Bạn đang tìm sản phẩm nào...">
-                            <button class="btn btn-light rounded-0 border-0 px-3" type="button"><i class="bi bi-search text-secondary"></i></button>
-                        </div>
+        <div class="bg-dark text-white py-3 border-bottom" style="border-color: #333 !important;">
+            <div class="container d-flex justify-content-between align-items-center">
+                <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center" style="width: 250px;">
+                    <i class="bi bi-car-front-fill fs-1 me-2 text-light"></i>
+                    <div class="lh-1">
+                        <h2 class="m-0 fw-bold fst-italic" style="font-family: 'Arial Black', sans-serif; letter-spacing: -1px;">
+                            Group<span class="text-light">7</span>
+                        </h2>
+                        <small class="text-secondary fw-bold" style="letter-spacing: 2px; font-size: 10px;">ECO DRIVE</small>
                     </div>
-                    
-                    <!-- Empty Space for balance -->
-                    <div style="width: 250px;"></div>
-                </div>
-            </div>
+                </a>
 
-            <!-- Yellow Navigation Bar -->
-            <nav class="navbar navbar-expand-lg navbar-light p-0" style="background-color: #ffc107;">
-                <div class="container">
-                    <button class="navbar-toggler my-2" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="mainNav">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-bold" style="font-size: 14px;">
-                            <li class="nav-item bg-dark">
-                                <a class="nav-link text-danger px-4 py-3" asp-controller="Home" asp-action="Index">
-                                    <i class="bi bi-house-door-fill me-1"></i>TRANG CHỦ
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">GIỚI THIỆU</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
-                                </a>
-                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
-                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
-                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Index">PHỤ TÙNG</a></li>
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
-                                    }
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">TIN TỨC</a>
-                            </li>
-                            <li class="nav-item">
+                <div class="flex-grow-1 mx-4">
+                    <div class="input-group" style="max-width: 600px; margin: 0 auto;">
+                        <input type="text" class="form-control rounded-0 py-2 border-0" placeholder="Bạn đang tìm sản phẩm nào...">
+                        <button class="btn btn-light rounded-0 border-0 px-3" type="button"><i class="bi bi-search text-secondary"></i></button>
+                    </div>
+                </div>
+
+                <div style="width: 250px;"></div>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-expand-lg navbar-light p-0" style="background-color: #ffc107;">
+            <div class="container">
+                <button class="navbar-toggler my-2" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-bold" style="font-size: 14px;">
+                        <li class="nav-item bg-dark">
+                            <a class="nav-link text-danger px-4 py-3" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door-fill me-1"></i>TRANG CHỦ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">GIỚI THIỆU</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-dark px-4 py-3 hover-bg-warning dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
+                            </a>
+                            <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
+                                <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
+                                <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Index">PHỤ TÙNG</a></li>
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
                                 }
-                                else
-                                {
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Maintenance" asp-action="Index">BẢO DƯỠNG</a>
-                                }
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">TIN TỨC</a>
+                        </li>
+                        <li class="nav-item">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Maintenance" asp-action="Index">BẢO DƯỠNG</a>
+                            }
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">LIÊN HỆ</a>
+                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" href="#">LIÊN HỆ</a>
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="History">LỊCH SỬ COMBO</a>
                             </li>
-                            @if (User.Identity.IsAuthenticated)
+                            @if (User.IsInRole("Admin"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="History">LỊCH SỬ COMBO</a>
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
                                 </li>
-                                @if (User.IsInRole("Admin"))
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
-                                    </li>
-                                }
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
+                                </li>
                             }
-                        </ul>
-                    </div>
+                        }
+                    </ul>
                 </div>
-            </nav>
-        </div>
+            </div>
+        </nav>
     </div>
 
-    <!-- Floating Contact Buttons -->
     <div class="floating-buttons">
         <a href="#" class="btn btn-warning rounded-pill mb-2 shadow fw-bold d-block text-start text-dark border-0" style="background-color: #fca311;">
             <i class="bi bi-chat-dots-fill me-2"></i>Chat Zalo
@@ -171,18 +160,15 @@
         </a>
     </div>
 
-    <!-- Main Content -->
     <div class="container-fluid p-0">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <!-- Footer -->
     <footer class="text-white pt-5 pb-3 mt-5" style="background-color: #262626; font-size: 14px;">
         <div class="container">
             <div class="row">
-                <!-- Column 1: Logo & Info -->
                 <div class="col-lg-5 col-md-12 mb-4">
                     <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center mb-3">
                         <i class="bi bi-car-front-fill fs-1 me-2 text-light"></i>
@@ -194,7 +180,7 @@
                         </div>
                     </a>
                     <p class="text-secondary pe-lg-5 mb-4 lh-lg">
-                        Xe điện Group7 được thành lập với niềm đam mê và khát vọng thành công trong lĩnh vực Thể thao. Chúng tôi đã và đang khẳng định được vị trí hàng đầu bằng những sản phẩm tốt nhất.
+                        Group7 Auto được thành lập với niềm đam mê và khát vọng mang đến những mẫu xe chất lượng, dịch vụ minh bạch và trải nghiệm mua xe đáng tin cậy cho khách hàng.
                     </p>
                     <div class="d-flex gap-2">
                         <span class="btn btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background-color: #f00; cursor: default;"><i class="bi bi-facebook"></i></span>
@@ -204,7 +190,6 @@
                     </div>
                 </div>
 
-                <!-- Column 2: Liên hệ -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <h5 class="fw-bold mb-4">Liên hệ</h5>
                     <ul class="list-unstyled text-secondary lh-lg">
@@ -219,7 +204,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 3: Dịch vụ -->
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="fw-bold mb-4">Dịch vụ</h5>
                     <ul class="list-unstyled text-secondary lh-lg">
@@ -230,15 +214,13 @@
                     </ul>
                 </div>
             </div>
-            
-            <!-- Bottom Copyright -->
+
             <div class="mt-4 pt-4 border-top text-center text-secondary" style="font-size: 13px; border-color: #333 !important;">
-                Copyright &copy; 2026 ECO DRIVE Group7 . All rights reserved. Web Design by groub7
+                Copyright &copy; 2026 ECO DRIVE Group7. All rights reserved. Web Design by Group7
             </div>
         </div>
     </footer>
 
-    <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -257,7 +239,7 @@
                             <label class="small mb-1">Mật khẩu</label>
                             <div class="input-group">
                                 <input class="form-control" name="Password" type="password" id="modalLoginPassword" required placeholder="Nhập mật khẩu" />
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('modalLoginPassword')">👁️</button>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('modalLoginPassword')">Hiện</button>
                             </div>
                         </div>
                         <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
@@ -273,7 +255,6 @@
         </div>
     </div>
 
-    <!-- Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
@@ -298,7 +279,7 @@
                                     <label class="small mb-1">Mật khẩu</label>
                                     <div class="input-group">
                                         <input class="form-control" name="Password" type="password" id="modalRegPassword" required placeholder="Mật khẩu" />
-                                        <button class="btn btn-outline-secondary px-2" type="button" onclick="togglePassword('modalRegPassword')">👁️</button>
+                                        <button class="btn btn-outline-secondary px-2" type="button" onclick="togglePassword('modalRegPassword')">Hiện</button>
                                     </div>
                                 </div>
                             </div>
@@ -307,7 +288,7 @@
                                     <label class="small mb-1">Xác nhận mật khẩu</label>
                                     <div class="input-group">
                                         <input class="form-control" name="ConfirmPassword" type="password" id="modalRegConfirmPassword" required placeholder="Xác nhận" />
-                                        <button class="btn btn-outline-secondary px-2" type="button" onclick="togglePassword('modalRegConfirmPassword')">👁️</button>
+                                        <button class="btn btn-outline-secondary px-2" type="button" onclick="togglePassword('modalRegConfirmPassword')">Hiện</button>
                                     </div>
                                 </div>
                             </div>
@@ -337,7 +318,6 @@
             }
         }
 
-        // AJAX Handle Login
         document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const form = e.target;
@@ -346,6 +326,10 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang đăng nhập...';
 
             const formData = new FormData(form);
+            if (!formData.get('returnUrl')) {
+                formData.append('returnUrl', window.location.pathname + window.location.search);
+            }
+
             try {
                 const res = await fetch('/Auth/Login', { method: 'POST', body: formData });
                 const result = await res.json();
@@ -366,11 +350,10 @@
             }
         });
 
-        // AJAX Handle Register
         document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const form = e.target;
-            
+
             if (form.Password.value !== form.ConfirmPassword.value) {
                 const err = document.getElementById('registerError');
                 err.innerText = "Mật khẩu xác nhận không khớp.";
@@ -404,6 +387,7 @@
         });
     </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
+    <script src="~/js/car-purchase-flow.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

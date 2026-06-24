@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         .admin-sidebar {
@@ -15,13 +14,16 @@
             background-color: #212529;
             color: white;
         }
+
         .admin-sidebar .nav-link {
             color: #adb5bd;
             border-radius: 5px;
             margin-bottom: 5px;
             transition: all 0.3s;
         }
-        .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
             color: #212529;
             background-color: #ffc107;
             font-weight: bold;
@@ -31,7 +33,6 @@
 <body>
     <div class="container-fluid p-0">
         <div class="row g-0">
-            <!-- Sidebar -->
             <div class="col-md-2 admin-sidebar p-3 shadow" style="position: fixed; width: 16.666667%; height: 100vh; z-index: 1000;">
                 <a href="#" class="d-flex align-items-center mb-4 text-white text-decoration-none">
                     <i class="bi bi-car-front-fill fs-3 me-2 text-warning"></i>
@@ -39,37 +40,40 @@
                 </a>
                 <hr>
                 <ul class="nav flex-column mb-auto">
-
                     <li>
                         <a href="/Admin/Cars" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Cars" ? "active" : "")">
-                            <i class="bi bi-car-front-fill me-2"></i> Quan ly o to
+                            <i class="bi bi-car-front-fill me-2"></i> Quản lý ô tô
                         </a>
                     </li>
                     <li>
                         <a href="/Admin/Captchas" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Captchas" ? "active" : "")">
-                            <i class="bi bi-key-fill me-2"></i> Gen ma captcha
+                            <i class="bi bi-key-fill me-2"></i> Tạo mã captcha
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/ComboOrder/AdminOrders" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ComboOrder" ? "active" : "")">
+                            <i class="bi bi-box-seam me-2"></i> Quản lý đơn combo
                         </a>
                     </li>
                     <li>
                         <a href="/Admin/MaintenancePackages" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" ? "active" : "")">
-                            <i class="bi bi-tools me-2"></i> Gói Bảo dưỡng
+                            <i class="bi bi-tools me-2"></i> Gói bảo dưỡng
                         </a>
                     </li>
                     <li>
                         <a href="/Admin/MaintenanceAppointments" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenanceAppointments" ? "active" : "")">
-                            <i class="bi bi-calendar-check me-2"></i> Lịch Hẹn
+                            <i class="bi bi-calendar-check me-2"></i> Lịch hẹn
                         </a>
                     </li>
                 </ul>
                 <hr>
                 <div class="dropdown">
                     <a href="/" class="d-flex align-items-center text-white text-decoration-none hover-bg-warning p-2 rounded">
-                        <i class="bi bi-box-arrow-left me-2 text-danger"></i> Thoát về Web
+                        <i class="bi bi-box-arrow-left me-2 text-danger"></i> Thoát về web
                     </a>
                 </div>
             </div>
 
-            <!-- Main content -->
             <div class="col-md-10 offset-md-2 bg-light" style="min-height: 100vh;">
                 <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm px-4 py-3 mb-4 sticky-top">
                     <div class="container-fluid">
@@ -90,7 +94,6 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

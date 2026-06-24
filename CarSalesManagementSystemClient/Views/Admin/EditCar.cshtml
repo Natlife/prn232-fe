@@ -1,5 +1,6 @@
 @model CarSalesManagementSystemClient.Models.CarFormViewModel
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Chỉnh sửa xe";
     var brands = ViewBag.Brands as IEnumerable<CarSalesManagementSystemClient.Models.CarBrandViewModel>
         ?? new List<CarSalesManagementSystemClient.Models.CarBrandViewModel>();

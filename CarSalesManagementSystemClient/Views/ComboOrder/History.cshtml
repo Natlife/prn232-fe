@@ -1,35 +1,25 @@
 @model List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>
+@using System.Text.Json
 @{
-    ViewData["Title"] = "Lịch sử đơn hàng Combo";
+    ViewData["Title"] = "Lich su don combo";
+    var ordersJson = JsonSerializer.Serialize(Model ?? new List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>());
 }
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold text-dark m-0">Lịch sử Đơn hàng Combo</h2>
-            <p class="text-secondary small m-0">Xem và theo dõi các đơn hàng gộp đa loại sản phẩm (Xe, Phụ tùng, Dịch vụ) bạn đã đặt.</p>
+            <h2 class="fw-bold text-dark mb-1">Lich su don combo</h2>
+            <p class="text-muted mb-0">Theo doi trang thai dat coc, mua dut va xac thuc captcha cua tung don combo.</p>
         </div>
-        <a href="/" class="btn btn-outline-dark fw-bold"><i class="bi bi-arrow-left me-2"></i> Quay lại mua sắm</a>
+        <a href="/" class="btn btn-outline-dark fw-semibold"><i class="bi bi-arrow-left me-2"></i>Quay lai mua sam</a>
     </div>
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger border-0 rounded-3 shadow-sm mb-4">
-            @TempData["ErrorMessage"]
-        </div>
-    }
 
     @if (Model == null || !Model.Any())
     {
-        <div class="card border-0 shadow-sm rounded-4 p-5 text-center my-5 bg-white">
-            <div class="text-secondary mb-3" style="font-size: 4rem;">
-                <i class="bi bi-inbox-fill"></i>
-            </div>
-            <h5 class="fw-bold">Bạn chưa có đơn hàng nào</h5>
-            <p class="text-secondary small">Hãy bắt đầu trò chuyện với AI Chatbot để chọn các sản phẩm phù hợp và tạo đơn hàng nhanh chóng.</p>
-            <div class="mt-3">
-                <a href="/Cars" class="btn btn-warning fw-bold border-0 px-4 py-2 text-dark shadow-sm">Xem Showroom Xe</a>
-            </div>
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+            <div class="display-4 text-muted mb-3"><i class="bi bi-inbox"></i></div>
+            <h5 class="fw-bold">Chua co don combo nao</h5>
+            <p class="text-muted">Khi ban tao don combo tu chatbot hoac dat thu cong, thong tin se hien o day.</p>
         </div>
     }
     else
@@ -39,103 +29,65 @@
             {
                 var statusClass = order.Status switch
                 {
-                    "Pending" => "bg-warning-subtle text-warning-emphasis border border-warning",
-                    "Confirmed" => "bg-primary-subtle text-primary-emphasis border border-primary",
-                    "Processing" => "bg-info-subtle text-info-emphasis border border-info",
-                    "Completed" => "bg-success-subtle text-success-emphasis border border-success",
-                    "Cancelled" => "bg-danger-subtle text-danger-emphasis border border-danger",
-                    _ => "bg-secondary-subtle text-secondary-emphasis"
+                    "Pending" => "bg-warning text-dark",
+                    "Deposited" => "bg-info text-dark",
+                    "Completed" => "bg-success",
+                    "Cancelled" => "bg-danger",
+                    _ => "bg-secondary"
                 };
-
-                var statusName = order.Status switch
-                {
-                    "Pending" => "Chờ xác nhận",
-                    "Confirmed" => "Đã xác nhận",
-                    "Processing" => "Đang xử lý",
-                    "Completed" => "Đã hoàn thành",
-                    "Cancelled" => "Đã hủy",
-                    _ => order.Status
-                };
+                var purchaseBadge = order.PurchaseType == "Deposit" ? "bg-warning-subtle text-dark" : "bg-success-subtle text-success-emphasis";
+                var payableAmount = order.DepositAmount ?? order.TotalAmount;
 
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 bg-white">
-                        <!-- Order Header -->
-                        <div class="card-header bg-light border-0 py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="fs-5 fw-bold text-dark">Mã Đơn: #@order.ComboOrderId</span>
-                                <span class="badge @statusClass px-3 py-2 rounded-pill small">@statusName</span>
-                                @if (order.Source == "chatbot")
-                                {
-                                    <span class="badge bg-purple-subtle text-purple border border-purple px-2 py-1 small rounded-pill">
-                                        <i class="bi bi-robot me-1"></i> Trực tuyến qua AI
-                                    </span>
-                                }
-                            </div>
-                            <div class="text-secondary small">
-                                <i class="bi bi-clock me-1"></i> Ngày đặt: @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                            </div>
-                        </div>
-
-                        <!-- Order Body -->
+                    <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-body p-4">
+                            <div class="d-flex flex-wrap justify-content-between gap-3 mb-3">
+                                <div>
+                                    <div class="fw-bold fs-5 text-dark">Don #@order.ComboOrderId</div>
+                                    <div class="text-muted small">Tao luc @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge @purchaseBadge px-3 py-2 rounded-pill">@(order.PurchaseType == "Deposit" ? "Dat coc" : "Mua dut")</span>
+                                    <span class="badge @statusClass px-3 py-2 rounded-pill">@order.Status</span>
+                                </div>
+                            </div>
+
                             <div class="row g-3">
-                                <!-- Order Items List -->
                                 <div class="col-lg-8">
-                                    <h6 class="fw-bold mb-3 text-secondary-emphasis">Danh sách sản phẩm (@order.Items.Count)</h6>
+                                    <div class="fw-semibold text-dark mb-2">San pham trong don</div>
                                     <div class="table-responsive">
-                                        <table class="table table-borderless align-middle m-0">
+                                        <table class="table align-middle mb-0">
                                             <tbody>
                                                 @foreach (var item in order.Items)
                                                 {
-                                                    <tr class="border-bottom-dashed">
+                                                    <tr>
                                                         <td>
-                                                            <div class="fw-bold text-dark">@item.ItemName</div>
-                                                            <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 10px;">
-                                                                @if (item.ItemType == "Car") { <text>Ô Tô</text> }
-                                                                else if (item.ItemType == "Part") { <text>Phụ Tùng</text> }
-                                                                else { <text>Dịch Vụ</text> }
-                                                            </span>
+                                                            <div class="fw-semibold">@item.ItemName</div>
+                                                            <div class="small text-muted">@item.ItemType</div>
                                                         </td>
-                                                        <td class="text-center text-secondary small">
-                                                            SL: <b class="text-dark">@item.Quantity</b>
-                                                        </td>
-                                                        <td class="text-end text-secondary small">
-                                                            Giá gốc: @item.UnitPrice.ToString("N0") VNĐ
-                                                        </td>
-                                                        <td class="text-end fw-bold text-danger">
-                                                            @item.SubTotal.ToString("N0") VNĐ
-                                                        </td>
+                                                        <td class="text-center">x@item.Quantity</td>
+                                                        <td class="text-end">@item.SubTotal.ToString("N0") VND</td>
                                                     </tr>
                                                 }
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
+                                <div class="col-lg-4">
+                                    <div class="small text-muted mb-1">Tong gia tri</div>
+                                    <div class="fw-bold text-danger mb-3">@order.TotalAmount.ToString("N0") VND</div>
 
-                                <!-- Shipping & Total Summary -->
-                                <div class="col-lg-4 border-start-lg ps-lg-4">
-                                    <h6 class="fw-bold mb-3 text-secondary-emphasis">Thông tin bàn giao</h6>
-                                    <p class="small text-secondary mb-2">
-                                        <i class="bi bi-person me-2"></i> Người nhận: <b class="text-dark">@order.CustomerName</b>
-                                    </p>
-                                    <p class="small text-secondary mb-2">
-                                        <i class="bi bi-telephone me-2"></i> Điện thoại: <b class="text-dark">@order.CustomerPhone</b>
-                                    </p>
-                                    <p class="small text-secondary mb-2">
-                                        <i class="bi bi-geo-alt me-2"></i> Địa chỉ: <b class="text-dark">@order.ShippingAddress</b>
-                                    </p>
-                                    @if (!string.IsNullOrEmpty(order.Note))
-                                    {
-                                        <p class="small text-secondary mb-3">
-                                            <i class="bi bi-pencil-square me-2"></i> Ghi chú: <span class="text-dark italic">@order.Note</span>
-                                        </p>
-                                    }
+                                    <div class="small text-muted mb-1">So tien giao dich</div>
+                                    <div class="fw-semibold mb-3">@payableAmount.ToString("N0") VND</div>
 
-                                    <hr />
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <span class="text-secondary fw-semibold">Tổng thanh toán:</span>
-                                        <h5 class="text-danger fw-bold m-0">@order.TotalAmount.ToString("N0") VNĐ</h5>
-                                    </div>
+                                    <div class="small text-muted mb-1">Captcha</div>
+                                    <div class="fw-semibold mb-3">Nhan truc tiep tu admin</div>
+
+                                    <button type="button"
+                                            class="btn btn-dark w-100 view-order-btn"
+                                            data-order-id="@order.ComboOrderId">
+                                        Xem chi tiet va xu ly
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -146,22 +98,140 @@
     }
 </div>
 
-<style>
-    .border-bottom-dashed {
-        border-bottom: 1px dashed #e9ecef !important;
-    }
-    .bg-purple-subtle {
-        background-color: #f3e8ff;
-    }
-    .text-purple {
-        color: #7e22ce;
-    }
-    .border-purple {
-        border-color: #d8b4fe !important;
-    }
-    @@media (min-width: 992px) {
-        .border-start-lg {
-            border-left: 1px solid #dee2e6 !important;
+<div class="modal fade" id="comboHistoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h4 class="modal-title fw-bold" id="historyOrderTitle">Chi tiet don combo</h4>
+                    <div class="text-muted small" id="historyOrderSubTitle"></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="fw-semibold mb-2">Danh sach san pham</div>
+                        <div id="historyItemsContainer" class="border rounded-4 p-3 bg-light-subtle"></div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="border rounded-4 p-3 mb-3">
+                            <div class="small text-muted">Loai giao dich</div>
+                            <div class="fw-bold mb-2" id="historyPurchaseType"></div>
+                            <div class="small text-muted">Trang thai</div>
+                            <div class="fw-bold mb-2" id="historyStatus"></div>
+                            <div class="small text-muted">So tien giao dich</div>
+                            <div class="fw-bold text-danger mb-2" id="historyPayable"></div>
+                            <div class="small text-muted">Captcha</div>
+                            <div class="fw-bold">Chi admin moi co ma. Vui long lien he admin de nhan captcha.</div>
+                        </div>
+
+                        <div id="historyVerifyBox" class="border rounded-4 p-3">
+                            <label for="historyCaptchaInput" class="form-label fw-semibold">Nhap captcha tu admin</label>
+                            <input id="historyCaptchaInput" type="text" class="form-control text-uppercase mb-2" maxlength="20" />
+                            <div id="historyCaptchaError" class="text-danger small d-none mb-2"></div>
+                            <button type="button" id="btnHistoryVerify" class="btn btn-warning w-100 fw-bold">Xac thuc don combo</button>
+                        </div>
+                        <div id="historyDoneBox" class="alert alert-success d-none mb-0">
+                            Don combo nay da duoc xac thuc hoac hoan tat. Ban chi can theo doi trang thai tai day.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const comboOrders = @Html.Raw(ordersJson);
+        let activeHistoryOrder = null;
+
+        function readProp(source, camelKey, pascalKey) {
+            return source?.[camelKey] ?? source?.[pascalKey];
         }
-    }
-</style>
+
+        function renderHistoryItems(items) {
+            if (!items || !items.length) {
+                return '<div class="text-muted">Khong co san pham.</div>';
+            }
+
+            return items.map(item => `
+                <div class="d-flex justify-content-between align-items-start border-bottom py-2">
+                    <div>
+                        <div class="fw-semibold">${readProp(item, 'itemName', 'ItemName')}</div>
+                        <div class="small text-muted">${readProp(item, 'itemType', 'ItemType')} - SL ${readProp(item, 'quantity', 'Quantity')}</div>
+                    </div>
+                    <div class="fw-bold text-danger">${Number(readProp(item, 'subTotal', 'SubTotal') || 0).toLocaleString('vi-VN')} VND</div>
+                </div>
+            `).join('');
+        }
+
+        $(function () {
+            $(".view-order-btn").on("click", function () {
+                const orderId = Number($(this).data("order-id"));
+                activeHistoryOrder = comboOrders.find(x => Number(readProp(x, 'comboOrderId', 'ComboOrderId')) === orderId);
+                if (!activeHistoryOrder) return;
+
+                const payable = readProp(activeHistoryOrder, 'depositAmount', 'DepositAmount')
+                    || readProp(activeHistoryOrder, 'totalAmount', 'TotalAmount')
+                    || 0;
+                const purchaseType = readProp(activeHistoryOrder, 'purchaseType', 'PurchaseType');
+                const status = readProp(activeHistoryOrder, 'status', 'Status');
+                const isCaptchaUsed = !!readProp(activeHistoryOrder, 'isCaptchaUsed', 'IsCaptchaUsed');
+
+                $("#historyOrderTitle").text(`Don combo #${readProp(activeHistoryOrder, 'comboOrderId', 'ComboOrderId')}`);
+                $("#historyOrderSubTitle").text(`Khach hang: ${readProp(activeHistoryOrder, 'customerName', 'CustomerName')} - ${readProp(activeHistoryOrder, 'customerPhone', 'CustomerPhone')}`);
+                $("#historyItemsContainer").html(renderHistoryItems(readProp(activeHistoryOrder, 'items', 'Items')));
+                $("#historyPurchaseType").text(purchaseType === "Deposit" ? "Dat coc combo" : "Mua dut combo");
+                $("#historyStatus").text(status);
+                $("#historyPayable").text(Number(payable).toLocaleString("vi-VN") + " VND");
+                $("#historyCaptchaInput").val("");
+                $("#historyCaptchaError").addClass("d-none").text("");
+
+                const canVerify = status === "Pending" && !isCaptchaUsed;
+                $("#historyVerifyBox").toggleClass("d-none", !canVerify);
+                $("#historyDoneBox").toggleClass("d-none", canVerify);
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("comboHistoryModal")).show();
+            });
+
+            $("#historyCaptchaInput").on("input", function () {
+                this.value = this.value.toUpperCase();
+            });
+
+            $("#btnHistoryVerify").on("click", async function () {
+                if (!activeHistoryOrder) return;
+
+                const captchaCode = $("#historyCaptchaInput").val().trim().toUpperCase();
+                if (!captchaCode) {
+                    $("#historyCaptchaError").removeClass("d-none").text("Vui long nhap captcha.");
+                    return;
+                }
+
+                const btn = $(this);
+                btn.prop("disabled", true).text("Dang xac thuc...");
+                $("#historyCaptchaError").addClass("d-none").text("");
+
+                try {
+                    const response = await fetch(`/ComboOrder/VerifyCaptcha?id=${readProp(activeHistoryOrder, 'comboOrderId', 'ComboOrderId')}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ captchaCode })
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        $("#historyCaptchaError").removeClass("d-none").text(result.message || "Khong the xac thuc captcha.");
+                        return;
+                    }
+
+                    window.location.reload();
+                } catch (err) {
+                    $("#historyCaptchaError").removeClass("d-none").text("Khong the ket noi toi may chu.");
+                } finally {
+                    btn.prop("disabled", false).text("Xac thuc don combo");
+                }
+            });
+        });
+    </script>
+}
