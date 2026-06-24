@@ -1,6 +1,6 @@
 @model CarSalesManagementSystemClient.Models.CarViewModel
 @{
-    ViewData["Title"] = Model.CarName + " - Chi tiết xe";
+    ViewData["Title"] = Model.CarName + " - Chi ti?t xe";
     var displayImageUrl = string.IsNullOrWhiteSpace(Model.ImageUrl) 
         ? "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80" 
         : Model.ImageUrl;
@@ -109,7 +109,7 @@
     .specs-table td {
         padding: 12px 16px;
     }
-    /* ── Deposit Modal ─────────────────────────── */
+    /* ?? Deposit Modal ??????????????????????????? */
     .deposit-modal-overlay {
         display: none;
         position: fixed;
@@ -218,7 +218,7 @@
         <div class="col-md-8">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Trang ch?</a></li>
                     <li class="breadcrumb-item"><a asp-controller="Cars" asp-action="Index" class="text-decoration-none text-dark">Showroom</a></li>
                     <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">@Model.CarName</li>
                 </ol>
@@ -226,7 +226,7 @@
         </div>
         <div class="col-md-4 text-md-end">
             <a asp-action="Index" class="btn btn-outline-secondary btn-sm fw-bold px-3 py-2">
-                <i class="bi bi-arrow-left me-1"></i> Quay lại showroom
+                <i class="bi bi-arrow-left me-1"></i> Quay l?i showroom
             </a>
         </div>
     </div>
@@ -241,10 +241,10 @@
             <div class="card detail-card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold text-dark m-0 d-flex align-items-center">
-                        <i class="bi bi-box-3d me-2 text-warning"></i> Trải nghiệm góc nhìn 3D tương tác
+                        <i class="bi bi-box-3d me-2 text-warning"></i> Tr?i nghi?m g?c nh?n 3D tuong t?c
                     </h5>
                     <button id="btnRotateToggle" class="btn btn-warning btn-sm fw-bold px-3 py-1.5 border-0 text-dark d-flex align-items-center">
-                        <i class="bi bi-pause-fill me-1"></i> Tự động xoay
+                        <i class="bi bi-pause-fill me-1"></i> T? d?ng xoay
                     </button>
                 </div>
                 
@@ -253,14 +253,14 @@
                 </div>
 
                 <div class="mt-4 text-center">
-                    <p class="fw-bold text-secondary mb-2" style="font-size: 14px;">THỬ THAY ĐỔI MÀU SƠN XE 3D</p>
+                    <p class="fw-bold text-secondary mb-2" style="font-size: 14px;">TH? THAY D?I M?U SON XE 3D</p>
                     <div class="d-flex justify-content-center align-items-center">
-                        <div class="color-swatch active" data-color="blue" style="background-color: #3b82f6;" title="Xanh Dương"></div>
-                        <div class="color-swatch" data-color="red" style="background-color: #ef4444;" title="Đỏ"></div>
-                        <div class="color-swatch" data-color="white" style="background-color: #f3f4f6;" title="Trắng"></div>
-                        <div class="color-swatch" data-color="black" style="background-color: #111827;" title="Đen"></div>
-                        <div class="color-swatch" data-color="gray" style="background-color: #6b7280;" title="Xám"></div>
-                        <div class="color-swatch" data-color="yellow" style="background-color: #facc15;" title="Vàng"></div>
+                        <div class="color-swatch active" data-color="blue" style="background-color: #3b82f6;" title="Xanh Duong"></div>
+                        <div class="color-swatch" data-color="red" style="background-color: #ef4444;" title="D?"></div>
+                        <div class="color-swatch" data-color="white" style="background-color: #f3f4f6;" title="Tr?ng"></div>
+                        <div class="color-swatch" data-color="black" style="background-color: #111827;" title="Den"></div>
+                        <div class="color-swatch" data-color="gray" style="background-color: #6b7280;" title="X?m"></div>
+                        <div class="color-swatch" data-color="yellow" style="background-color: #facc15;" title="V?ng"></div>
                     </div>
                 </div>
             </div>
@@ -275,37 +275,37 @@
                     <div class="d-flex align-items-center gap-2">
                         @if (Model.Status == "Available")
                         {
-                            <span class="badge bg-success badge-status"><i class="bi bi-check-circle-fill me-1"></i> Sẵn sàng bàn giao</span>
+                            <span class="badge bg-success badge-status"><i class="bi bi-check-circle-fill me-1"></i> S?n s?ng b?n giao</span>
                         }
                         else if (Model.Status == "Reserved")
                         {
-                            <span class="badge bg-warning text-dark badge-status"><i class="bi bi-exclamation-circle-fill me-1"></i> Đang được đặt cọc giữ xe</span>
+                            <span class="badge bg-warning text-dark badge-status"><i class="bi bi-exclamation-circle-fill me-1"></i> Dang du?c d?t c?c gi? xe</span>
                         }
                         else if (Model.Status == "Sold")
                         {
-                            <span class="badge bg-danger badge-status"><i class="bi bi-x-circle-fill me-1"></i> Đã bán</span>
+                            <span class="badge bg-danger badge-status"><i class="bi bi-x-circle-fill me-1"></i> D? b?n</span>
                         }
                     </div>
                 </div>
 
                 <div class="bg-light rounded-3 p-4 mb-4">
-                    <small class="text-secondary d-block fw-bold mb-1" style="font-size: 12px; letter-spacing: 1px;">GIÁ BÁN NIÊM YẾT</small>
+                    <small class="text-secondary d-block fw-bold mb-1" style="font-size: 12px; letter-spacing: 1px;">GI? B?N NI?M Y?T</small>
                     <div class="price-tag">@Model.Price.ToString("N0") <span style="font-size: 1.5rem;">VND</span></div>
                     <hr class="my-3 text-secondary opacity-25">
                     <div class="row text-secondary" style="font-size: 13px;">
                         <div class="col-6">
-                            <i class="bi bi-shield-check text-success me-1"></i> Bảo hành chính hãng
+                            <i class="bi bi-shield-check text-success me-1"></i> B?o h?nh ch?nh h?ng
                         </div>
                         <div class="col-6">
-                            <i class="bi bi-patch-check text-success me-1"></i> Cam kết chất lượng
+                            <i class="bi bi-patch-check text-success me-1"></i> Cam k?t ch?t lu?ng
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <h5 class="fw-bold text-dark mb-2">Giới thiệu mẫu xe</h5>
+                    <h5 class="fw-bold text-dark mb-2">Gi?i thi?u m?u xe</h5>
                     <p class="text-muted" style="line-height: 1.6;">
-                        @(string.IsNullOrWhiteSpace(Model.Description) ? "Chưa có mô tả chi tiết từ showroom cho mẫu xe này. Vui lòng liên hệ trực tiếp showroom của chúng tôi để được tư vấn kĩ hơn về các thông số kĩ thuật và ưu đãi đi kèm." : Model.Description)
+                        @(string.IsNullOrWhiteSpace(Model.Description) ? "Chua c? m? t? chi ti?t t? showroom cho m?u xe n?y. Vui l?ng li?n h? tr?c ti?p showroom c?a ch?ng t?i d? du?c tu v?n ki hon v? c?c th?ng s? ki thu?t v? uu d?i di k?m." : Model.Description)
                     </p>
                 </div>
 
@@ -313,52 +313,52 @@
                     <div class="col-6 col-sm-3">
                         <div class="spec-item">
                             <i class="bi bi-calendar-event text-danger fs-4 d-block mb-1"></i>
-                            <small class="text-secondary d-block" style="font-size: 11px;">ĐỜI XE</small>
+                            <small class="text-secondary d-block" style="font-size: 11px;">D?I XE</small>
                             <span class="fw-bold text-dark">@Model.Year</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="spec-item">
                             <i class="bi bi-speedometer2 text-danger fs-4 d-block mb-1"></i>
-                            <small class="text-secondary d-block" style="font-size: 11px;">SỐ KM ĐÃ ĐI</small>
+                            <small class="text-secondary d-block" style="font-size: 11px;">S? KM D? DI</small>
                             <span class="fw-bold text-dark">@Model.Mileage.ToString("N0") km</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="spec-item">
                             <i class="bi bi-gear-fill text-danger fs-4 d-block mb-1"></i>
-                            <small class="text-secondary d-block" style="font-size: 11px;">HỘP SỐ</small>
-                            <span class="fw-bold text-dark">@(Model.Transmission == "Automatic" ? "Tự động" : "Số sàn")</span>
+                            <small class="text-secondary d-block" style="font-size: 11px;">H?P S?</small>
+                            <span class="fw-bold text-dark">@(Model.Transmission == "Automatic" ? "T? d?ng" : "S? s?n")</span>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="spec-item">
                             <i class="bi bi-fuel-pump-fill text-danger fs-4 d-block mb-1"></i>
-                            <small class="text-secondary d-block" style="font-size: 11px;">NHIÊN LIỆU</small>
+                            <small class="text-secondary d-block" style="font-size: 11px;">NHI?N LI?U</small>
                             <span class="fw-bold text-dark">@Model.FuelType</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <h5 class="fw-bold text-dark mb-2">Thông số kĩ thuật</h5>
+                    <h5 class="fw-bold text-dark mb-2">Th?ng s? ki thu?t</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered specs-table bg-white">
                             <tbody>
                                 <tr>
-                                    <td class="fw-bold bg-light text-secondary" style="width: 35%;">Model / Phiên bản</td>
+                                    <td class="fw-bold bg-light text-secondary" style="width: 35%;">Model / Phi?n b?n</td>
                                     <td>@Model.Model</td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold bg-light text-secondary">Màu ngoại thất</td>
+                                    <td class="fw-bold bg-light text-secondary">M?u ngo?i th?t</td>
                                     <td>@Model.Color</td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold bg-light text-secondary">Xuất xứ hãng</td>
+                                    <td class="fw-bold bg-light text-secondary">Xu?t x? h?ng</td>
                                     <td>@Model.Brand.Country</td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold bg-light text-secondary">Thông tin hãng</td>
+                                    <td class="fw-bold bg-light text-secondary">Th?ng tin h?ng</td>
                                     <td class="text-muted" style="font-size: 13px;">@Model.Brand.Description</td>
                                 </tr>
                             </tbody>
@@ -374,7 +374,7 @@
                                 data-carname="@Model.CarName"
                                 data-price="@Model.Price">
                             <i class="bi bi-cash-stack fs-5"></i>
-                            <span>Đặt Cọc Xe</span>
+                            <span>D?t C?c Xe</span>
                         </button>
                     </div>
                     <div class="col-6">
@@ -384,7 +384,7 @@
                                 data-carname="@Model.CarName"
                                 data-price="@Model.Price">
                             <i class="bi bi-cart-check fs-5"></i>
-                            <span>Mua Đứt Xe</span>
+                            <span>Mua D?t Xe</span>
                         </button>
                     </div>
                 </div>
@@ -401,15 +401,15 @@
 
         <div id="depositStep1" class="deposit-step active">
             <div class="text-center mb-3">
-                <span style="font-size:2.5rem;">📞</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1" id="step1Title">Đặt cọc giữ xe</h4>
-                <p class="text-muted" style="font-size:14px;" id="step1Subtitle">Liên hệ showroom để xác nhận và hoàn tất đặt cọc</p>
+                <span style="font-size:2.5rem;">??</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step1Title">D?t c?c gi? xe</h4>
+                <p class="text-muted" style="font-size:14px;" id="step1Subtitle">Li?n h? showroom d? x?c nh?n v? ho?n t?t d?t c?c</p>
             </div>
 
             <div class="deposit-phone-badge">
-                <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">📱 HOTLINE SHOWROOM</div>
+                <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">?? HOTLINE SHOWROOM</div>
                 <div class="phone-number">0987 173 229</div>
-                <div class="text-muted mt-1" style="font-size:12px;" id="step1HotlineDesc">Liên hệ trực tiếp để trao đổi và đặt cọc xe</div>
+                <div class="text-muted mt-1" style="font-size:12px;" id="step1HotlineDesc">Li?n h? tr?c ti?p d? trao d?i v? d?t c?c xe</div>
             </div>
 
             <div class="deposit-info-row">
@@ -417,37 +417,37 @@
                 <span class="value" id="step1CarName"></span>
             </div>
             <div class="deposit-info-row">
-                <span class="label" id="step1AmountLabel"><i class="bi bi-cash me-1"></i> Tiền cọc (5%)</span>
+                <span class="label" id="step1AmountLabel"><i class="bi bi-cash me-1"></i> Ti?n c?c (5%)</span>
                 <span class="value text-danger" id="step1DepositAmt"></span>
             </div>
             <div class="deposit-info-row" id="step1ExpiryRow">
-                <span class="label" id="step1ExpiryLabel"><i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc</span>
-                <span class="value" id="step1ExpiryVal">14 ngày</span>
+                <span class="label" id="step1ExpiryLabel"><i class="bi bi-calendar-check me-1"></i> Th?i h?n gi? c?c</span>
+                <span class="value" id="step1ExpiryVal">14 ng?y</span>
             </div>
 
             <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;" id="step1Alert">
                 <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
-                <span id="step1AlertText">Sau 14 ngày nếu không hoàn tất mua xe, tiền cọc sẽ <strong>bị mất</strong> và xe được trả lại showroom.</span>
+                <span id="step1AlertText">Sau 14 ng?y n?u kh?ng ho?n t?t mua xe, ti?n c?c s? <strong>b? m?t</strong> v? xe du?c tr? l?i showroom.</span>
             </div>
 
             <button id="btnGoStep2" class="btn-deposit-submit">
-                <i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận
+                <i class="bi bi-arrow-right-circle me-2"></i> T?i d? li?n h? - Nh?p m? x?c nh?n
             </button>
         </div>
 
         <div id="depositStep2" class="deposit-step">
             <div class="text-center mb-4">
-                <span style="font-size:2.5rem;">🔐</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1" id="step2Title">Nhập mã xác nhận</h4>
-                <p class="text-muted" style="font-size:14px;" id="step2Subtitle">Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc</p>
+                <span style="font-size:2.5rem;">??</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step2Title">Nh?p m? x?c nh?n</h4>
+                <p class="text-muted" style="font-size:14px;" id="step2Subtitle">Nh?p m? do nh?n vi?n showroom cung c?p qua di?n tho?i d? kho? lu?t d?t c?c</p>
             </div>
 
             <div id="depositLoginWarning" class="alert alert-info d-none" style="font-size:13px; border-radius:10px;">
-                <i class="bi bi-info-circle me-1 text-warning"></i> <span id="loginWarningText">Bạn cần đăng nhập để đặt cọc.</span>
+                <i class="bi bi-info-circle me-1 text-warning"></i> <span id="loginWarningText">B?n c?n dang nh?p d? d?t c?c.</span>
             </div>
 
             <label class="fw-bold text-dark mb-2" style="font-size:14px;">
-                <i class="bi bi-key-fill me-1 text-warning"></i> Mã xác nhận từ nhân viên
+                <i class="bi bi-key-fill me-1 text-warning"></i> M? x?c nh?n t? nh?n vi?n
             </label>
             <input id="captchaInput" type="text" class="captcha-input"
                    placeholder="VD: ABC123" maxlength="20"
@@ -459,40 +459,40 @@
             </div>
 
             <button id="btnSubmitDeposit" class="btn-deposit-submit">
-                <i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">Xác nhận đặt cọc</span>
+                <i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">X?c nh?n d?t c?c</span>
             </button>
 
             <button id="btnBackStep1" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;">
-                <i class="bi bi-arrow-left me-1"></i> Quay lại
+                <i class="bi bi-arrow-left me-1"></i> Quay l?i
             </button>
         </div>
 
         <div id="depositStep3" class="deposit-step">
             <div class="text-center">
-                <div class="deposit-success-icon">✅</div>
-                <h4 class="fw-bold text-success mb-2" id="step3Title">Đặt cọc thành công!</h4>
-                <p class="text-muted" style="font-size:14px;" id="step3Subtitle">Xe đã được giữ riêng cho bạn.</p>
+                <div class="deposit-success-icon">?</div>
+                <h4 class="fw-bold text-success mb-2" id="step3Title">D?t c?c th?nh c?ng!</h4>
+                <p class="text-muted" style="font-size:14px;" id="step3Subtitle">Xe d? du?c gi? ri?ng cho b?n.</p>
 
                 <div class="deposit-info-row mt-3">
-                    <span class="label" id="step3AmtLabel">Số tiền cọc</span>
+                    <span class="label" id="step3AmtLabel">S? ti?n c?c</span>
                     <span class="value text-danger" id="step3DepositAmt"></span>
                 </div>
                 <div class="deposit-info-row" id="step3ExpiryRow">
-                    <span class="label">Hạn hoàn tất mua xe</span>
+                    <span class="label">H?n ho?n t?t mua xe</span>
                     <span class="value" id="step3Expiry"></span>
                 </div>
                 <div class="deposit-info-row">
-                    <span class="label">Mã giao dịch</span>
+                    <span class="label">M? giao d?ch</span>
                     <span class="value" id="step3RequestId"></span>
                 </div>
 
                 <div class="alert alert-success mt-3" style="font-size:13px; border-radius:10px;">
                     <i class="bi bi-telephone-fill me-1"></i>
-                    Showroom sẽ liên hệ xác nhận lại trong vòng 24h làm việc.
+                    Showroom s? li?n h? x?c nh?n l?i trong v?ng 24h l?m vi?c.
                 </div>
 
                 <button id="btnDepositDone" class="btn-deposit-submit">
-                    <i class="bi bi-check-circle me-2"></i> Hoàn tất
+                    <i class="bi bi-check-circle me-2"></i> Ho?n t?t
                 </button>
             </div>
         </div>
@@ -626,11 +626,11 @@
     
     let initialColorHex = paintColorMap['white'];
     const dbColor = "@(Model.Color?.ToLower() ?? "blue")";
-    if (dbColor.includes('red') || dbColor.includes('đỏ')) initialColorHex = paintColorMap['red'];
-    else if (dbColor.includes('white') || dbColor.includes('trắng')) initialColorHex = paintColorMap['white'];
-    else if (dbColor.includes('black') || dbColor.includes('đen')) initialColorHex = paintColorMap['black'];
-    else if (dbColor.includes('gray') || dbColor.includes('xám') || dbColor.includes('ghi')) initialColorHex = paintColorMap['gray'];
-    else if (dbColor.includes('yellow') || dbColor.includes('vàng')) initialColorHex = paintColorMap['yellow'];
+    if (dbColor.includes('red') || dbColor.includes('d?')) initialColorHex = paintColorMap['red'];
+    else if (dbColor.includes('white') || dbColor.includes('tr?ng')) initialColorHex = paintColorMap['white'];
+    else if (dbColor.includes('black') || dbColor.includes('den')) initialColorHex = paintColorMap['black'];
+    else if (dbColor.includes('gray') || dbColor.includes('x?m') || dbColor.includes('ghi')) initialColorHex = paintColorMap['gray'];
+    else if (dbColor.includes('yellow') || dbColor.includes('v?ng')) initialColorHex = paintColorMap['yellow'];
 
     document.querySelectorAll('.color-swatch').forEach(swatch => {
         const colorName = swatch.getAttribute('data-color');
@@ -651,7 +651,7 @@
     loadingEl.style.fontFamily = 'sans-serif';
     loadingEl.style.fontWeight = 'bold';
     loadingEl.style.fontSize = '14px';
-    loadingEl.innerHTML = '<div class="spinner-border text-warning me-2" role="status" style="width: 1.5rem; height: 1.5rem; vertical-align: middle;"></div> Đang tải mô hình 3D...';
+    loadingEl.innerHTML = '<div class="spinner-border text-warning me-2" role="status" style="width: 1.5rem; height: 1.5rem; vertical-align: middle;"></div> Dang t?i m? h?nh 3D...';
     container.style.position = 'relative';
     container.appendChild(loadingEl);
 
@@ -737,7 +737,7 @@
         undefined,
         (error) => {
             console.error('USD Loader Error:', error);
-            loadingEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Không thể tải mô hình 3D.</span>';
+            loadingEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Kh?ng th? t?i m? h?nh 3D.</span>';
         }
     );
 
@@ -780,17 +780,17 @@
     rotateBtn.addEventListener('click', () => {
         autoRotate = !autoRotate;
         if (autoRotate) {
-            rotateBtn.innerHTML = '<i class="bi bi-pause-fill me-1"></i> Tự động xoay';
+            rotateBtn.innerHTML = '<i class="bi bi-pause-fill me-1"></i> T? d?ng xoay';
             rotateBtn.className = "btn btn-warning btn-sm fw-bold px-3 py-1.5 border-0 text-dark";
         } else {
-            rotateBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Tự động xoay';
+            rotateBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> T? d?ng xoay';
             rotateBtn.className = "btn btn-outline-warning btn-sm fw-bold px-3 py-1.5 text-warning";
         }
     });
 
-    // ══════════════════════════════════════════════════════
+    // ??????????????????????????????????????????????????????
     //  DEPOSIT / BUYOUT MODAL LOGIC
-    // ══════════════════════════════════════════════════════
+    // ??????????????????????????????????????????????????????
     const depositOverlay  = document.getElementById('depositModalOverlay');
     const btnOpen         = document.getElementById('btnDepositOpen');
     const btnBuyoutOpen   = document.getElementById('btnBuyoutOpen');
@@ -814,7 +814,7 @@
         btnBuyoutOpen?.closest('.col-6')?.classList.replace('col-6', 'col-12');
         const buyoutText = btnBuyoutOpen?.querySelector('span');
         if (buyoutText) {
-            buyoutText.textContent = 'Mua đứt - Thanh toán phần còn lại';
+            buyoutText.textContent = 'Mua d?t - Thanh to?n ph?n c?n l?i';
         }
     }
 
@@ -844,38 +844,38 @@
 
         if (mode === 'deposit') {
             const deposit = Math.round(currentCarPrice * 0.05);
-            document.getElementById('step1Title').textContent = 'Đặt cọc giữ xe';
-            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để xác nhận và hoàn tất đặt cọc';
-            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để trao đổi và đặt cọc xe';
-            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Tiền cọc (5%)';
+            document.getElementById('step1Title').textContent = 'D?t c?c gi? xe';
+            document.getElementById('step1Subtitle').textContent = 'Li?n h? showroom d? x?c nh?n v? ho?n t?t d?t c?c';
+            document.getElementById('step1HotlineDesc').textContent = 'Li?n h? tr?c ti?p d? trao d?i v? d?t c?c xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Ti?n c?c (5%)';
             document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
-            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc';
-            document.getElementById('step1ExpiryVal').textContent = '14 ngày';
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-calendar-check me-1"></i> Th?i h?n gi? c?c';
+            document.getElementById('step1ExpiryVal').textContent = '14 ng?y';
             document.getElementById('step1Alert').style.display = 'flex';
-            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> T?i d? li?n h? - Nh?p m? x?c nh?n';
             
-            document.getElementById('step2Title').textContent = 'Nhập mã xác nhận';
-            document.getElementById('step2Subtitle').textContent = 'Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc';
-            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để đặt cọc.';
-            document.getElementById('btnSubmitText').textContent = 'Xác nhận đặt cọc';
+            document.getElementById('step2Title').textContent = 'Nh?p m? x?c nh?n';
+            document.getElementById('step2Subtitle').textContent = 'Nh?p m? do nh?n vi?n showroom cung c?p qua di?n tho?i d? kho? lu?t d?t c?c';
+            document.getElementById('loginWarningText').textContent = 'B?n c?n dang nh?p d? d?t c?c.';
+            document.getElementById('btnSubmitText').textContent = 'X?c nh?n d?t c?c';
         } else {
-            document.getElementById('step1Title').textContent = 'Mua đứt xe';
-            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để thanh toán và hoàn tất mua đứt';
-            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để chuyển khoản thanh toán mua đứt xe';
-            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Giá bán xe (100%)';
+            document.getElementById('step1Title').textContent = 'Mua d?t xe';
+            document.getElementById('step1Subtitle').textContent = 'Li?n h? showroom d? thanh to?n v? ho?n t?t mua d?t';
+            document.getElementById('step1HotlineDesc').textContent = 'Li?n h? tr?c ti?p d? chuy?n kho?n thanh to?n mua d?t xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Gi? b?n xe (100%)';
             if (currentCarStatus === 'Reserved') {
-                document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Sá»‘ tiá»n cÃ²n láº¡i pháº£i tráº£';
+                document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> S?' ti?n c?n l?i ph?i tr?';
             }
             document.getElementById('step1DepositAmt').textContent = formatVnd(buyoutAmount);
-            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> Bàn giao dự kiến';
-            document.getElementById('step1ExpiryVal').textContent = 'Sớm nhất';
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> B?n giao d? ki?n';
+            document.getElementById('step1ExpiryVal').textContent = 'S?m nh?t';
             document.getElementById('step1Alert').style.display = 'none';
-            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã thanh toán — Nhập mã giao dịch';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> T?i d? thanh to?n - Nh?p m? giao d?ch';
 
-            document.getElementById('step2Title').textContent = 'Nhập mã giao dịch';
-            document.getElementById('step2Subtitle').textContent = 'Nhập mã giao dịch do nhân viên cung cấp sau khi thanh toán thành công';
-            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để mua đứt.';
-            document.getElementById('btnSubmitText').textContent = 'Xác nhận mua đứt';
+            document.getElementById('step2Title').textContent = 'Nh?p m? giao d?ch';
+            document.getElementById('step2Subtitle').textContent = 'Nh?p m? giao d?ch do nh?n vi?n cung c?p sau khi thanh to?n th?nh c?ng';
+            document.getElementById('loginWarningText').textContent = 'B?n c?n dang nh?p d? mua d?t.';
+            document.getElementById('btnSubmitText').textContent = 'X?c nh?n mua d?t';
         }
 
         captchaInput.value = '';
@@ -918,7 +918,7 @@
     btnSubmit?.addEventListener('click', async () => {
         const code = captchaInput.value.trim().toUpperCase();
         if (!code) {
-            depositErrorMsg.textContent = 'Vui lòng nhập mã xác nhận.';
+            depositErrorMsg.textContent = 'Vui l?ng nh?p m? x?c nh?n.';
             depositError.style.display = 'block';
             return;
         }
@@ -926,20 +926,20 @@
         const user = getUserInfo();
         if (!user.userId || user.userId <= 0) {
             loginWarning.classList.remove('d-none');
-            depositErrorMsg.textContent = modalMode === 'deposit' ? 'Bạn cần đăng nhập để đặt cọc.' : 'Bạn cần đăng nhập để mua đứt.';
+            depositErrorMsg.textContent = modalMode === 'deposit' ? 'B?n c?n dang nh?p d? d?t c?c.' : 'B?n c?n dang nh?p d? mua d?t.';
             depositError.style.display = 'block';
             return;
         }
 
         depositError.style.display = 'none';
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Dang x? l?...';
 
         try {
             const payload = {
                 carId:        currentCarId,
                 customerId:   user.userId,
-                customerName: user.fullName || 'Khách hàng',
+                customerName: user.fullName || 'Kh?ch h?ng',
                 customerPhone: '0987173229',
                 customerEmail: user.email,
                 captchaCode:  code
@@ -961,18 +961,18 @@
 
             if (resp.ok && success) {
                 if (modalMode === 'deposit') {
-                    document.getElementById('step3Title').textContent = 'Đặt cọc thành công!';
-                    document.getElementById('step3Subtitle').textContent = 'Xe đã được giữ riêng cho bạn.';
-                    document.getElementById('step3AmtLabel').textContent = 'Số tiền cọc';
+                    document.getElementById('step3Title').textContent = 'D?t c?c th?nh c?ng!';
+                    document.getElementById('step3Subtitle').textContent = 'Xe d? du?c gi? ri?ng cho b?n.';
+                    document.getElementById('step3AmtLabel').textContent = 'S? ti?n c?c';
                     document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
                     document.getElementById('step3ExpiryRow').style.display = 'flex';
                     if (depositExpiry) {
                         document.getElementById('step3Expiry').textContent = new Date(depositExpiry).toLocaleDateString('vi-VN');
                     }
                 } else {
-                    document.getElementById('step3Title').textContent = 'Mua đứt thành công!';
-                    document.getElementById('step3Subtitle').textContent = 'Cảm ơn bạn đã mua xe tại showroom chúng tôi.';
-                    document.getElementById('step3AmtLabel').textContent = 'Tổng số tiền';
+                    document.getElementById('step3Title').textContent = 'Mua d?t th?nh c?ng!';
+                    document.getElementById('step3Subtitle').textContent = 'C?m on b?n d? mua xe t?i showroom ch?ng t?i.';
+                    document.getElementById('step3AmtLabel').textContent = 'T?ng s? ti?n';
                     document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
                     document.getElementById('step3ExpiryRow').style.display = 'none';
                 }
@@ -982,15 +982,15 @@
                     setTimeout(() => window.location.reload(), 1500);
                 }
             } else {
-                depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'Đặt cọc không thành công.' : 'Mua đứt không thành công.');
+                depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'D?t c?c kh?ng th?nh c?ng.' : 'Mua d?t kh?ng th?nh c?ng.');
                 depositError.style.display = 'block';
             }
         } catch (err) {
-            depositErrorMsg.textContent = 'Không thể kết nối đến máy chủ. Vui lòng thử lại.';
+            depositErrorMsg.textContent = 'Kh?ng th? k?t n?i d?n m?y ch?. Vui l?ng th? l?i.';
             depositError.style.display = 'block';
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `<i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">${modalMode === 'deposit' ? 'Xác nhận đặt cọc' : 'Xác nhận mua đứt'}</span>`;
+            btnSubmit.innerHTML = `<i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">${modalMode === 'deposit' ? 'X?c nh?n d?t c?c' : 'X?c nh?n mua d?t'}</span>`;
         }
     });
 

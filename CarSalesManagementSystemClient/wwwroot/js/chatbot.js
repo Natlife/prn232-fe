@@ -1,63 +1,58 @@
 (function () {
-    const STORAGE_KEY_SESSION   = "chat_session_id";
-    const STORAGE_KEY_OPEN      = "chat_panel_open";
-    const STORAGE_KEY_MESSAGES  = "chat_messages_cache";  // sessionStorage – clears on tab close
+    const STORAGE_KEY_SESSION = "chat_session_id";
+    const STORAGE_KEY_OPEN = "chat_panel_open";
+    const STORAGE_KEY_MESSAGES = "chat_messages_cache";
 
-    // ─── INIT SESSION ────────────────────────────────────────────────────────
     let sessionId = localStorage.getItem(STORAGE_KEY_SESSION);
     if (!sessionId) {
-        sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        sessionId = "sess_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
         localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
     }
 
-    // ─── MESSAGE CACHE (sessionStorage) ──────────────────────────────────────
-    // Format: [{role, text, suggestedItems, orderLink, action}]
-    // Uses sessionStorage so data survives page navigation within same tab,
-    // but is cleared when user closes the tab/browser.
     function loadCachedMessages() {
         try {
             const raw = sessionStorage.getItem(STORAGE_KEY_MESSAGES);
-            return raw ? JSON.parse(raw) : null;
-        } catch { return null; }
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
     }
 
     function saveCachedMessages(messages) {
         try {
-            // Keep last 60 messages max to avoid storage bloat
-            const trimmed = messages.slice(-60);
-            sessionStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(trimmed));
-        } catch { /* sessionStorage full – ignore */ }
+            sessionStorage.setItem(
+                STORAGE_KEY_MESSAGES,
+                JSON.stringify(messages.slice(-60))
+            );
+        } catch {
+            // Ignore storage quota issues.
+        }
     }
 
     function clearCachedMessages() {
         sessionStorage.removeItem(STORAGE_KEY_MESSAGES);
     }
 
-    // In-memory message array (source of truth for this page load)
-    let _messages = loadCachedMessages() || [];
+    let messages = loadCachedMessages();
 
-    // ─── DOM INJECTION ───────────────────────────────────────────────────────
     const widgetHtml = `
     <div id="ai-chat-widget">
-        <!-- Floating Toggle Button -->
         <button id="ai-chat-btn" class="ai-chat-btn" title="Trò chuyện với trợ lý AI">
             <i class="bi bi-robot"></i>
         </button>
 
-        <!-- Chat Panel -->
         <div id="ai-chat-panel" class="ai-chat-panel">
-            <!-- Header -->
             <div class="ai-chat-header">
                 <div class="ai-chat-title">
                     <i class="bi bi-cpu fs-5"></i>
                     <div>
-                        <h6>Trợ lý ảo AI</h6>
-                        <span>Showroom Group7</span>
+                        <h6>Trợ lý AI</h6>
+                        <span>Car Sales Management</span>
                     </div>
                 </div>
                 <div class="ai-chat-actions">
-                    <button id="ai-chat-clear" title="Xóa hội thoại, làm mới" class="me-2">
-                        <i class="bi bi-trash"></i>
+                    <button id="ai-chat-clear" title="Làm mới hội thoại" class="me-2">
+                        <i class="bi bi-arrow-clockwise"></i>
                     </button>
                     <button id="ai-chat-close" title="Đóng">
                         <i class="bi bi-x-lg"></i>
@@ -65,71 +60,76 @@
                 </div>
             </div>
 
-            <!-- Messages Area -->
             <div id="ai-chat-messages" class="ai-chat-messages">
                 <div class="message-bubble message-ai">
-                    Xin chào! Tôi là trợ lý ảo AI của Showroom Group7. Tôi có thể giúp bạn tìm kiếm thông tin về ô tô, phụ tùng thay thế hoặc các gói dịch vụ bảo dưỡng phù hợp. Hãy hỏi tôi bất cứ điều gì nhé!
+                    Xin chào! Tôi có thể hỗ trợ bạn tìm xe, phụ tùng, dịch vụ và hướng dẫn đặt cọc hoặc mua đứt ngay trong hệ thống.
                 </div>
             </div>
 
-            <!-- Input Area -->
             <div class="ai-chat-input-area">
                 <input type="text" id="ai-chat-input" placeholder="Nhập tin nhắn..." autocomplete="off" />
-                <button id="ai-chat-send" class="ai-chat-send-btn">
+                <button id="ai-chat-send" class="ai-chat-send-btn" aria-label="Gửi tin nhắn">
                     <i class="bi bi-send-fill"></i>
                 </button>
             </div>
         </div>
-    </div>
-    `;
+    </div>`;
 
-    // Append to body
-    document.body.insertAdjacentHTML('beforeend', widgetHtml);
+    document.body.insertAdjacentHTML("beforeend", widgetHtml);
 
-    const chatBtn      = document.getElementById("ai-chat-btn");
-    const chatPanel    = document.getElementById("ai-chat-panel");
-    const chatClose    = document.getElementById("ai-chat-close");
-    const chatClear    = document.getElementById("ai-chat-clear");
-    const chatInput    = document.getElementById("ai-chat-input");
-    const chatSend     = document.getElementById("ai-chat-send");
+    const chatBtn = document.getElementById("ai-chat-btn");
+    const chatPanel = document.getElementById("ai-chat-panel");
+    const chatClose = document.getElementById("ai-chat-close");
+    const chatClear = document.getElementById("ai-chat-clear");
+    const chatInput = document.getElementById("ai-chat-input");
+    const chatSend = document.getElementById("ai-chat-send");
     const chatMessages = document.getElementById("ai-chat-messages");
 
-    // ─── RESTORE MESSAGES FROM CACHE ─────────────────────────────────────────
     function restoreMessagesFromCache() {
-        if (_messages.length === 0) return;
-        chatMessages.innerHTML = ""; // clear default greeting
-        _messages.forEach(msg => {
-            renderBubble(msg.role, msg.text, msg.suggestedItems || null, msg.orderLink || null, msg.action || null, /*save=*/false);
+        if (!messages.length) {
+            return;
+        }
+
+        chatMessages.innerHTML = "";
+        messages.forEach((message) => {
+            renderBubble(
+                message.role,
+                message.text,
+                message.orderLink || null,
+                message.action || null
+            );
         });
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // ─── RESTORE PANEL STATE (open/close) ────────────────────────────────────
     const chatWasOpen = localStorage.getItem(STORAGE_KEY_OPEN) === "true";
     if (chatWasOpen) {
-        // Show instantly, no animation flash on page load
         chatPanel.style.transition = "none";
         chatPanel.classList.add("active");
         requestAnimationFrame(() => requestAnimationFrame(() => {
             chatPanel.style.transition = "";
         }));
-        // Restore messages immediately from sessionStorage cache
-        restoreMessagesFromCache();
+
+        if (messages.length > 0) {
+            restoreMessagesFromCache();
+        }
     }
 
-    // ─── ACTIONS ─────────────────────────────────────────────────────────────
     chatBtn.addEventListener("click", () => {
         const isNowOpen = chatPanel.classList.toggle("active");
         localStorage.setItem(STORAGE_KEY_OPEN, isNowOpen ? "true" : "false");
-        if (isNowOpen) {
-            chatInput.focus();
-            // If no cached messages, try fetching from server
-            if (_messages.length === 0) {
-                fetchHistoryFromServer();
-            } else {
-                restoreMessagesFromCache();
-            }
+
+        if (!isNowOpen) {
+            return;
         }
+
+        chatInput.focus();
+        if (messages.length > 0) {
+            restoreMessagesFromCache();
+            return;
+        }
+
+        fetchHistoryFromServer();
     });
 
     chatClose.addEventListener("click", () => {
@@ -138,68 +138,99 @@
     });
 
     chatClear.addEventListener("click", () => {
-        if (confirm("Bạn có chắc chắn muốn xóa lịch sử cuộc trò chuyện và bắt đầu phiên mới?")) {
-            // New session
-            sessionId = 'sess_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-            localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
-            // Clear cache
-            _messages = [];
-            clearCachedMessages();
-            // Reset UI
-            chatMessages.innerHTML = `
-                <div class="message-bubble message-ai">
-                    Hội thoại đã được làm mới. Tôi có thể hỗ trợ gì cho bạn ngay bây giờ?
-                </div>
-            `;
+        if (!confirm("Bạn có chắc muốn xóa hội thoại hiện tại và bắt đầu phiên mới?")) {
+            return;
+        }
+
+        sessionId = "sess_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+        localStorage.setItem(STORAGE_KEY_SESSION, sessionId);
+
+        messages = [];
+        clearCachedMessages();
+        chatMessages.innerHTML = `
+            <div class="message-bubble message-ai">
+                Hội thoại đã được làm mới. Bạn cần mình tư vấn xe, combo, đặt cọc hay mua đứt sản phẩm nào?
+            </div>
+        `;
+    });
+
+    chatInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+            sendMessage();
         }
     });
 
-    chatInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") sendMessage();
-    });
     chatSend.addEventListener("click", sendMessage);
-    document.addEventListener("click", (e) => {
-        const orderBtn = e.target.closest("a.ai-draft-order-btn");
-        if (!orderBtn) return;
 
-        const href = orderBtn.getAttribute("href");
-        if (!href || !href.includes("/Cars/Details/")) return;
+    document.addEventListener("click", (event) => {
+        const orderButton = event.target.closest("a.ai-draft-order-btn");
+        if (!orderButton) {
+            return;
+        }
 
-        const actionType = orderBtn.dataset.actionType || "";
-        const bubbleText = orderBtn.closest(".message-bubble")?.innerText || "";
+        const href = orderButton.getAttribute("href");
+        if (!href) {
+            return;
+        }
+
+        if (href.includes("/ComboOrder/Confirm")) {
+            event.preventDefault();
+            const actionType = orderButton.dataset.actionType || "";
+            const resolvedHref = normalizeComboConfirmLink(href, actionType);
+            if (resolvedHref) {
+                orderButton.setAttribute("href", resolvedHref);
+                window.location.href = resolvedHref;
+            }
+            return;
+        }
+
+        if (!href.includes("/Cars/Details/")) {
+            return;
+        }
+
+        const actionType = orderButton.dataset.actionType || "";
+        const bubbleText = orderButton.closest(".message-bubble")?.innerText || "";
         const resolvedHref = appendChatActionToCarLink(href, bubbleText, actionType);
         if (resolvedHref !== href) {
-            orderBtn.setAttribute("href", resolvedHref);
+            orderButton.setAttribute("href", resolvedHref);
         }
     });
 
-    // ─── FETCH HISTORY FROM SERVER (fallback only) ───────────────────────────
     async function fetchHistoryFromServer() {
         try {
-            const res = await fetch(`/Chat/History?sessionId=${sessionId}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            if (data && data.messages && data.messages.length > 0) {
-                chatMessages.innerHTML = "";
-                _messages = [];
-                data.messages.forEach(msg => {
-                    if (msg.role === "user") {
-                        pushAndRender("user", msg.content);
-                    } else if (msg.role === "assistant") {
-                        pushAndRender("ai", msg.content);
-                    }
-                });
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+            const response = await fetch(`/Chat/History?sessionId=${sessionId}`);
+            if (!response.ok) {
+                return;
             }
-        } catch (ex) {
-            console.error("Lỗi khi tải lịch sử chat:", ex);
+
+            const data = await response.json();
+            if (!data?.messages?.length) {
+                return;
+            }
+
+            messages = [];
+            chatMessages.innerHTML = "";
+
+            data.messages.forEach((message) => {
+                if (message.role === "user") {
+                    pushAndRender("user", message.content);
+                    return;
+                }
+
+                if (message.role === "assistant") {
+                    pushAndRender("ai", message.content);
+                }
+            });
+        } catch (error) {
+            console.error("Lỗi khi tải lịch sử chat:", error);
         }
     }
 
-    // ─── SEND MESSAGE ────────────────────────────────────────────────────────
     async function sendMessage() {
         const text = chatInput.value.trim();
-        if (!text) return;
+        if (!text) {
+            return;
+        }
 
         chatInput.value = "";
         pushAndRender("user", text);
@@ -207,7 +238,7 @@
         const typingId = showTypingIndicator();
 
         try {
-            const res = await fetch("/Chat/Message", {
+            const response = await fetch("/Chat/Message", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ sessionId, message: text })
@@ -215,113 +246,100 @@
 
             removeTypingIndicator(typingId);
 
-            if (res.ok) {
-                const apiResult = await res.json();
-                if (apiResult && apiResult.success && apiResult.data) {
-                    const data = apiResult.data;
-                    pushAndRender("ai", data.reply, data.suggestedItems, data.orderLink, data.action);
-                } else {
-                    const msg = apiResult?.message || "Đã xảy ra lỗi không mong muốn.";
-                    pushAndRender("ai", "Lỗi: " + msg);
-                }
-            } else {
+            if (!response.ok) {
                 pushAndRender("ai", "Dịch vụ AI đang gặp sự cố. Vui lòng thử lại sau.");
+                return;
             }
-        } catch (ex) {
+
+            const apiResult = await response.json();
+            if (apiResult?.success && apiResult.data) {
+                const data = apiResult.data;
+                pushAndRender("ai", data.reply, data.orderLink, data.action);
+                return;
+            }
+
+            pushAndRender("ai", `Lỗi: ${apiResult?.message || "Đã xảy ra lỗi không mong muốn."}`);
+        } catch (error) {
             removeTypingIndicator(typingId);
-            pushAndRender("ai", "Lỗi kết nối tới máy chủ.");
+            pushAndRender("ai", "Không thể kết nối tới máy chủ.");
         }
     }
 
-    // ─── CORE: Push to cache + render ────────────────────────────────────────
-    function pushAndRender(role, text, suggestedItems = null, orderLink = null, action = null) {
-        _messages.push({ role, text, suggestedItems: suggestedItems || null, orderLink: orderLink || null, action: action || null });
-        saveCachedMessages(_messages);
-        renderBubble(role, text, suggestedItems, orderLink, action, /*save=*/false);
+    function pushAndRender(role, text, orderLink = null, action = null) {
+        messages.push({
+            role,
+            text,
+            orderLink: orderLink || null,
+            action: action || null
+        });
+        saveCachedMessages(messages);
+        renderBubble(role, text, orderLink, action);
     }
 
-    // ─── RENDER BUBBLE ───────────────────────────────────────────────────────
-    function renderBubble(role, text, suggestedItems = null, orderLink = null, action = null) {
+    function renderBubble(role, text, orderLink = null, action = null) {
         const bubble = document.createElement("div");
         bubble.className = `message-bubble ${role === "user" ? "message-user" : "message-ai"}`;
 
-        // Format markdown-like elements
         let formattedText = escapeHtml(text)
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="img-fluid rounded my-2 d-block" style="max-height:180px; width:auto; object-fit:cover; border: 1px solid #ddd;" />')
-            .replace(/\n/g, '<br/>');
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*(.*?)\*/g, "<em>$1</em>")
+            .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="img-fluid rounded my-2 d-block chat-inline-image" />')
+            .replace(/\n/g, "<br/>");
 
-        // Parse tables
-        if (formattedText.includes('|')) {
+        if (formattedText.includes("|")) {
             formattedText = parseMarkdownTable(formattedText);
         }
 
         bubble.innerHTML = formattedText;
 
-        // Suggested product cards
-        if (suggestedItems && suggestedItems.length > 0) {
-            const container = document.createElement("div");
-            container.className = "ai-suggested-container";
-
-            suggestedItems.forEach(item => {
-                const a = document.createElement("a");
-                a.className = "ai-suggested-item";
-                a.href = item.detailUrl;
-                a.target = "_blank";
-
-                const imgHtml = item.imageUrl
-                    ? `<img src="${item.imageUrl}" alt="${item.name}" />`
-                    : `<div class="d-flex align-items-center justify-content-center bg-white border text-secondary" style="width:40px;height:40px;border-radius:6px;"><i class="bi bi-box"></i></div>`;
-
-                a.innerHTML = `
-                    ${imgHtml}
-                    <div class="ai-suggested-item-info">
-                        <div class="ai-suggested-item-name">${item.name}</div>
-                        <div class="ai-suggested-item-price">${formatVnd(item.price)}</div>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted small"></i>
-                `;
-                container.appendChild(a);
-            });
-            bubble.appendChild(container);
-        }
-
-        // Order / deposit button
         const actionUrl = action?.url || orderLink;
         if (actionUrl) {
-            const btn = document.createElement("a");
-            btn.className = "ai-draft-order-btn";
-            btn.href = actionUrl;
-            if (actionUrl.includes("/Cars/Details/")) {
-                btn.innerHTML = `<i class="bi bi-car-front-fill me-1"></i> Bấm để Đặt Cọc / Mua Đứt Xe`;
-            } else {
-                btn.innerHTML = `<i class="bi bi-cart-fill me-1"></i> Bấm để Xem &amp; Xác Nhận Đơn Hàng`;
-            }
-            if (action) {
-                btn.href = action.url || btn.href;
-                btn.dataset.actionType = action.type || "";
-                btn.dataset.targetType = action.targetType || "";
-                btn.dataset.actionLabel = action.label || "";
+            const button = document.createElement("a");
+            button.className = "ai-draft-order-btn";
+            button.href = actionUrl;
 
-                if (action.type === "deposit") {
-                    btn.innerHTML = `<i class="bi bi-cash-stack me-1"></i> ${escapeHtml(action.label || "Dat coc xe")}`;
-                } else if (action.type === "buyout") {
-                    btn.innerHTML = `<i class="bi bi-cart-check me-1"></i> ${escapeHtml(action.label || "Mua dut xe")}`;
-                } else if ((action.targetType || "").toLowerCase() === "car") {
-                    btn.innerHTML = `<i class="bi bi-car-front-fill me-1"></i> ${escapeHtml(action.label || "Xem xe va tiep tuc")}`;
-                } else {
-                    btn.innerHTML = `<i class="bi bi-cart-fill me-1"></i> ${escapeHtml(action.label || "Xem & xac nhan don hang")}`;
-                }
+            if (action) {
+                button.dataset.actionType = action.type || "";
+                button.dataset.targetType = action.targetType || "";
+                button.dataset.actionLabel = action.label || "";
             }
-            bubble.appendChild(btn);
+
+            button.innerHTML = buildActionButtonLabel(actionUrl, action);
+            bubble.appendChild(button);
         }
 
         chatMessages.appendChild(bubble);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // ─── TYPING INDICATOR ────────────────────────────────────────────────────
+    function buildActionButtonLabel(actionUrl, action) {
+        if (action?.targetType === "combo") {
+            if (action.type === "deposit") {
+                return '<i class="bi bi-cash-coin me-1"></i> Đặt cọc combo';
+            }
+            if (action.type === "buyout") {
+                return '<i class="bi bi-cart-check me-1"></i> Mua đứt combo';
+            }
+            return '<i class="bi bi-bag-check me-1"></i> Xem combo và xác nhận';
+        }
+
+        if (action?.targetType === "car") {
+            if (action.type === "deposit") {
+                return `<i class="bi bi-cash-stack me-1"></i> ${escapeHtml(action.label || "Đặt cọc xe")}`;
+            }
+            if (action.type === "buyout") {
+                return `<i class="bi bi-cart-check me-1"></i> ${escapeHtml(action.label || "Mua đứt xe")}`;
+            }
+            return `<i class="bi bi-car-front-fill me-1"></i> ${escapeHtml(action.label || "Xem xe và tiếp tục")}`;
+        }
+
+        if (actionUrl.includes("/Cars/Details/")) {
+            return '<i class="bi bi-car-front-fill me-1"></i> Xem xe và tiếp tục';
+        }
+
+        return '<i class="bi bi-bag-check me-1"></i> Xem đơn và tiếp tục';
+    }
+
     function showTypingIndicator() {
         const bubble = document.createElement("div");
         const typingId = "typing_" + Date.now();
@@ -332,21 +350,18 @@
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
-            </div>
-        `;
+            </div>`;
         chatMessages.appendChild(bubble);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return typingId;
     }
 
     function removeTypingIndicator(id) {
-        const el = document.getElementById(id);
-        if (el) el.remove();
+        document.getElementById(id)?.remove();
     }
 
-    // ─── UTILITIES ───────────────────────────────────────────────────────────
-    function escapeHtml(str) {
-        return str
+    function escapeHtml(value) {
+        return String(value || "")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -354,50 +369,59 @@
             .replace(/'/g, "&#039;");
     }
 
-    function formatVnd(val) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
-    }
-
     function parseMarkdownTable(text) {
-        const lines = text.split('<br/>');
+        const lines = text.split("<br/>");
         let inTable = false;
-        let htmlTable = '<table class="table table-sm table-bordered mt-2" style="font-size:12px;">';
-        let outputLines = [];
+        let htmlTable = '<table class="table table-sm table-bordered mt-2 chat-table">';
+        const outputLines = [];
 
-        lines.forEach(line => {
-            if (line.trim().startsWith('|')) {
-                if (!inTable) inTable = true;
-                if (line.includes('---') || line.includes('-:-')) return;
+        lines.forEach((line) => {
+            if (line.trim().startsWith("|")) {
+                if (!inTable) {
+                    inTable = true;
+                }
 
-                const cells = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
-                const tag = htmlTable.includes('<tbody>') ? 'td' : 'th';
+                if (line.includes("---") || line.includes("-:-")) {
+                    return;
+                }
 
-                let row = '<tr>';
-                cells.forEach(cell => { row += `<${tag}>${cell}</${tag}>`; });
-                row += '</tr>';
+                const cells = line
+                    .split("|")
+                    .map((cell) => cell.trim())
+                    .filter((cell, index, array) => index > 0 && index < array.length - 1);
 
-                if (tag === 'th') {
+                const tag = htmlTable.includes("<tbody>") ? "td" : "th";
+                let row = "<tr>";
+                cells.forEach((cell) => {
+                    row += `<${tag}>${cell}</${tag}>`;
+                });
+                row += "</tr>";
+
+                if (tag === "th") {
                     htmlTable += `<thead>${row}</thead><tbody>`;
                 } else {
                     htmlTable += row;
                 }
-            } else {
-                if (inTable) {
-                    htmlTable += '</tbody></table>';
-                    outputLines.push(htmlTable);
-                    htmlTable = '<table class="table table-sm table-bordered mt-2" style="font-size:12px;">';
-                    inTable = false;
-                }
-                outputLines.push(line);
+
+                return;
             }
+
+            if (inTable) {
+                htmlTable += "</tbody></table>";
+                outputLines.push(htmlTable);
+                htmlTable = '<table class="table table-sm table-bordered mt-2 chat-table">';
+                inTable = false;
+            }
+
+            outputLines.push(line);
         });
 
         if (inTable) {
-            htmlTable += '</tbody></table>';
+            htmlTable += "</tbody></table>";
             outputLines.push(htmlTable);
         }
 
-        return outputLines.join('<br/>');
+        return outputLines.join("<br/>");
     }
 
     function appendChatActionToCarLink(href, bubbleText, actionType = "") {
@@ -426,6 +450,35 @@
             normalized.includes("thanh toan dut")
         ) {
             url.searchParams.set("chatAction", "buyout");
+        }
+
+        return url.pathname + url.search + url.hash;
+    }
+
+    function normalizeComboConfirmLink(href, actionType = "") {
+        const url = new URL(href, window.location.origin);
+        if (!url.pathname.includes("/ComboOrder/Confirm")) {
+            return url.pathname + url.search + url.hash;
+        }
+
+        const rawDraftMatch = href.match(/[?&]draft=([^&#]*)/i);
+        if (!rawDraftMatch || !rawDraftMatch[1]) {
+            return url.pathname + url.search + url.hash;
+        }
+
+        const rawDraft = rawDraftMatch[1].replace(/ /g, "+");
+        let decodedDraft = rawDraft;
+
+        try {
+            decodedDraft = decodeURIComponent(rawDraft.replace(/\+/g, "%2B"));
+        } catch {
+            decodedDraft = rawDraft;
+        }
+
+        url.searchParams.set("draft", decodedDraft);
+
+        if ((actionType === "deposit" || actionType === "buyout") && !url.searchParams.get("type")) {
+            url.searchParams.set("type", actionType);
         }
 
         return url.pathname + url.search + url.hash;

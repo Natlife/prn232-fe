@@ -13,17 +13,16 @@ public class ComboOrderItemInputViewModel
 
 public class ComboOrderCreateViewModel
 {
-    [Required(ErrorMessage = "Số điện thoại không được để trống")]
-    [Phone(ErrorMessage = "Số điện thoại không đúng định dạng")]
+    [Required(ErrorMessage = "So dien thoai khong duoc de trong")]
+    [Phone(ErrorMessage = "So dien thoai khong dung dinh dang")]
     [StringLength(20)]
     public string CustomerPhone { get; set; } = null!;
 
     [Required]
     public string PurchaseType { get; set; } = "Buyout";
 
-    [Required(ErrorMessage = "Địa chỉ nhận hàng không được để trống")]
     [StringLength(255)]
-    public string ShippingAddress { get; set; } = null!;
+    public string? ShippingAddress { get; set; }
 
     [StringLength(1000)]
     public string? Note { get; set; }
@@ -50,8 +49,6 @@ public class ComboOrderPreviewViewModel
     public decimal TotalAmount { get; set; }
     public string DraftToken { get; set; } = null!;
 }
-
-// ─── ORDER DETAILS / HISTORY FOR CUSTOMER & ADMIN ─────────────────────────────
 
 public class ComboOrderItemViewModel
 {
@@ -80,10 +77,15 @@ public class ComboOrderViewModel
     public string PurchaseType { get; set; } = "Buyout";
     public string Status { get; set; } = null!;
     public decimal? DepositAmount { get; set; }
+    public DateTime? DepositExpiresAt { get; set; }
     public string? CaptchaCode { get; set; }
     public DateTime? CaptchaGeneratedAt { get; set; }
     public bool IsCaptchaUsed { get; set; }
     public DateTime? CaptchaUsedAt { get; set; }
+    public string? FinalCaptchaCode { get; set; }
+    public DateTime? FinalCaptchaGeneratedAt { get; set; }
+    public bool IsFinalCaptchaUsed { get; set; }
+    public DateTime? FinalCaptchaUsedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public List<ComboOrderItemViewModel> Items { get; set; } = new();

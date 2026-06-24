@@ -57,7 +57,7 @@ namespace CarSalesManagementSystemClient.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Không thể tải danh sách xe: " + ex.Message;
+                TempData["ErrorMessage"] = "Kh?ng th? t?i danh s?ch xe: " + ex.Message;
                 return View(new List<CarViewModel>());
             }
         }
@@ -84,7 +84,7 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 if (!AttachJwtToken())
                 {
-                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    TempData["ErrorMessage"] = "Phi?n ?'?fng nh?p kh?ng c? token. Vui l?ng ?'?fng nh?p l?i.";
                     await LoadBrandsToViewBag();
                     return View(form);
                 }
@@ -110,16 +110,16 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["SuccessMessage"] = "Thêm xe thành công!";
+                    TempData["SuccessMessage"] = "Th?m xe th?nh c?ng!";
                     return RedirectToAction(nameof(Cars));
                 }
 
                 var error = await ReadApiErrorAsync(response, CarsApiUrl);
-                TempData["ErrorMessage"] = "Thêm xe thất bại: " + error;
+                TempData["ErrorMessage"] = "Th?m xe th?t b?i: " + error;
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+                TempData["ErrorMessage"] = "C? l?i x?y ra: " + ex.Message;
             }
 
             await LoadBrandsToViewBag();
@@ -155,7 +155,7 @@ namespace CarSalesManagementSystemClient.Controllers
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Không thể tải thông tin xe: " + ex.Message;
+                TempData["ErrorMessage"] = "Kh?ng th? t?i th?ng tin xe: " + ex.Message;
                 return RedirectToAction(nameof(Cars));
             }
         }
@@ -175,7 +175,7 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 if (!AttachJwtToken())
                 {
-                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    TempData["ErrorMessage"] = "Phi?n ?'?fng nh?p kh?ng c? token. Vui l?ng ?'?fng nh?p l?i.";
                     await LoadBrandsToViewBag();
                     return View(form);
                 }
@@ -202,16 +202,16 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    TempData["SuccessMessage"] = "Cập nhật xe thành công!";
+                    TempData["SuccessMessage"] = "C?p nh?t xe th?nh c?ng!";
                     return RedirectToAction(nameof(Cars));
                 }
 
                 var error = await ReadApiErrorAsync(response, $"{CarsApiUrl}({id})");
-                TempData["ErrorMessage"] = "Cập nhật thất bại: " + error;
+                TempData["ErrorMessage"] = "C?p nh?t th?t b?i: " + error;
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+                TempData["ErrorMessage"] = "C? l?i x?y ra: " + ex.Message;
             }
 
             await LoadBrandsToViewBag();
@@ -227,34 +227,34 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 if (!AttachJwtToken())
                 {
-                    TempData["ErrorMessage"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng cÃ³ token. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                    TempData["ErrorMessage"] = "Phi?n ?'?fng nh?p kh?ng c? token. Vui l?ng ?'?fng nh?p l?i.";
                     return RedirectToAction(nameof(Cars));
                 }
                 var response = await _httpClient.DeleteAsync($"{CarsApiUrl}({id})");
 
                 if (response.IsSuccessStatusCode)
-                    TempData["SuccessMessage"] = "Xóa xe thành công!";
+                    TempData["SuccessMessage"] = "X?a xe th?nh c?ng!";
                 else
                 {
                     var error = await ReadApiErrorAsync(response, $"{CarsApiUrl}({id})");
-                    TempData["ErrorMessage"] = "Xóa thất bại: " + error;
+                    TempData["ErrorMessage"] = "X?a th?t b?i: " + error;
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+                TempData["ErrorMessage"] = "C? l?i x?y ra: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Cars));
         }
 
-        // ─── Captcha Management ──────────────────────────────────────────────
+        // ??? Captcha Management ??????????????????????????????????????????????
 
         public async Task<IActionResult> Captchas()
         {
             if (!AttachJwtToken())
             {
-                TempData["ErrorMessage"] = "Phiên đăng nhập không có token hoặc đã hết hạn. Vui lòng đăng nhập lại.";
+                TempData["ErrorMessage"] = "Phi?n dang nh?p kh?ng c? token ho?c d? h?t h?n. Vui l?ng dang nh?p l?i.";
                 ViewBag.Cars = new List<CarViewModel>();
                 return View(new List<DepositCaptchaViewModel>());
             }
@@ -274,13 +274,13 @@ namespace CarSalesManagementSystemClient.Controllers
             }
             catch (System.Net.Http.HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                TempData["ErrorMessage"] = "Token xác thực đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.";
+                TempData["ErrorMessage"] = "Token x?c th?c d? h?t h?n ho?c kh?ng h?p l?. Vui l?ng dang nh?p l?i.";
                 ViewBag.Cars = new List<CarViewModel>();
                 return View(new List<DepositCaptchaViewModel>());
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Không thể tải danh sách Captcha: " + ex.Message;
+                TempData["ErrorMessage"] = "Kh?ng th? t?i danh s?ch Captcha: " + ex.Message;
                 ViewBag.Cars = new List<CarViewModel>();
                 return View(new List<DepositCaptchaViewModel>());
             }
@@ -300,24 +300,24 @@ namespace CarSalesManagementSystemClient.Controllers
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var msg = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "Tạo mã thành công.";
+                    var msg = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "T?o m? th?nh c?ng.";
                     TempData["SuccessMessage"] = msg;
                 }
                 else
                 {
-                    var errorMsg = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "Lỗi không xác định.";
+                    var errorMsg = jsonDoc.RootElement.TryGetProperty("message", out var msgProp) ? msgProp.GetString() : "L?i kh?ng x?c d?nh.";
                     TempData["ErrorMessage"] = errorMsg;
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
+                TempData["ErrorMessage"] = "C? l?i x?y ra: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Captchas));
         }
 
-        // ─── Helpers ─────────────────────────────────────────────────────────
+        // ??? Helpers ?????????????????????????????????????????????????????????
 
         private async Task LoadBrandsToViewBag()
         {

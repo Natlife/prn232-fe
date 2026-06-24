@@ -2,26 +2,41 @@
 @using System.Text.Json
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Quan ly don combo";
+    ViewData["Title"] = "Quản lý đơn combo";
     var ordersJson = JsonSerializer.Serialize(Model ?? new List<CarSalesManagementSystemClient.Models.ComboOrderViewModel>());
 }
+
+<style>
+    .combo-admin-card {
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 20px 42px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    .combo-admin-pill {
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+</style>
 
 <div class="container-fluid py-5 px-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-box-seam me-2 text-warning"></i>Quan ly don combo</h2>
-            <p class="text-muted mb-0">Admin theo doi don, xem chi tiet, tao captcha va cap ma cho khach sau khi da nhan tien.</p>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-box-seam me-2 text-warning"></i>Quản lý đơn combo</h2>
+            <p class="text-muted mb-0">Admin theo dõi đơn, gen captcha lần 1 cho đặt cọc và captcha lần 2 cho mua đứt.</p>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card combo-admin-card">
         <div class="card-header bg-dark text-white py-3 px-4">
-            <h5 class="mb-0 fw-bold">Tat ca don combo (@(Model?.Count ?? 0))</h5>
+            <h5 class="mb-0 fw-bold">Tất cả đơn combo (@(Model?.Count ?? 0))</h5>
         </div>
         <div class="card-body p-0">
             @if (Model == null || !Model.Any())
             {
-                <div class="p-5 text-center text-muted">Chua co don combo nao trong he thong.</div>
+                <div class="p-5 text-center text-muted">Chưa có đơn combo nào trong hệ thống.</div>
             }
             else
             {
@@ -29,18 +44,43 @@
                     <table class="table align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4">Don</th>
-                                <th>Khach hang</th>
-                                <th>Loai giao dich</th>
-                                <th>Trang thai</th>
-                                <th>Tong gia tri</th>
-                                <th>Captcha</th>
-                                <th class="pe-4 text-end">Thao tac</th>
+                                <th class="ps-4">Đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Loại giao dịch</th>
+                                <th>Trạng thái</th>
+                                <th>Tổng giá trị</th>
+                                <th>Captcha hiện tại</th>
+                                <th class="pe-4 text-end">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var order in Model)
                             {
+                                var currentCaptcha = order.Status == "Deposited"
+                                    ? order.FinalCaptchaCode
+                                    : order.CaptchaCode;
+                                var currentGeneratedAt = order.Status == "Deposited"
+                                    ? order.FinalCaptchaGeneratedAt
+                                    : order.CaptchaGeneratedAt;
+                                var statusText = order.Status switch
+                                {
+                                    "Pending" => "Chờ xác thực",
+                                    "Deposited" => "Đã đặt cọc",
+                                    "Completed" => "Hoàn tất",
+                                    "Cancelled" => "Đã hủy",
+                                    "DepositExpired" => "Hết hạn giữ combo",
+                                    _ => order.Status
+                                };
+                                var statusClass = order.Status switch
+                                {
+                                    "Pending" => "bg-warning-subtle text-warning-emphasis",
+                                    "Deposited" => "bg-info-subtle text-info-emphasis",
+                                    "Completed" => "bg-success-subtle text-success-emphasis",
+                                    "Cancelled" => "bg-danger-subtle text-danger-emphasis",
+                                    "DepositExpired" => "bg-dark-subtle text-dark-emphasis",
+                                    _ => "bg-secondary-subtle text-secondary-emphasis"
+                                };
+
                                 <tr>
                                     <td class="ps-4">
                                         <div class="fw-bold text-dark">#@order.ComboOrderId</div>
@@ -51,23 +91,23 @@
                                         <div class="small text-muted">@order.CustomerPhone</div>
                                     </td>
                                     <td>
-                                        <span class="badge @(order.PurchaseType == "Deposit" ? "bg-warning text-dark" : "bg-success") px-3 py-2 rounded-pill">
-                                            @(order.PurchaseType == "Deposit" ? "Dat coc" : "Mua dut")
+                                        <span class="badge @(order.PurchaseType == "Deposit" ? "bg-warning-subtle text-warning-emphasis" : "bg-success-subtle text-success-emphasis") combo-admin-pill">
+                                            @(order.PurchaseType == "Deposit" ? "Đặt cọc" : "Mua đứt")
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary px-3 py-2 rounded-pill">@order.Status</span>
+                                        <span class="badge @statusClass combo-admin-pill">@statusText</span>
                                     </td>
                                     <td class="fw-bold text-danger">@order.TotalAmount.ToString("N0") VND</td>
                                     <td>
-                                        <div class="fw-semibold">@(string.IsNullOrWhiteSpace(order.CaptchaCode) ? "Chua co" : order.CaptchaCode)</div>
-                                        <div class="small text-muted">@(order.CaptchaGeneratedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chua tao")</div>
+                                        <div class="fw-semibold">@(string.IsNullOrWhiteSpace(currentCaptcha) ? "Chưa có" : currentCaptcha)</div>
+                                        <div class="small text-muted">@(currentGeneratedAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa tạo")</div>
                                     </td>
                                     <td class="pe-4 text-end">
                                         <button type="button"
                                                 class="btn btn-dark btn-sm admin-order-btn"
                                                 data-order-id="@order.ComboOrderId">
-                                            Chi tiet / Gen captcha
+                                            Chi tiết / Gen captcha
                                         </button>
                                     </td>
                                 </tr>
@@ -85,7 +125,7 @@
         <div class="modal-content border-0 shadow rounded-4">
             <div class="modal-header border-0 pb-0">
                 <div>
-                    <h4 class="modal-title fw-bold" id="adminOrderTitle">Chi tiet don combo</h4>
+                    <h4 class="modal-title fw-bold" id="adminOrderTitle">Chi tiết đơn combo</h4>
                     <div class="text-muted small" id="adminOrderSubTitle"></div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -93,34 +133,41 @@
             <div class="modal-body pt-3">
                 <div class="row g-4">
                     <div class="col-lg-7">
-                        <div class="fw-semibold mb-2">San pham trong don</div>
+                        <div class="fw-semibold mb-2">Sản phẩm trong đơn</div>
                         <div id="adminOrderItems" class="border rounded-4 p-3 bg-light-subtle"></div>
                         <div class="mt-3 border rounded-4 p-3">
-                            <div class="small text-muted">Ghi chu</div>
-                            <div id="adminOrderNote" class="fw-semibold">Khong co</div>
-                            <div class="small text-muted mt-3">Dia chi</div>
+                            <div class="small text-muted">Ghi chú</div>
+                            <div id="adminOrderNote" class="fw-semibold">Không có</div>
+                            <div class="small text-muted mt-3">Địa chỉ</div>
                             <div id="adminOrderAddress" class="fw-semibold"></div>
+                            <div class="small text-muted mt-3">Hạn giữ combo</div>
+                            <div id="adminOrderExpiry" class="fw-semibold">Không áp dụng</div>
                         </div>
                     </div>
                     <div class="col-lg-5">
                         <div class="border rounded-4 p-3 mb-3">
-                            <div class="small text-muted">Loai giao dich</div>
+                            <div class="small text-muted">Loại giao dịch</div>
                             <div class="fw-bold mb-2" id="adminPurchaseType"></div>
-                            <div class="small text-muted">Trang thai hien tai</div>
+                            <div class="small text-muted">Trạng thái hiện tại</div>
                             <div class="fw-bold mb-2" id="adminOrderStatus"></div>
-                            <div class="small text-muted">So tien can giao dich</div>
+                            <div class="small text-muted">Số tiền xử lý hiện tại</div>
                             <div class="fw-bold text-danger mb-2" id="adminPayableAmount"></div>
-                            <div class="small text-muted">Captcha hien tai</div>
+                            <div class="small text-muted">Giai đoạn captcha</div>
+                            <div class="fw-bold mb-2" id="adminCaptchaStage"></div>
+                            <div class="small text-muted">Captcha hiện tại</div>
                             <div class="fw-bold" id="adminCurrentCaptcha"></div>
                         </div>
 
-                        <div class="border rounded-4 p-3">
-                            <label for="adminCustomCaptcha" class="form-label fw-semibold">Nhap captcha rieng neu muon</label>
-                            <input id="adminCustomCaptcha" type="text" class="form-control text-uppercase mb-2" maxlength="20" placeholder="De trong de he thong tu sinh" />
+                        <div id="adminCaptchaBox" class="border rounded-4 p-3">
+                            <label for="adminCustomCaptcha" class="form-label fw-semibold">Nhập captcha riêng nếu muốn</label>
+                            <input id="adminCustomCaptcha" type="text" class="form-control text-uppercase mb-2" maxlength="20" placeholder="Để trống để hệ thống tự sinh" />
                             <div id="adminCaptchaFeedback" class="small d-none mb-2"></div>
                             <button type="button" id="btnAdminGenerateCaptcha" class="btn btn-warning w-100 fw-bold">
-                                Gen captcha cho don nay
+                                Gen captcha cho đơn này
                             </button>
+                        </div>
+                        <div id="adminNoCaptchaBox" class="alert alert-success d-none mb-0">
+                            Đơn combo này không cần tạo thêm captcha ở thời điểm hiện tại.
                         </div>
                     </div>
                 </div>
@@ -140,7 +187,7 @@
 
         function renderAdminItems(items) {
             if (!items || !items.length) {
-                return '<div class="text-muted">Khong co san pham.</div>';
+                return '<div class="text-muted">Không có sản phẩm.</div>';
             }
 
             return items.map(item => `
@@ -154,28 +201,66 @@
             `).join('');
         }
 
+        function getStage(order) {
+            const purchaseType = readProp(order, 'purchaseType', 'PurchaseType');
+            const status = readProp(order, 'status', 'Status');
+            if (purchaseType === "Deposit" && status === "Pending") return "deposit";
+            if (purchaseType === "Deposit" && status === "Deposited") return "buyout";
+            if (purchaseType === "Buyout" && status === "Pending") return "buyout";
+            return "none";
+        }
+
+        function formatStatus(status) {
+            switch (status) {
+                case "Pending": return "Chờ xác thực";
+                case "Deposited": return "Đã đặt cọc";
+                case "Completed": return "Hoàn tất";
+                case "Cancelled": return "Đã hủy";
+                case "DepositExpired": return "Hết hạn giữ combo";
+                default: return status || "";
+            }
+        }
+
         $(function () {
             $(".admin-order-btn").on("click", function () {
                 const orderId = Number($(this).data("order-id"));
                 activeAdminOrder = adminComboOrders.find(x => Number(readProp(x, 'comboOrderId', 'ComboOrderId')) === orderId);
                 if (!activeAdminOrder) return;
 
-                const payable = readProp(activeAdminOrder, 'depositAmount', 'DepositAmount')
-                    || readProp(activeAdminOrder, 'totalAmount', 'TotalAmount')
-                    || 0;
                 const purchaseType = readProp(activeAdminOrder, 'purchaseType', 'PurchaseType');
+                const status = readProp(activeAdminOrder, 'status', 'Status');
+                const depositAmount = Number(readProp(activeAdminOrder, 'depositAmount', 'DepositAmount') || 0);
+                const totalAmount = Number(readProp(activeAdminOrder, 'totalAmount', 'TotalAmount') || 0);
+                const payable = status === "Deposited" ? Math.max(0, totalAmount - depositAmount) : (purchaseType === "Deposit" ? depositAmount : totalAmount);
+                const stage = getStage(activeAdminOrder);
+                const currentCaptcha = stage === "buyout"
+                    ? (readProp(activeAdminOrder, 'finalCaptchaCode', 'FinalCaptchaCode') || "Chưa có captcha")
+                    : (readProp(activeAdminOrder, 'captchaCode', 'CaptchaCode') || "Chưa có captcha");
+                const stageLabel = stage === "deposit"
+                    ? "Captcha đặt cọc lần 1"
+                    : stage === "buyout"
+                        ? "Captcha mua đứt lần 2"
+                        : "Không cần captcha";
 
-                $("#adminOrderTitle").text(`Don combo #${readProp(activeAdminOrder, 'comboOrderId', 'ComboOrderId')}`);
+                $("#adminOrderTitle").text(`Đơn combo #${readProp(activeAdminOrder, 'comboOrderId', 'ComboOrderId')}`);
                 $("#adminOrderSubTitle").text(`${readProp(activeAdminOrder, 'customerName', 'CustomerName')} - ${readProp(activeAdminOrder, 'customerPhone', 'CustomerPhone')}`);
                 $("#adminOrderItems").html(renderAdminItems(readProp(activeAdminOrder, 'items', 'Items')));
-                $("#adminOrderNote").text(readProp(activeAdminOrder, 'note', 'Note') || "Khong co");
-                $("#adminOrderAddress").text(readProp(activeAdminOrder, 'shippingAddress', 'ShippingAddress') || "Khong co");
-                $("#adminPurchaseType").text(purchaseType === "Deposit" ? "Dat coc combo" : "Mua dut combo");
-                $("#adminOrderStatus").text(readProp(activeAdminOrder, 'status', 'Status'));
+                $("#adminOrderNote").text(readProp(activeAdminOrder, 'note', 'Note') || "Không có");
+                $("#adminOrderAddress").text(readProp(activeAdminOrder, 'shippingAddress', 'ShippingAddress') || "Không có");
+                $("#adminOrderExpiry").text(readProp(activeAdminOrder, 'depositExpiresAt', 'DepositExpiresAt')
+                    ? new Date(readProp(activeAdminOrder, 'depositExpiresAt', 'DepositExpiresAt')).toLocaleString("vi-VN")
+                    : "Không áp dụng");
+                $("#adminPurchaseType").text(purchaseType === "Deposit" ? "Đặt cọc combo" : "Mua đứt combo");
+                $("#adminOrderStatus").text(formatStatus(status));
                 $("#adminPayableAmount").text(Number(payable).toLocaleString("vi-VN") + " VND");
-                $("#adminCurrentCaptcha").text(readProp(activeAdminOrder, 'captchaCode', 'CaptchaCode') || "Chua co captcha");
+                $("#adminCaptchaStage").text(stageLabel);
+                $("#adminCurrentCaptcha").text(currentCaptcha);
                 $("#adminCustomCaptcha").val("");
                 $("#adminCaptchaFeedback").addClass("d-none").removeClass("text-danger text-success").text("");
+
+                $("#adminCaptchaBox").toggleClass("d-none", stage === "none");
+                $("#adminNoCaptchaBox").toggleClass("d-none", stage !== "none");
+                $("#btnAdminGenerateCaptcha").text(stage === "deposit" ? "Gen captcha đặt cọc" : "Gen captcha mua đứt");
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById("adminComboOrderModal")).show();
             });
@@ -188,7 +273,7 @@
                 if (!activeAdminOrder) return;
 
                 const btn = $(this);
-                btn.prop("disabled", true).text("Dang tao captcha...");
+                btn.prop("disabled", true).text("Đang tạo captcha...");
                 $("#adminCaptchaFeedback").addClass("d-none").removeClass("text-danger text-success").text("");
 
                 try {
@@ -199,18 +284,25 @@
                     });
                     const result = await response.json();
                     if (!result.success) {
-                        $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text(result.message || "Khong the tao captcha.");
+                        $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text(result.message || "Không thể tạo captcha.");
                         return;
                     }
 
-                    $("#adminCurrentCaptcha").text(result.captchaCode || "Da tao");
-                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-success").text(result.message || "Da tao captcha.");
-                    activeAdminOrder.captchaCode = result.captchaCode;
-                    activeAdminOrder.CaptchaCode = result.captchaCode;
+                    $("#adminCurrentCaptcha").text(result.captchaCode || "Đã tạo");
+                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-success").text(result.message || "Đã tạo captcha.");
+
+                    if (result.stage === "buyout") {
+                        activeAdminOrder.finalCaptchaCode = result.captchaCode;
+                        activeAdminOrder.FinalCaptchaCode = result.captchaCode;
+                    } else {
+                        activeAdminOrder.captchaCode = result.captchaCode;
+                        activeAdminOrder.CaptchaCode = result.captchaCode;
+                    }
                 } catch (err) {
-                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text("Khong the ket noi toi may chu.");
+                    $("#adminCaptchaFeedback").removeClass("d-none").addClass("text-danger").text("Không thể kết nối tới máy chủ.");
                 } finally {
-                    btn.prop("disabled", false).text("Gen captcha cho don nay");
+                    const stage = getStage(activeAdminOrder);
+                    btn.prop("disabled", false).text(stage === "deposit" ? "Gen captcha đặt cọc" : "Gen captcha mua đứt");
                 }
             });
         });
