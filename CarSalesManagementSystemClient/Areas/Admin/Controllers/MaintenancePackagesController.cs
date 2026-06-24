@@ -54,8 +54,9 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
         }
 
         [HttpGet("/Admin/MaintenancePackages")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 10;
             try
             {
                 AppendAuthorizationHeader();
@@ -66,7 +67,18 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                     var apiResult = JsonSerializer.Deserialize<ApiResponse<List<MaintenancePackageViewModel>>>(content, JsonOptions);
                     if (apiResult?.Success == true)
                     {
-                        return View(apiResult.Data ?? new List<MaintenancePackageViewModel>());
+                        var allPackages = apiResult.Data ?? new List<MaintenancePackageViewModel>();
+                        int totalItems = allPackages.Count;
+                        int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
+                        if (totalPages == 0) totalPages = 1;
+                        if (page < 1) page = 1;
+                        if (page > totalPages) page = totalPages;
+
+                        ViewBag.CurrentPage = page;
+                        ViewBag.TotalPages = totalPages;
+
+                        var paginatedData = allPackages.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                        return View(paginatedData);
                     }
                 }
 
@@ -77,6 +89,8 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "Khong the tai danh sach goi bao duong: " + ex.Message;
             }
 
+            ViewBag.CurrentPage = 1;
+            ViewBag.TotalPages = 1;
             return View(new List<MaintenancePackageViewModel>());
         }
 

@@ -56,12 +56,41 @@
                                 else if (item.Status == "Cancelled")
                                 {
                                     <span class="badge bg-danger">Đã hủy</span>
+                                    @if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[Lý do hủy:"))
+                                    {
+                                        var reasonStart = item.Note.LastIndexOf("[Lý do hủy:") + 12;
+                                        var reasonText = item.Note.Substring(reasonStart).Replace("]", "").Trim();
+                                        <div class="mt-1 small text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i>@reasonText</div>
+                                    }
                                 }
                             </td>
                             <td class="text-end pe-4" id="actions-@item.AppointmentId">
-                                <button class="btn btn-sm btn-outline-secondary me-1" onclick="viewNote(this, '@item.CustomerName')" data-note="@(string.IsNullOrWhiteSpace(item.Note) ? "Khách hàng không để lại ghi chú gì." : item.Note)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+                                @{
+                                    string displayNote = item.Note;
+                                    bool hasRealNote = false;
+                                    if (!string.IsNullOrWhiteSpace(displayNote))
+                                    {
+                                        if (displayNote.Contains("[Lý do hủy:"))
+                                        {
+                                            int startIndex = displayNote.LastIndexOf("[Lý do hủy:");
+                                            displayNote = displayNote.Substring(0, startIndex).Trim();
+                                        }
+                                        hasRealNote = !string.IsNullOrWhiteSpace(displayNote);
+                                    }
+                                }
+
+                                @if (hasRealNote)
+                                {
+                                    <button class="btn btn-sm btn-warning me-1 shadow-sm" onclick="viewNote(this, '@item.CustomerName')" data-note="@displayNote" title="Xem ghi chú">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary me-1" onclick="viewNote(this, '@item.CustomerName')" data-note="Khách hàng không để lại ghi chú gì." title="Không có ghi chú">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                }
                                 
                                 @if (item.Status == "Pending")
                                 {
@@ -88,6 +117,26 @@
                 </tbody>
             </table>
         </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-4 mb-3">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)">Trước</a>
+                    </li>
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="?page=@i">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)">Sau</a>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
 </div>
 

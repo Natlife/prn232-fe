@@ -82,5 +82,6 @@ namespace CarSalesManagementSystemClient.Models
         public List<AppointmentHistoryViewModel> Appointments { get; set; } = new List<AppointmentHistoryViewModel>();
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; } = 1;
+        public MaintenancePackageSearchViewModel Filter { get; set; } = new MaintenancePackageSearchViewModel();
     }
 }

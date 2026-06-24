@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -40,55 +42,115 @@ namespace CarSalesManagementSystemClient.Controllers
         }
 
         // GET: /Maintenance/
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(MaintenancePackageSearchViewModel filter)
         {
-            var viewModel = new MaintenanceIndexViewModel { CurrentPage = page };
+            var viewModel = new MaintenanceIndexViewModel 
+            { 
+                CurrentPage = filter.PageNumber,
+                Filter = filter 
+            };
 
-            var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenancePackages/available");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var apiResult = JsonSerializer.Deserialize<ApiResponse<List<MaintenancePackageViewModel>>>(content, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (apiResult != null && apiResult.Success)
+                var odataParams = new List<string>();
+                var filters = new List<string> { "Status eq 'Available'" };
+
+                if (filter.MinPrice.HasValue) 
+                    filters.Add($"Price ge {filter.MinPrice.Value}");
+                if (filter.MaxPrice.HasValue) 
+                    filters.Add($"Price le {filter.MaxPrice.Value}");
+                if (filter.MaxDuration.HasValue)
+                    filters.Add($"EstimatedDuration le {filter.MaxDuration.Value}");
+                if (!string.IsNullOrEmpty(filter.SearchTerm))
                 {
-                    viewModel.Packages = apiResult.Data ?? new List<MaintenancePackageViewModel>();
+                    var term = Uri.EscapeDataString(filter.SearchTerm.ToLower());
+                    filters.Add($"contains(tolower(PackageName), '{term}')");
                 }
-            }
 
-            if (User.Identity.IsAuthenticated)
-            {
-                var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int customerId))
+                if (filters.Any())
                 {
-                    AppendAuthorizationHeader();
-                    var historyResponse = await _httpClient.GetAsync($"{_apiUrl}/MaintenanceAppointments/customer/{customerId}");
-                    if (historyResponse.IsSuccessStatusCode)
+                    odataParams.Add($"$filter={string.Join(" and ", filters)}");
+                }
+
+                if (!string.IsNullOrEmpty(filter.SortBy))
+                {
+                    var sortExpr = filter.SortBy.ToLower() switch
                     {
-                        var historyContent = await historyResponse.Content.ReadAsStringAsync();
-                        var apiResult = JsonSerializer.Deserialize<ApiResponse<List<AppointmentHistoryViewModel>>>(historyContent, 
-                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                            
-                        if (apiResult != null && apiResult.Success && apiResult.Data != null)
-                        {
-                            var allAppointments = apiResult.Data.OrderByDescending(x => x.CreatedAt).ToList();
-
-                            int pageSize = 5;
-                            viewModel.TotalPages = (int)Math.Ceiling(allAppointments.Count / (double)pageSize);
-                            if (viewModel.TotalPages == 0) viewModel.TotalPages = 1;
-                            if (viewModel.CurrentPage > viewModel.TotalPages) viewModel.CurrentPage = viewModel.TotalPages;
-                            if (viewModel.CurrentPage < 1) viewModel.CurrentPage = 1;
-
-                            viewModel.Appointments = allAppointments
-                                .Skip((viewModel.CurrentPage - 1) * pageSize)
-                                .Take(pageSize)
-                                .ToList();
-                        }
-                    }
+                        "priceasc" => "Price asc",
+                        "pricedesc" => "Price desc",
+                        "durationasc" => "EstimatedDuration asc",
+                        _ => "CreatedAt desc"
+                    };
+                    odataParams.Add($"$orderby={sortExpr}");
                 }
+                else
+                {
+                    odataParams.Add("$orderby=CreatedAt desc");
+                }
+
+                var skip = (filter.PageNumber - 1) * filter.PageSize;
+                odataParams.Add($"$skip={skip}");
+                odataParams.Add($"$top={filter.PageSize}");
+                odataParams.Add("$count=true");
+
+                var requestUri = $"{_apiUrl.Replace("/api", "")}/odata/MaintenancePackages?" + string.Join("&", odataParams);
+                var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<MaintenancePackageViewModel>>(requestUri);
+
+                viewModel.Packages = odataResponse?.Value ?? new List<MaintenancePackageViewModel>();
+                
+                int totalItems = odataResponse?.Count ?? 0;
+                viewModel.TotalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+                if (viewModel.TotalPages == 0) viewModel.TotalPages = 1;
+                if (viewModel.CurrentPage > viewModel.TotalPages) viewModel.CurrentPage = viewModel.TotalPages;
+                if (viewModel.CurrentPage < 1) viewModel.CurrentPage = 1;
+            }
+            catch
+            {
+                viewModel.Packages = new List<MaintenancePackageViewModel>();
             }
 
             return View(viewModel);
+        }
+
+        // GET: /Maintenance/History
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> History(int pageNumber = 1)
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdStr, out int customerId))
+            {
+                AppendAuthorizationHeader();
+                var historyResponse = await _httpClient.GetAsync($"{_apiUrl}/MaintenanceAppointments/customer/{customerId}");
+                if (historyResponse.IsSuccessStatusCode)
+                {
+                    var historyContent = await historyResponse.Content.ReadAsStringAsync();
+                    var apiResult = JsonSerializer.Deserialize<ApiResponse<List<AppointmentHistoryViewModel>>>(historyContent, 
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                    if (apiResult != null && apiResult.Success && apiResult.Data != null)
+                    {
+                        var allAppointments = apiResult.Data.OrderByDescending(x => x.CreatedAt).ToList();
+                        int pageSize = 10;
+                        int totalItems = allAppointments.Count;
+                        int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                        if (totalPages == 0) totalPages = 1;
+                        if (pageNumber > totalPages) pageNumber = totalPages;
+                        if (pageNumber < 1) pageNumber = 1;
+
+                        var pagedModel = new PagedResultViewModel<AppointmentHistoryViewModel>
+                        {
+                            Items = allAppointments.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
+                            PageNumber = pageNumber,
+                            PageSize = pageSize,
+                            TotalItems = totalItems,
+                            TotalPages = totalPages
+                        };
+                        return View(pagedModel);
+                    }
+                }
+            }
+            return View(new PagedResultViewModel<AppointmentHistoryViewModel> { Items = new List<AppointmentHistoryViewModel>(), TotalPages = 1, PageNumber = 1 });
         }
 
         // GET: /Maintenance/Booking/1
@@ -208,14 +270,14 @@ namespace CarSalesManagementSystemClient.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["Success"] = "Bạn đã hủy!!!";
+                TempData["Success"] = "Bạn đã hủy lịch hẹn thành công!";
             }
             else
             {
                 TempData["Error"] = "Đã xảy ra lỗi khi hủy lịch hẹn.";
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("History");
         }
     }
 }
