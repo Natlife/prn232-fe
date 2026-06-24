@@ -103,54 +103,75 @@ public class ComboOrderController : Controller
             var response = await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/combo-orders", model);
             var content = await response.Content.ReadAsStringAsync();
 
-            var doc = JsonDocument.Parse(content);
-            var success = doc.RootElement.TryGetProperty("success", out var sProp) && sProp.GetBoolean();
-            var message = doc.RootElement.TryGetProperty("message", out var mProp)
-                ? mProp.GetString()
-                : "Dat hang that bai.";
-
-            if (response.IsSuccessStatusCode && success)
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                int orderId = 0;
-                string status = "Pending";
-                decimal totalAmount = 0;
-                decimal depositAmount = 0;
-
-                if (doc.RootElement.TryGetProperty("data", out var dataProp))
-                {
-                    if (dataProp.TryGetProperty("comboOrderId", out var idProp))
-                    {
-                        orderId = idProp.GetInt32();
-                    }
-
-                    if (dataProp.TryGetProperty("status", out var statusProp))
-                    {
-                        status = statusProp.GetString() ?? "Pending";
-                    }
-
-                    if (dataProp.TryGetProperty("totalAmount", out var totalProp))
-                    {
-                        totalAmount = totalProp.GetDecimal();
-                    }
-
-                    if (dataProp.TryGetProperty("depositAmount", out var depositProp) && depositProp.ValueKind != JsonValueKind.Null)
-                    {
-                        depositAmount = depositProp.GetDecimal();
-                    }
-                }
-
-                return Json(new
-                {
-                    success = true,
-                    message,
-                    orderId,
-                    status,
-                    totalAmount,
-                    depositAmount
-                });
+                return Json(new { success = false, message = "Phien dang nhap da het han. Vui long dang nhap lai." });
             }
 
-            return Json(new { success = false, message });
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                var emptyMessage = response.IsSuccessStatusCode
+                    ? "May chu tra ve du lieu rong khi tao don combo. Vui long thu lai."
+                    : $"Khong the tao don combo. May chu khong tra ve du lieu (HTTP {(int)response.StatusCode}).";
+                return Json(new { success = false, message = emptyMessage });
+            }
+
+            if (!TryParseJsonDocument(content, out var doc))
+            {
+                var invalidMessage = response.IsSuccessStatusCode
+                    ? "May chu tra ve du lieu khong hop le khi tao don combo."
+                    : $"Khong the tao don combo. Phan hoi may chu khong hop le (HTTP {(int)response.StatusCode}).";
+                return Json(new { success = false, message = invalidMessage });
+            }
+
+            using (doc)
+            {
+                var success = doc.RootElement.TryGetProperty("success", out var sProp) && sProp.GetBoolean();
+                var message = ExtractJsonMessage(doc.RootElement, "Dat hang that bai.");
+
+                if (response.IsSuccessStatusCode && success)
+                {
+                    int orderId = 0;
+                    string status = "Pending";
+                    decimal totalAmount = 0;
+                    decimal depositAmount = 0;
+
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp))
+                    {
+                        if (dataProp.TryGetProperty("comboOrderId", out var idProp))
+                        {
+                            orderId = idProp.GetInt32();
+                        }
+
+                        if (dataProp.TryGetProperty("status", out var statusProp))
+                        {
+                            status = statusProp.GetString() ?? "Pending";
+                        }
+
+                        if (dataProp.TryGetProperty("totalAmount", out var totalProp))
+                        {
+                            totalAmount = totalProp.GetDecimal();
+                        }
+
+                        if (dataProp.TryGetProperty("depositAmount", out var depositProp) && depositProp.ValueKind != JsonValueKind.Null)
+                        {
+                            depositAmount = depositProp.GetDecimal();
+                        }
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        message,
+                        orderId,
+                        status,
+                        totalAmount,
+                        depositAmount
+                    });
+                }
+
+                return Json(new { success = false, message });
+            }
         }
         catch (Exception ex)
         {
@@ -218,11 +239,8 @@ public class ComboOrderController : Controller
 
             var response = await _httpClient.SendAsync(request);
             var content = await response.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(content);
             var success = response.IsSuccessStatusCode;
-            var message = doc.RootElement.TryGetProperty("message", out var mProp)
-                ? mProp.GetString()
-                : "Cap nhat that bai.";
+            var message = ExtractMessageFromResponse(content, response, "Cap nhat that bai.");
 
             return Json(new { success, message });
         }
@@ -245,31 +263,71 @@ public class ComboOrderController : Controller
             AttachJwtToken();
             var response = await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/combo-orders/{id}/generate-captcha", new { code = model?.Code });
             var content = await response.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(content);
 
-            var success = response.IsSuccessStatusCode &&
-                          doc.RootElement.TryGetProperty("success", out var sProp) &&
-                          sProp.GetBoolean();
-            var message = doc.RootElement.TryGetProperty("message", out var mProp)
-                ? mProp.GetString()
-                : "Khong the tao captcha.";
-
-            string? captchaCode = null;
-            string? stage = null;
-            if (doc.RootElement.TryGetProperty("data", out var dataProp))
+            if (!TryParseJsonDocument(content, out var doc))
             {
-                if (dataProp.TryGetProperty("captchaCode", out var codeProp))
+                return Json(new
                 {
-                    captchaCode = codeProp.GetString();
-                }
-
-                if (dataProp.TryGetProperty("stage", out var stageProp))
-                {
-                    stage = stageProp.GetString();
-                }
+                    success = false,
+                    message = ExtractMessageFromResponse(content, response, "Khong the tao captcha.")
+                });
             }
 
-            return Json(new { success, message, captchaCode, stage });
+            using (doc)
+            {
+                var success = response.IsSuccessStatusCode &&
+                              doc.RootElement.TryGetProperty("success", out var sProp) &&
+                              sProp.GetBoolean();
+                var message = ExtractJsonMessage(doc.RootElement, "Khong the tao captcha.");
+
+                string? captchaCode = null;
+                string? stage = null;
+                string? generatedAt = null;
+                string? purchaseType = null;
+                string? status = null;
+                if (TryGetJsonProperty(doc.RootElement, "data", "Data", out var dataProp))
+                {
+                    captchaCode = ReadJsonString(dataProp, "captchaCode", "CaptchaCode");
+                    stage = ReadJsonString(dataProp, "stage", "Stage");
+                    generatedAt = ReadJsonString(dataProp, "generatedAt", "GeneratedAt");
+                }
+
+                if (success)
+                {
+                    var refreshedOrder = await FetchComboOrderByIdAsync(id);
+                    if (refreshedOrder != null)
+                    {
+                        purchaseType = refreshedOrder.PurchaseType;
+                        status = refreshedOrder.Status;
+
+                        var usesFinalCaptcha = string.Equals(refreshedOrder.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase) &&
+                                               string.Equals(refreshedOrder.Status, "Deposited", StringComparison.OrdinalIgnoreCase);
+
+                        captchaCode = usesFinalCaptcha
+                            ? refreshedOrder.FinalCaptchaCode
+                            : refreshedOrder.CaptchaCode;
+
+                        generatedAt = (usesFinalCaptcha
+                                ? refreshedOrder.FinalCaptchaGeneratedAt
+                                : refreshedOrder.CaptchaGeneratedAt)
+                            ?.ToString("O");
+
+                        stage = ResolveStageForClient(refreshedOrder);
+                    }
+                }
+
+                return Json(new
+                {
+                    success,
+                    message,
+                    captchaCode,
+                    stage,
+                    generatedAt,
+                    purchaseType,
+                    status,
+                    order = success ? await FetchComboOrderByIdAsync(id) : null
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -290,44 +348,53 @@ public class ComboOrderController : Controller
             AttachJwtToken();
             var response = await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/combo-orders/{id}/verify-captcha", new { captchaCode = model.CaptchaCode });
             var content = await response.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(content);
 
-            var success = response.IsSuccessStatusCode &&
-                          doc.RootElement.TryGetProperty("success", out var sProp) &&
-                          sProp.GetBoolean();
-            var message = doc.RootElement.TryGetProperty("message", out var mProp)
-                ? mProp.GetString()
-                : "Khong the xac thuc captcha.";
-
-            string? status = null;
-            string? depositExpiresAt = null;
-            decimal? depositAmount = null;
-            decimal? totalAmount = null;
-
-            if (doc.RootElement.TryGetProperty("data", out var dataProp))
+            if (!TryParseJsonDocument(content, out var doc))
             {
-                if (dataProp.TryGetProperty("status", out var statusProp))
+                return Json(new
                 {
-                    status = statusProp.GetString();
-                }
-
-                if (dataProp.TryGetProperty("depositExpiresAt", out var expiryProp) && expiryProp.ValueKind != JsonValueKind.Null)
-                {
-                    depositExpiresAt = expiryProp.GetString();
-                }
-
-                if (dataProp.TryGetProperty("depositAmount", out var depositProp) && depositProp.ValueKind != JsonValueKind.Null)
-                {
-                    depositAmount = depositProp.GetDecimal();
-                }
-
-                if (dataProp.TryGetProperty("totalAmount", out var totalProp) && totalProp.ValueKind != JsonValueKind.Null)
-                {
-                    totalAmount = totalProp.GetDecimal();
-                }
+                    success = false,
+                    message = ExtractMessageFromResponse(content, response, "Khong the xac thuc captcha.")
+                });
             }
 
-            return Json(new { success, message, status, depositExpiresAt, depositAmount, totalAmount });
+            using (doc)
+            {
+                var success = response.IsSuccessStatusCode &&
+                              doc.RootElement.TryGetProperty("success", out var sProp) &&
+                              sProp.GetBoolean();
+                var message = ExtractJsonMessage(doc.RootElement, "Khong the xac thuc captcha.");
+
+                string? status = null;
+                string? depositExpiresAt = null;
+                decimal? depositAmount = null;
+                decimal? totalAmount = null;
+
+                if (doc.RootElement.TryGetProperty("data", out var dataProp))
+                {
+                    if (dataProp.TryGetProperty("status", out var statusProp))
+                    {
+                        status = statusProp.GetString();
+                    }
+
+                    if (dataProp.TryGetProperty("depositExpiresAt", out var expiryProp) && expiryProp.ValueKind != JsonValueKind.Null)
+                    {
+                        depositExpiresAt = expiryProp.GetString();
+                    }
+
+                    if (dataProp.TryGetProperty("depositAmount", out var depositProp) && depositProp.ValueKind != JsonValueKind.Null)
+                    {
+                        depositAmount = depositProp.GetDecimal();
+                    }
+
+                    if (dataProp.TryGetProperty("totalAmount", out var totalProp) && totalProp.ValueKind != JsonValueKind.Null)
+                    {
+                        totalAmount = totalProp.GetDecimal();
+                    }
+                }
+
+                return Json(new { success, message, status, depositExpiresAt, depositAmount, totalAmount });
+            }
         }
         catch (Exception ex)
         {
@@ -367,6 +434,52 @@ public class ComboOrderController : Controller
         return new List<ComboOrderViewModel>();
     }
 
+    private async Task<ComboOrderViewModel?> FetchComboOrderByIdAsync(int id)
+    {
+        AttachJwtToken();
+        var response = await _httpClient.GetAsync($"{_apiBaseUrl}/api/combo-orders/{id}");
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return null;
+        }
+
+        using var doc = JsonDocument.Parse(content);
+        var root = doc.RootElement;
+        JsonElement orderElement;
+
+        if (root.ValueKind == JsonValueKind.Object &&
+            TryGetJsonProperty(root, "data", "Data", out var dataProp) &&
+            dataProp.ValueKind == JsonValueKind.Object)
+        {
+            orderElement = dataProp;
+        }
+        else if (root.ValueKind == JsonValueKind.Object)
+        {
+            orderElement = root;
+        }
+        else
+        {
+            return null;
+        }
+
+        var order = JsonSerializer.Deserialize<ComboOrderViewModel>(
+            orderElement.GetRawText(),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        if (order != null)
+        {
+            order.Items ??= new List<ComboOrderItemViewModel>();
+        }
+
+        return order;
+    }
+
     private static List<ComboOrderViewModel> DeserializeOrders(JsonElement element)
     {
         var orders = JsonSerializer.Deserialize<List<ComboOrderViewModel>>(
@@ -380,6 +493,153 @@ public class ComboOrderController : Controller
         }
 
         return orders;
+    }
+
+    private static bool TryParseJsonDocument(string content, out JsonDocument? doc)
+    {
+        doc = null;
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return false;
+        }
+
+        try
+        {
+            doc = JsonDocument.Parse(content);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> OrderDetail(int id)
+    {
+        if (!User.Identity!.IsAuthenticated)
+        {
+            return Json(new { success = false, message = "Ban can dang nhap de xem chi tiet don combo." });
+        }
+
+        try
+        {
+            AttachJwtToken();
+            var order = await FetchComboOrderByIdAsync(id);
+            if (order == null)
+            {
+                return Json(new { success = false, message = "Khong tim thay don combo." });
+            }
+
+            var stage = ResolveStageForClient(order);
+            var useFinalCaptcha = string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase) &&
+                                  string.Equals(order.Status, "Deposited", StringComparison.OrdinalIgnoreCase);
+
+            return Json(new
+            {
+                success = true,
+                order,
+                stage,
+                currentCaptchaCode = useFinalCaptcha ? order.FinalCaptchaCode : order.CaptchaCode,
+                currentGeneratedAt = (useFinalCaptcha ? order.FinalCaptchaGeneratedAt : order.CaptchaGeneratedAt)?.ToString("O")
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "Loi ket noi may chu: " + ex.Message });
+        }
+    }
+
+    private static string ExtractJsonMessage(JsonElement root, string fallbackMessage)
+    {
+        if (root.TryGetProperty("message", out var messageProp) && messageProp.ValueKind == JsonValueKind.String)
+        {
+            return messageProp.GetString() ?? fallbackMessage;
+        }
+
+        if (root.ValueKind == JsonValueKind.Object &&
+            root.TryGetProperty("errors", out var errorsProp) &&
+            errorsProp.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in errorsProp.EnumerateObject())
+            {
+                if (property.Value.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in property.Value.EnumerateArray())
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                        {
+                            return item.GetString() ?? fallbackMessage;
+                        }
+                    }
+                }
+            }
+        }
+
+        return fallbackMessage;
+    }
+
+    private static string ExtractMessageFromResponse(string content, HttpResponseMessage response, string fallbackMessage)
+    {
+        if (TryParseJsonDocument(content, out var doc))
+        {
+            using (doc)
+            {
+                return ExtractJsonMessage(doc.RootElement, fallbackMessage);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return response.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                ? "Phien dang nhap da het han. Vui long dang nhap lai."
+                : fallbackMessage;
+        }
+
+        return fallbackMessage;
+    }
+
+    private static string? ReadJsonString(JsonElement element, string camelCaseName, string pascalCaseName)
+    {
+        if (element.TryGetProperty(camelCaseName, out var camelProp) && camelProp.ValueKind == JsonValueKind.String)
+        {
+            return camelProp.GetString();
+        }
+
+        if (element.TryGetProperty(pascalCaseName, out var pascalProp) && pascalProp.ValueKind == JsonValueKind.String)
+        {
+            return pascalProp.GetString();
+        }
+
+        return null;
+    }
+
+    private static bool TryGetJsonProperty(JsonElement element, string camelCaseName, string pascalCaseName, out JsonElement property)
+    {
+        if (element.TryGetProperty(camelCaseName, out property))
+        {
+            return true;
+        }
+
+        if (element.TryGetProperty(pascalCaseName, out property))
+        {
+            return true;
+        }
+
+        property = default;
+        return false;
+    }
+
+    private static string ResolveStageForClient(ComboOrderViewModel order)
+    {
+        if (string.Equals(order.PurchaseType, "Deposit", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Equals(order.Status, "Deposited", StringComparison.OrdinalIgnoreCase)
+                ? "buyout"
+                : "deposit";
+        }
+
+        return "buyout";
     }
 }
 

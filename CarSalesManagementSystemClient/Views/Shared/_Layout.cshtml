@@ -7,9 +7,20 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CarSalesManagementSystemClient.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
 </head>
 <body class="bg-light">
+    @{
+        var cartJson = Context.Session.GetString("PartCart");
+        var cartItems = string.IsNullOrEmpty(cartJson)
+            ? new List<CarSalesManagementSystemClient.Models.CartItemViewModel>()
+            : System.Text.Json.JsonSerializer.Deserialize<List<CarSalesManagementSystemClient.Models.CartItemViewModel>>(cartJson)
+                ?? new List<CarSalesManagementSystemClient.Models.CartItemViewModel>();
+        var cartCount = cartItems.Sum(x => x.Quantity);
+        var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
+        var act = ViewContext.RouteData.Values["Action"]?.ToString();
+    }
+
     <header>
         <div class="bg-dark text-white py-1" style="font-size: 13px; border-bottom: 1px solid #333;">
             <div class="container d-flex justify-content-between align-items-center">
@@ -19,22 +30,18 @@
                 <div class="d-flex align-items-center">
                     <a asp-controller="PartOrders" asp-action="Cart" class="text-white text-decoration-none me-4 position-relative">
                         <i class="bi bi-cart3 fs-5"></i>
-                        @{
-                            var cartJson = Context.Session.GetString("PartCart");
-                            var cartCount = string.IsNullOrEmpty(cartJson) ? 0 : System.Text.Json.JsonSerializer.Deserialize<List<CarSalesManagementSystemClient.Models.CartItemViewModel>>(cartJson).Sum(x => x.Quantity);
-                        }
                         <span id="navbarCartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(cartCount > 0 ? "" : "d-none")" style="font-size: 9px; padding: 3px 6px;">
                             @cartCount
                         </span>
                     </a>
 
-                    @if (User.Identity.IsAuthenticated)
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
                         @if (!User.IsInRole("Admin"))
                         {
                             <a class="text-white text-decoration-none me-3" asp-controller="PartOrders" asp-action="MyOrders"><i class="bi bi-clock-history me-1"></i>Lịch sử mua</a>
                         }
-                        <span class="me-3">Xin chào, <b>@User.Identity.Name</b>!</span>
+                        <span class="me-3">Xin chào, <b>@User.Identity?.Name</b>!</span>
                         @if (User.IsInRole("Admin"))
                         {
                             <a class="text-warning text-decoration-none fw-bold me-3" href="/Admin/Cars"><i class="bi bi-gear-fill me-1"></i>Trang quản trị</a>
@@ -54,8 +61,8 @@
 
     <div class="sticky-top shadow-sm" style="z-index: 1040;">
         <div class="bg-dark text-white py-3 border-bottom" style="border-color: #333 !important;">
-            <div class="container d-flex justify-content-between align-items-center">
-                <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center" style="width: 250px;">
+            <div class="container">
+                <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-inline-flex align-items-center" style="width: 250px;">
                     <i class="bi bi-car-front-fill fs-1 me-2 text-light"></i>
                     <div class="lh-1">
                         <h2 class="m-0 fw-bold fst-italic" style="font-family: 'Arial Black', sans-serif; letter-spacing: -1px;">
@@ -64,82 +71,85 @@
                         <small class="text-secondary fw-bold" style="letter-spacing: 2px; font-size: 10px;">ECO DRIVE</small>
                     </div>
                 </a>
+            </div>
+        </div>
 
-            <!-- Yellow Navigation Bar -->
-            <nav class="navbar navbar-expand-lg navbar-light p-0" style="background-color: #ffc107;">
-                <div class="container">
-                    <button class="navbar-toggler my-2" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="mainNav">
-                        @{
-                            var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
-                            var act = ViewContext.RouteData.Values["Action"]?.ToString();
+        <nav class="navbar navbar-expand-lg navbar-light p-0" style="background-color: #ffc107;">
+            <div class="container">
+                <button class="navbar-toggler my-2" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-bold" style="font-size: 14px;">
+                        <li class="nav-item @(ctrl == "Home" && act == "Index" ? "bg-dark" : "")">
+                            <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Index" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door-fill me-1"></i>TRANG CHỦ
+                            </a>
+                        </li>
+                        <li class="nav-item @(ctrl == "Home" && act == "About" ? "bg-dark" : "")">
+                            <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "About" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="About">GIỚI THIỆU</a>
+                        </li>
+                        <li class="nav-item dropdown @((ctrl == "Cars" && act != "History") || ctrl == "Parts" ? "bg-dark" : "")">
+                            <a class="nav-link px-4 py-3 dropdown-toggle @((ctrl == "Cars" && act != "History") || ctrl == "Parts" ? "text-danger" : "text-dark hover-bg-warning")" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
+                            </a>
+                            <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
+                                <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
+                                <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Index">PHỤ TÙNG</a></li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
+                                }
+                            </ul>
+                        </li>
+                        <li class="nav-item @(ctrl == "Home" && act == "Warranty" ? "bg-dark" : "")">
+                            <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Warranty" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Warranty">BẢO HÀNH</a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item @(ctrl == "MaintenanceAppointments" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 @(ctrl == "MaintenanceAppointments" ? "text-danger" : "text-dark hover-bg-warning")" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
+                            </li>
                         }
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-bold" style="font-size: 14px;">
-                            <li class="nav-item @(ctrl == "Home" && act == "Index" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Index" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Index">
-                                    <i class="bi bi-house-door-fill me-1"></i>TRANG CHỦ
+                        else
+                        {
+                            <li class="nav-item dropdown @(ctrl == "Maintenance" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 dropdown-toggle @(ctrl == "Maintenance" ? "text-danger" : "text-dark hover-bg-warning")" href="#" id="navbarMaintenanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    BẢO DƯỠNG <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
                                 </a>
-                            </li>
-                            <li class="nav-item @(ctrl == "Home" && act == "About" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "About" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="About">GIỚI THIỆU</a>
-                            </li>
-                            <li class="nav-item dropdown @((ctrl == "Cars" && act != "History") || ctrl == "Parts" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 dropdown-toggle @((ctrl == "Cars" && act != "History") || ctrl == "Parts" ? "text-danger" : "text-dark hover-bg-warning")" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    SẢN PHẨM <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
-                                </a>
-                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarDropdownMenuLink" style="background-color: #ffc107;">
-                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Cars" asp-action="Index">Ô TÔ</a></li>
-                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Index">PHỤ TÙNG</a></li>
-                                    @if (User.IsInRole("Admin"))
+                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarMaintenanceDropdown" style="background-color: #ffc107;">
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="Index">DỊCH VỤ</a></li>
+                                    @if (User.Identity?.IsAuthenticated == true)
                                     {
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Parts" asp-action="Manage"><i class="bi bi-speedometer2 me-1"></i>TRANG QUẢN TRỊ</a></li>
+                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="History">LỊCH HẸN</a></li>
                                     }
                                 </ul>
                             </li>
-                            <li class="nav-item @(ctrl == "Home" && act == "Warranty" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Warranty" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Warranty">BẢO HÀNH</a>
+                        }
+                        <li class="nav-item @(ctrl == "Home" && act == "Contact" ? "bg-dark" : "")">
+                            <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Contact" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Contact">LIÊN HỆ</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item @(ctrl == "ComboOrder" && act == "History" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 @(ctrl == "ComboOrder" && act == "History" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="ComboOrder" asp-action="History">ĐƠN HÀNG COMBO CỦA TÔI</a>
                             </li>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item @(ctrl == "MaintenanceAppointments" ? "bg-dark" : "")">
-                                    <a class="nav-link px-4 py-3 @(ctrl == "MaintenanceAppointments" ? "text-danger" : "text-dark hover-bg-warning")" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
-                                </li>
-                            }
-                            else
-                            {
-                                <li class="nav-item dropdown @(ctrl == "Maintenance" ? "bg-dark" : "")">
-                                    <a class="nav-link px-4 py-3 dropdown-toggle @(ctrl == "Maintenance" ? "text-danger" : "text-dark hover-bg-warning")" href="#" id="navbarMaintenanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        BẢO DƯỠNG <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
-                                    </a>
-                                    <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarMaintenanceDropdown" style="background-color: #ffc107;">
-                                        <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="Index">DỊCH VỤ</a></li>
-                                        @if (User.Identity.IsAuthenticated)
-                                        {
-                                            <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="History">LỊCH HẸN</a></li>
-                                        }
-                                    </ul>
-                                </li>
-                            }
-                            <li class="nav-item @(ctrl == "Home" && act == "Contact" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "Home" && act == "Contact" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Home" asp-action="Contact">LIÊN HỆ</a>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item @(ctrl == "Cars" && act == "History" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 @(ctrl == "Cars" && act == "History" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
                             </li>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item @(ctrl == "Cars" && act == "History" ? "bg-dark" : "")">
-                                    <a class="nav-link px-4 py-3 @(ctrl == "Cars" && act == "History" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Cars" asp-action="History">LỊCH SỬ MUA/CỌC</a>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
-                                </li>
-                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
+                            </li>
                         }
                     </ul>
                 </div>
@@ -168,7 +178,6 @@
     <footer class="text-white pt-5 pb-3 mt-5" style="background-color: #262626; font-size: 14px;">
         <div class="container">
             <div class="row">
-                <!-- Column 1: Logo & Info -->
                 <div class="col-lg-4 col-md-12 mb-4">
                     <a asp-controller="Home" asp-action="Index" class="text-white text-decoration-none d-flex align-items-center mb-3">
                         <i class="bi bi-car-front-fill fs-1 me-2 text-light"></i>
@@ -190,7 +199,6 @@
                     </div>
                 </div>
 
-                <!-- Column 2: Liên hệ -->
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="fw-bold mb-4">Liên hệ</h5>
                     <ul class="list-unstyled text-secondary lh-lg">
@@ -205,7 +213,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 3: Dịch vụ -->
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h5 class="fw-bold mb-4">Dịch vụ</h5>
                     <ul class="list-unstyled text-secondary lh-lg">
@@ -215,7 +222,6 @@
                     </ul>
                 </div>
 
-                <!-- Column 4: Map -->
                 <div class="col-lg-3 col-md-6 mb-4">
                     <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.485534612347!2d105.52471631540203!3d21.013253386006764!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31345b465a4e65fb%3A0xaae6040cfabe8fe!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBGUFQgSMOyYSBM4bqhYw!5e0!3m2!1svi!2s!4v1689134954467!5m2!1svi!2s" width="100%" height="200" style="border:0; border-radius: 8px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
@@ -317,11 +323,7 @@
     <script>
         function togglePassword(inputId) {
             var input = document.getElementById(inputId);
-            if (input.type === "password") {
-                input.type = "text";
-            } else {
-                input.type = "password";
-            }
+            input.type = input.type === "password" ? "text" : "password";
         }
 
         document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
@@ -349,7 +351,7 @@
                     btn.innerText = 'Đăng nhập';
                 }
             } catch (ex) {
-                document.getElementById('loginError').innerText = "Lỗi kết nối đến máy chủ.";
+                document.getElementById('loginError').innerText = 'Lỗi kết nối đến máy chủ.';
                 document.getElementById('loginError').style.display = 'block';
                 btn.disabled = false;
                 btn.innerText = 'Đăng nhập';
@@ -362,7 +364,7 @@
 
             if (form.Password.value !== form.ConfirmPassword.value) {
                 const err = document.getElementById('registerError');
-                err.innerText = "Mật khẩu xác nhận không khớp.";
+                err.innerText = 'Mật khẩu xác nhận không khớp.';
                 err.style.display = 'block';
                 return;
             }
@@ -385,7 +387,7 @@
                     btn.innerText = 'Đăng ký tài khoản';
                 }
             } catch (ex) {
-                document.getElementById('registerError').innerText = "Lỗi kết nối đến máy chủ.";
+                document.getElementById('registerError').innerText = 'Lỗi kết nối đến máy chủ.';
                 document.getElementById('registerError').style.display = 'block';
                 btn.disabled = false;
                 btn.innerText = 'Đăng ký tài khoản';

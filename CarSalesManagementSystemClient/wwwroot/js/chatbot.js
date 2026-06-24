@@ -372,7 +372,7 @@
     function parseMarkdownTable(text) {
         const lines = text.split("<br/>");
         let inTable = false;
-        let htmlTable = '<table class="table table-sm table-bordered mt-2 chat-table">';
+        let htmlTable = '<div class="chat-table-wrap"><table class="table table-sm table-bordered mt-2 chat-table">';
         const outputLines = [];
 
         lines.forEach((line) => {
@@ -407,9 +407,9 @@
             }
 
             if (inTable) {
-                htmlTable += "</tbody></table>";
+                htmlTable += "</tbody></table></div>";
                 outputLines.push(htmlTable);
-                htmlTable = '<table class="table table-sm table-bordered mt-2 chat-table">';
+                htmlTable = '<div class="chat-table-wrap"><table class="table table-sm table-bordered mt-2 chat-table">';
                 inTable = false;
             }
 
@@ -417,7 +417,7 @@
         });
 
         if (inTable) {
-            htmlTable += "</tbody></table>";
+            htmlTable += "</tbody></table></div>";
             outputLines.push(htmlTable);
         }
 

@@ -195,10 +195,13 @@ html {
 
 .message-bubble {
   max-width: 84%;
+  min-width: 0;
   padding: 13px 15px;
   border-radius: 18px;
   font-size: 14px;
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   animation: bubbleAppear 0.22s ease forwards;
 }
 
@@ -229,11 +232,28 @@ html {
 .chat-table {
   margin-bottom: 0;
   font-size: 12px;
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+}
+
+.chat-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: 8px;
+  border-radius: 12px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-table th,
 .chat-table td {
   white-space: nowrap;
+}
+
+.message-bubble .table {
+  --bs-table-bg: transparent;
 }
 
 .ai-chat-input-area {
@@ -357,5 +377,9 @@ html {
     width: calc(100vw - 24px);
     height: min(70vh, 560px);
     bottom: 78px;
+  }
+
+  .message-bubble {
+    max-width: 92%;
   }
 }
