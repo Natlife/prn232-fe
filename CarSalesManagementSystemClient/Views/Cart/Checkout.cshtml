@@ -1,0 +1,130 @@
+@model CarSalesManagementSystemClient.Models.BookingViewModel
+@{
+    ViewData["Title"] = "Thanh Toán & Đặt Lịch";
+    var cart = ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart;
+    bool hasOnlyParts = cart != null && cart.Items.Any() && cart.Items.All(i => i.ItemType == "Part");
+}
+
+<div class="container mt-4">
+    <h2>@(hasOnlyParts ? "Thanh Toán Mua Phụ Tùng" : "Thanh Toán & Đặt Lịch Bảo Dưỡng")</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Thông Tin Khách Hàng@(hasOnlyParts ? "" : " & Xe")</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Checkout" asp-controller="Cart" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <h5 class="mb-3 text-secondary">Thông Tin Liên Hệ</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="CustomerName" class="form-label"></label>
+                                <input asp-for="CustomerName" class="form-control" placeholder="Nhập họ tên" required />
+                                <span asp-validation-for="CustomerName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CustomerPhone" class="form-label"></label>
+                                <input asp-for="CustomerPhone" class="form-control" placeholder="Nhập số điện thoại" required />
+                                <span asp-validation-for="CustomerPhone" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="CustomerEmail" class="form-label"></label>
+                            <input asp-for="CustomerEmail" type="email" class="form-control" placeholder="Nhập email (không bắt buộc)" />
+                            <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                        </div>
+
+                        @if (hasOnlyParts)
+                        {
+                            <h5 class="mb-3 text-secondary">Thông Tin Giao Hàng</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Địa chỉ giao hàng</label>
+                                <input name="shippingAddress" class="form-control" placeholder="Nhập địa chỉ nhận hàng" required />
+                            </div>
+                        }
+                        else
+                        {
+                            <h5 class="mb-3 text-secondary">Thông Tin Xe & Đặt Lịch</h5>
+                            
+                            <!-- Temporary fields for Car Info since we don't have auth customer car dropdown here yet -->
+                            <input type="hidden" asp-for="CustomerCarId" value="0" />
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="CarName" class="form-label">Tên Xe (Mẫu Xe)</label>
+                                    <input asp-for="CarName" class="form-control" placeholder="VD: Toyota Vios" required />
+                                    <span asp-validation-for="CarName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="LicensePlate" class="form-label">Biển Số</label>
+                                    <input asp-for="LicensePlate" class="form-control" placeholder="VD: 30A-12345" required />
+                                    <span asp-validation-for="LicensePlate" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label asp-for="AppointmentDate" class="form-label"></label>
+                                    <input asp-for="AppointmentDate" type="date" class="form-control" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
+                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="AppointmentTime" class="form-label"></label>
+                                    <input asp-for="AppointmentTime" type="time" class="form-control" required />
+                                    <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label asp-for="Note" class="form-label"></label>
+                            <textarea asp-for="Note" class="form-control" rows="3" placeholder="Ghi chú thêm..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button class="w-100 btn btn-primary btn-lg" type="submit">Xác nhận đơn hàng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Tóm Tắt Giỏ Hàng</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="cart-summary-list">
+                        @if (cart != null)
+                        {
+                            foreach (var item in cart.Items)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="my-0">@item.Name</h6>
+                                        <small class="text-muted">SL: @item.Quantity | @item.ItemType</small>
+                                    </div>
+                                    <span class="text-muted">@item.SubTotal.ToString("N0") đ</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+                <div class="card-footer bg-light text-end">
+                    <h5 class="mb-0 text-danger" id="cart-total-amount">
+                        Tổng: @(cart != null ? cart.TotalAmount.ToString("N0") : "0") đ
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

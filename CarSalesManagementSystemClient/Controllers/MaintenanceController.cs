@@ -52,54 +52,38 @@ namespace CarSalesManagementSystemClient.Controllers
 
             try
             {
-                var odataParams = new List<string>();
-                var filters = new List<string> { "Status eq 'Available'" };
+                var requestUri = $"{_apiUrl}/maintenancepackages/available";
+                var apiResponse = await _httpClient.GetFromJsonAsync<ApiResponse<List<MaintenancePackageViewModel>>>(requestUri);
 
-                if (filter.MinPrice.HasValue) 
-                    filters.Add($"Price ge {filter.MinPrice.Value}");
-                if (filter.MaxPrice.HasValue) 
-                    filters.Add($"Price le {filter.MaxPrice.Value}");
+                var allPackages = apiResponse?.Data ?? new List<MaintenancePackageViewModel>();
+
+                // Apply filters
+                if (filter.MinPrice.HasValue)
+                    allPackages = allPackages.Where(p => p.PackagePrice >= filter.MinPrice.Value).ToList();
+                if (filter.MaxPrice.HasValue)
+                    allPackages = allPackages.Where(p => p.PackagePrice <= filter.MaxPrice.Value).ToList();
                 if (filter.MaxDuration.HasValue)
-                    filters.Add($"EstimatedDuration le {filter.MaxDuration.Value}");
+                    allPackages = allPackages.Where(p => p.TotalDurationMinutes <= filter.MaxDuration.Value).ToList();
                 if (!string.IsNullOrEmpty(filter.SearchTerm))
-                {
-                    var term = Uri.EscapeDataString(filter.SearchTerm.ToLower());
-                    filters.Add($"contains(tolower(PackageName), '{term}')");
-                }
+                    allPackages = allPackages.Where(p => p.PackageName?.Contains(filter.SearchTerm, StringComparison.OrdinalIgnoreCase) == true).ToList();
 
-                if (filters.Any())
-                {
-                    odataParams.Add($"$filter={string.Join(" and ", filters)}");
-                }
-
+                // Apply sorting
                 if (!string.IsNullOrEmpty(filter.SortBy))
                 {
-                    var sortExpr = filter.SortBy.ToLower() switch
+                    allPackages = filter.SortBy.ToLower() switch
                     {
-                        "priceasc" => "Price asc",
-                        "pricedesc" => "Price desc",
-                        "durationasc" => "EstimatedDuration asc",
-                        _ => "CreatedAt desc"
+                        "priceasc" => allPackages.OrderBy(p => p.PackagePrice).ToList(),
+                        "pricedesc" => allPackages.OrderByDescending(p => p.PackagePrice).ToList(),
+                        "durationasc" => allPackages.OrderBy(p => p.TotalDurationMinutes).ToList(),
+                        _ => allPackages
                     };
-                    odataParams.Add($"$orderby={sortExpr}");
-                }
-                else
-                {
-                    odataParams.Add("$orderby=CreatedAt desc");
                 }
 
+                int totalItems = allPackages.Count;
                 var skip = (filter.PageNumber - 1) * filter.PageSize;
-                odataParams.Add($"$skip={skip}");
-                odataParams.Add($"$top={filter.PageSize}");
-                odataParams.Add("$count=true");
-
-                var requestUri = $"{_apiUrl.Replace("/api", "")}/odata/MaintenancePackages?" + string.Join("&", odataParams);
-                var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<MaintenancePackageViewModel>>(requestUri);
-
-                viewModel.Packages = odataResponse?.Value ?? new List<MaintenancePackageViewModel>();
-                
-                int totalItems = odataResponse?.Count ?? 0;
-                viewModel.TotalPages = (int)Math.Ceiling((double)totalItems / filter.PageSize);
+                viewModel.Packages = allPackages.Skip(skip).Take(filter.PageSize).ToList();
+                int totalItemsForPagination = totalItems;
+                viewModel.TotalPages = (int)Math.Ceiling((double)totalItemsForPagination / filter.PageSize);
                 if (viewModel.TotalPages == 0) viewModel.TotalPages = 1;
                 if (viewModel.CurrentPage > viewModel.TotalPages) viewModel.CurrentPage = viewModel.TotalPages;
                 if (viewModel.CurrentPage < 1) viewModel.CurrentPage = 1;
@@ -180,10 +164,13 @@ namespace CarSalesManagementSystemClient.Controllers
                 return RedirectToAction("Index");
             }
 
+            ViewBag.PackageName = package.PackageName;
+
             var model = new BookingViewModel 
             { 
-                PackageId = package.PackageId,
-                PackageName = package.PackageName,
+                PackageIds = new List<int> { package.PackageId },
+                CustomerName = User.Identity?.Name ?? "",
+                CustomerEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "",
                 AppointmentDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
                 AppointmentTime = new TimeOnly(9, 0)
             };
@@ -200,45 +187,30 @@ namespace CarSalesManagementSystemClient.Controllers
                 return View(model);
             }
 
-            var checkPackageResponse = await _httpClient.GetAsync($"{_apiUrl}/MaintenancePackages/{model.PackageId}");
-            if (checkPackageResponse.IsSuccessStatusCode)
-            {
-                var content = await checkPackageResponse.Content.ReadAsStringAsync();
-                var apiResult = JsonSerializer.Deserialize<ApiResponse<MaintenancePackageViewModel>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (apiResult == null || apiResult.Data == null || apiResult.Data.Status != "Available")
-                {
-                    TempData["Error"] = "Gói bảo dưỡng này hiện đã ngừng cung cấp. Vui lòng chọn gói khác.";
-                    return RedirectToAction("Index");
-                }
-            }
-
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdStr, out int customerId))
             {
                 ViewBag.Error = "Lỗi xác thực. Vui lòng đăng nhập lại.";
                 return View(model);
             }
-
-            var customerName = User.Identity?.Name ?? "Khách hàng";
-            var customerEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
             
             var payload = new
             {
-                CustomerId = customerId,
-                PackageId = model.PackageId,
-                CustomerName = customerName,
-                CustomerEmail = customerEmail,
+                CustomerCarId = model.CustomerCarId,
+                CustomerName = string.IsNullOrWhiteSpace(model.CustomerName) ? (User.Identity?.Name ?? "Khách hàng") : model.CustomerName,
                 CustomerPhone = model.CustomerPhone,
-                CarName = model.CarName,
-                LicensePlate = model.LicensePlate,
+                CustomerEmail = model.CustomerEmail ?? User.FindFirst(ClaimTypes.Email)?.Value,
                 AppointmentDate = model.AppointmentDate,
                 AppointmentTime = model.AppointmentTime,
-                Note = model.Note ?? "",
-                Status = "Pending"
+                Note = model.Note,
+                PackageIds = model.PackageIds,
+                ServiceIds = model.ServiceIds,
+                CarName = model.CarName,
+                LicensePlate = model.LicensePlate
             };
 
             AppendAuthorizationHeader();
-            var response = await _httpClient.PostAsync($"{_apiUrl}/MaintenanceAppointments",
+            var response = await _httpClient.PostAsync($"{_apiUrl}/MaintenanceAppointments/{customerId}",
                 new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
@@ -258,7 +230,7 @@ namespace CarSalesManagementSystemClient.Controllers
             return View(model);
         }
 
-        // POST: /Maintenance/Cancel/1
+        // GET: /Maintenance/Cancel/1
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Cancel(int id)
@@ -278,6 +250,158 @@ namespace CarSalesManagementSystemClient.Controllers
             }
 
             return RedirectToAction("History");
+        }
+
+        // GET: /Maintenance/Services
+        public async Task<IActionResult> Services(string? searchTerm, decimal? minPrice, decimal? maxPrice, int pageNumber = 1)
+        {
+            int pageSize = 12;
+            var viewModel = new ServicesIndexViewModel
+            {
+                SearchTerm = searchTerm,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_apiUrl}/Services/available");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var apiResult = JsonSerializer.Deserialize<ApiResponse<List<ServiceSummaryViewModel>>>(content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (apiResult?.Success == true && apiResult.Data != null)
+                    {
+                        var allServices = apiResult.Data;
+
+                        // Filter
+                        if (!string.IsNullOrEmpty(searchTerm))
+                            allServices = allServices.Where(s => s.ServiceName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+                        if (minPrice.HasValue)
+                            allServices = allServices.Where(s => s.BasePrice >= minPrice.Value).ToList();
+                        if (maxPrice.HasValue)
+                            allServices = allServices.Where(s => s.BasePrice <= maxPrice.Value).ToList();
+
+                        int totalItems = allServices.Count;
+                        viewModel.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                        if (viewModel.TotalPages == 0) viewModel.TotalPages = 1;
+                        if (pageNumber > viewModel.TotalPages) pageNumber = viewModel.TotalPages;
+                        if (pageNumber < 1) pageNumber = 1;
+                        viewModel.PageNumber = pageNumber;
+
+                        viewModel.Services = allServices.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+                    }
+                }
+            }
+            catch
+            {
+                viewModel.Services = new List<ServiceSummaryViewModel>();
+            }
+
+            return View(viewModel);
+        }
+
+        // GET: /Maintenance/BookingService/5
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> BookingService(int id)
+        {
+            var response = await _httpClient.GetAsync($"{_apiUrl}/Services/{id}");
+            if (!response.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "Không tìm thấy dịch vụ.";
+                return RedirectToAction("Services");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var apiResult = JsonSerializer.Deserialize<ApiResponse<ServiceSummaryViewModel>>(content,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (apiResult == null || !apiResult.Success || apiResult.Data == null)
+            {
+                TempData["Error"] = "Không tìm thấy dịch vụ.";
+                return RedirectToAction("Services");
+            }
+
+            var service = apiResult.Data;
+            ViewBag.ServiceName = service.ServiceName;
+            ViewBag.ServicePrice = service.BasePrice;
+            ViewBag.ServiceDuration = service.EstimatedDurationMinutes;
+
+            var model = new ServiceBookingViewModel
+            {
+                ServiceId = service.ServiceId,
+                ServiceName = service.ServiceName,
+                ServiceIds = new List<int> { service.ServiceId },
+                PackageIds = new List<int>(),
+                CustomerName = User.Identity?.Name ?? "",
+                CustomerEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "",
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
+                AppointmentTime = new TimeOnly(9, 0)
+            };
+            return View(model);
+        }
+
+        // POST: /Maintenance/BookingService
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> BookingService(ServiceBookingViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.ServiceName = model.ServiceName;
+                return View(model);
+            }
+
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdStr, out int customerId))
+            {
+                ViewBag.Error = "Lỗi xác thực. Vui lòng đăng nhập lại.";
+                return View(model);
+            }
+
+            var payload = new
+            {
+                CustomerCarId = model.CustomerCarId,
+                CustomerName = string.IsNullOrWhiteSpace(model.CustomerName) ? (User.Identity?.Name ?? "Khách hàng") : model.CustomerName,
+                CustomerPhone = model.CustomerPhone,
+                CustomerEmail = model.CustomerEmail ?? User.FindFirst(ClaimTypes.Email)?.Value,
+                AppointmentDate = model.AppointmentDate,
+                AppointmentTime = model.AppointmentTime,
+                Note = model.Note,
+                PackageIds = new List<int>(),
+                ServiceIds = new List<int> { model.ServiceId },
+                CarName = model.CarName,
+                LicensePlate = model.LicensePlate
+            };
+
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PostAsync($"{_apiUrl}/MaintenanceAppointments/{customerId}",
+                new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Success"] = $"Đặt lịch dịch vụ '{model.ServiceName}' thành công! Chúng tôi sẽ liên hệ lại với bạn sớm nhất.";
+                return RedirectToAction("History");
+            }
+
+            var errorDetail = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var apiError = JsonSerializer.Deserialize<ApiResponse<object>>(errorDetail, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                ViewBag.Error = $"Lỗi từ hệ thống (API): {apiError?.Message ?? errorDetail}";
+            }
+            catch
+            {
+                ViewBag.Error = $"Lỗi từ hệ thống (API): {response.StatusCode} - {errorDetail}";
+            }
+
+            ViewBag.ServiceName = model.ServiceName;
+            return View(model);
         }
     }
 }

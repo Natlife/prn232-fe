@@ -327,15 +327,15 @@
                 if (inputResult.isConfirmed) {
                     var qty = parseInt(inputResult.value);
                     $.ajax({
-                        url: '@Url.Action("AddToCart", "PartOrders")',
+                        url: '@Url.Action("AddToCart", "Cart")',
                         type: 'POST',
-                        data: { partId: partId, quantity: qty },
+                        data: { itemType: 'Part', itemId: partId, quantity: qty },
                         success: function(res) {
                             if (res.success) {
                                 updateNavbarCartCount(res.cartCount);
                                 Swal.fire({
                                     title: 'Đã thêm vào giỏ hàng!',
-                                    text: res.message,
+                                    text: 'Bạn có muốn đi đến giỏ hàng chung để thanh toán?',
                                     icon: 'success',
                                     showCancelButton: true,
                                     confirmButtonColor: '#ffc107',
@@ -344,7 +344,7 @@
                                     cancelButtonText: 'Tiếp tục mua sắm'
                                 }).then((navResult) => {
                                     if (navResult.isConfirmed) {
-                                        window.location.href = '@Url.Action("Cart", "PartOrders")';
+                                        window.location.href = '@Url.Action("Index", "Cart")';
                                     }
                                 });
                             } else {

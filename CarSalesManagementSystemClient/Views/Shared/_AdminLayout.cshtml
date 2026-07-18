@@ -169,14 +169,34 @@
                 <i class="bi bi-box-seam text-warning"></i> Quản lý đơn combo
             </a>
 
-            <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
-               asp-area="Admin" asp-controller="MaintenancePackages" asp-action="Index">
-                <i class="bi bi-ui-checks-grid text-success"></i> Quản lý gói bảo dưỡng
+            @{
+                bool isMaintenanceActive = ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["controller"]?.ToString() == "Services";
+            }
+            <a class="admin-menu-item @(isMaintenanceActive ? "active" : "")" data-bs-toggle="collapse" href="#maintenanceSubmenu" role="button" aria-expanded="@(isMaintenanceActive ? "true" : "false")" aria-controls="maintenanceSubmenu">
+                <i class="bi bi-wrench-adjustable-circle text-success"></i> Quản lý bảo dưỡng
+                <i class="bi bi-chevron-down ms-auto fs-6"></i>
             </a>
+            <div class="collapse @(isMaintenanceActive ? "show" : "")" id="maintenanceSubmenu">
+                <div class="ps-4">
+                    <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" ? "active" : "")"
+                       asp-area="Admin" asp-controller="MaintenancePackages" asp-action="Index">
+                        <i class="bi bi-ui-checks-grid text-success" style="font-size: 1rem;"></i> Gói bảo dưỡng
+                    </a>
+                    <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Services" ? "active" : "")"
+                       asp-area="Admin" asp-controller="Services" asp-action="Index">
+                        <i class="bi bi-wrench text-danger" style="font-size: 1rem;"></i> Dịch vụ lẻ
+                    </a>
+                </div>
+            </div>
 
             <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenanceAppointments" ? "active" : "")"
                href="/Admin/MaintenanceAppointments">
                 <i class="bi bi-calendar-check text-primary"></i> Lịch hẹn bảo dưỡng
+            </a>
+
+            <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")"
+               href="/Admin/Orders">
+                <i class="bi bi-receipt text-info"></i> Quản lý đơn hàng
             </a>
 
             <div class="px-4 py-3 border-top border-secondary border-opacity-10 text-uppercase text-secondary fw-bold" style="font-size: 10px; letter-spacing: 1px; margin-top: 1rem;">Giao diện</div>
