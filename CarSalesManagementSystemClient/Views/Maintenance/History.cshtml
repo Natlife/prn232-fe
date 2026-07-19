@@ -30,7 +30,7 @@
                     <thead class="bg-dark text-white text-uppercase" style="font-size: 13px;">
                         <tr>
                             <th class="py-3 px-4 rounded-start-0 rounded-end-0">Ngày tạo</th>
-                            <th class="py-3">Gói Dịch Vụ</th>
+                            <th class="py-3">Dịch Vụ</th>
                             <th class="py-3">Xe / Biển Số</th>
                             <th class="py-3">Lịch Hẹn</th>
                             <th class="py-3">Trạng Thái</th>
@@ -42,16 +42,48 @@
                         {
                             foreach (var item in Model.Items)
                             {
+                                if (item.CustomerCar != null && item.CustomerCar.Model == "N/A - Đơn phụ tùng")
+                                {
+                                    continue;
+                                }
                                 <tr class="border-bottom">
                                     <td class="py-4 px-4 text-secondary small">
                                         @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
                                     </td>
                                     <td class="py-4">
-                                        <span class="fw-bold text-dark">@(item.Package?.PackageName ?? "Gói Tự Chọn")</span>
+                                        @if (item.Details != null && item.Details.Any())
+                                        {
+                                            <ul class="list-unstyled mb-0 small">
+                                                @foreach(var d in item.Details)
+                                                {
+                                                    <li>- @(d.PackageId.HasValue ? d.PackageName : d.ServiceName)</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa chọn dịch vụ</span>
+                                        }
+
+                                        @if (item.ConsumedParts != null && item.ConsumedParts.Any(p => p.IsIncurred))
+                                        {
+                                            <div class="mt-2 pt-2 border-top">
+                                                <div class="fw-bold text-danger" style="font-size: 12px;">PHỤ TÙNG PHÁT SINH:</div>
+                                                <ul class="list-unstyled mb-0 small mt-1">
+                                                    @foreach(var p in item.ConsumedParts.Where(p => p.IsIncurred))
+                                                    {
+                                                        <li class="text-danger">- @p.PartName (SL: @p.Quantity)</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        }
                                     </td>
                                     <td class="py-4">
-                                        <div class="fw-bold text-dark">@item.CarName</div>
-                                        <div class="text-secondary small">@item.LicensePlate</div>
+                                        @if (item.CustomerCar != null)
+                                        {
+                                            <div class="fw-bold text-dark">@item.CustomerCar.Model</div>
+                                            <div class="text-secondary small">@item.CustomerCar.LicensePlate</div>
+                                        }
                                     </td>
                                     <td class="py-4">
                                         <div class="fw-bold text-danger">@item.AppointmentDate.ToString("dd/MM/yyyy")</div>

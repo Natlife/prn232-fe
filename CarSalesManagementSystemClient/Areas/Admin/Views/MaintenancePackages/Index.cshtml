@@ -17,8 +17,10 @@
                 <thead class="table-dark">
                     <tr>
                         <th class="ps-4 py-3">Tên Gói</th>
-                        <th class="py-3">Giá (VNĐ)</th>
-                        <th class="py-3">Thời gian (giờ)</th>
+                        <th class="py-3">Các Dịch vụ</th>
+                        <th class="py-3">Giá Gói (VNĐ)</th>
+                        <th class="py-3">Tiết kiệm</th>
+                        <th class="py-3">Thời gian (phút)</th>
                         <th class="py-3">Trạng thái</th>
                         <th class="py-3 text-end pe-4">Thao tác</th>
                     </tr>
@@ -28,8 +30,24 @@
                     {
                         <tr id="row-@item.PackageId">
                             <td class="ps-4 fw-bold">@item.PackageName</td>
-                            <td class="text-danger fw-bold">@item.Price.ToString("N0")</td>
-                            <td><i class="bi bi-clock me-1 text-muted"></i>@item.EstimatedDuration giờ</td>
+                            <td>
+                                @if (item.Services != null && item.Services.Any())
+                                {
+                                    <ul class="list-unstyled mb-0 small">
+                                        @foreach(var srv in item.Services)
+                                        {
+                                            <li>- @srv.ServiceName</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">Chưa có dịch vụ</span>
+                                }
+                            </td>
+                            <td class="text-danger fw-bold">@item.PackagePrice.ToString("N0")</td>
+                            <td class="text-success fw-bold">@item.SavingAmount.ToString("N0")</td>
+                            <td><i class="bi bi-clock me-1 text-muted"></i>@item.TotalDurationMinutes p</td>
                             <td>
                                 @if (item.Status == "Available")
                                 {
@@ -94,13 +112,31 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Giá (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="Price" name="Price" required min="0">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Giá gói (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="PackagePrice" name="PackagePrice" required min="0">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Thời gian (giờ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="EstimatedDuration" name="EstimatedDuration" required min="1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Các Dịch Vụ Có Trong Gói</label>
+                        <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                            @if (ViewBag.Services != null)
+                            {
+                                foreach (var srv in (List<CarSalesManagementSystemClient.Models.ServiceSummaryViewModel>)ViewBag.Services)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input service-checkbox" type="checkbox" name="ServiceIds" value="@srv.ServiceId" id="srv_@srv.ServiceId">
+                                        <label class="form-check-label" for="srv_@srv.ServiceId">
+                                            @srv.ServiceName <span class="text-muted small">(@srv.BasePrice.ToString("N0") VNĐ - @srv.EstimatedDurationMinutes p)</span>
+                                        </label>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Không có dữ liệu dịch vụ</span>
+                            }
                         </div>
                     </div>
 
@@ -162,10 +198,18 @@
                     if (res.success) {
                         $('#PackageId').val(res.data.packageId);
                         $('#PackageName').val(res.data.packageName);
-                        $('#Price').val(res.data.price);
-                        $('#EstimatedDuration').val(res.data.estimatedDuration);
+                        $('#PackagePrice').val(res.data.packagePrice);
                         $('#Description').val(res.data.description);
                         $('#Status').val(res.data.status);
+                        
+                        // Check boxes
+                        $('.service-checkbox').prop('checked', false);
+                        if (res.data.serviceIds) {
+                            res.data.serviceIds.forEach(function(id) {
+                                $('#srv_' + id).prop('checked', true);
+                            });
+                        }
+
                         $('#modalTitle').text('Cap nhat goi bao duong');
                         getPackageModal().show();
                     } else {

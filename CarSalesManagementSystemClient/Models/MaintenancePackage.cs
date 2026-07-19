@@ -16,7 +16,7 @@ namespace CarSalesManagementSystemClient.Models
 
         [Required]
         [Display(Name = "Giá tiền")]
-        public decimal Price { get; set; }
+        public decimal PackagePrice { get; set; }
 
         [Display(Name = "Trạng thái")]
         public string Status { get; set; } = "Available";

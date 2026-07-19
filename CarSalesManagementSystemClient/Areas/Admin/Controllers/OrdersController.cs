@@ -12,12 +12,12 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
-    public class MaintenanceAppointmentsController : Controller
+    public class OrdersController : Controller
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl = "http://localhost:5084/api";
 
-        public MaintenanceAppointmentsController(IHttpClientFactory httpClientFactory)
+        public OrdersController(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient();
         }
@@ -39,7 +39,7 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
             public T? Data { get; set; }
         }
 
-        // GET: Admin/MaintenanceAppointments
+        // GET: Admin/Orders
         public async Task<IActionResult> Index(int page = 1)
         {
             int pageSize = 10;
@@ -73,90 +73,54 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
             ViewBag.TotalPages = 1;
             return View(new List<AppointmentHistoryViewModel>());
         }
-
-        // POST: Admin/MaintenanceAppointments/UpdateStatus
+        
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(int id, string status, string reason = null)
+        public async Task<IActionResult> MarkAsPaid(int id)
         {
             AppendAuthorizationHeader();
 
-            var reqObj = new { Status = status, Reason = reason };
+            var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/pay", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Thanh toán thành công!" });
+            }
+
+            return Json(new { success = false, message = "Có lỗi xảy ra khi xác nhận thanh toán." });
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> SaveExtraFee(int id, decimal fee)
+        {
+            AppendAuthorizationHeader();
+            
+            var reqObj = new { ExtraFee = fee };
+            var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/extrafee",
+                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Lưu phí phát sinh thành công!" });
+            }
+            return Json(new { success = false, message = "Không thể lưu phí phát sinh." });
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> ConfirmOrder(int id)
+        {
+            AppendAuthorizationHeader();
+
+            var reqObj = new { Status = "Confirmed" };
 
             var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/status",
                 new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
             {
-                return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
+                return Json(new { success = true, message = "Xác nhận đơn hàng thành công!" });
             }
 
-            return Json(new { success = false, message = "Cập nhật thất bại." });
-        }
-
-        // POST: Admin/MaintenanceAppointments/ReportIncurredPart
-        [HttpPost]
-        public async Task<IActionResult> ReportIncurredPart(int appointmentId, int partId, int quantity, string notes)
-        {
-            AppendAuthorizationHeader();
-
-            var reqObj = new { 
-                AppointmentId = appointmentId, 
-                PartId = partId, 
-                Quantity = quantity, 
-                Notes = notes 
-            };
-
-            var response = await _httpClient.PostAsync($"{_apiUrl}/AppointmentConsumedParts/report-incurred",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Báo cáo phụ tùng thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Báo cáo thất bại: {content}" });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddPart(int appointmentId, int partId, int quantity, string notes)
-        {
-            AppendAuthorizationHeader();
-
-            var reqObj = new { 
-                AppointmentId = appointmentId, 
-                PartId = partId, 
-                Quantity = quantity, 
-                Notes = notes 
-            };
-
-            var response = await _httpClient.PostAsync($"{_apiUrl}/AppointmentConsumedParts/add-part",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Thêm phụ tùng thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Thêm thất bại: {content}" });
-        }
-
-        // POST: Admin/MaintenanceAppointments/RemoveIncurredPart
-        [HttpPost]
-        public async Task<IActionResult> RemoveIncurredPart(int consumedPartId)
-        {
-            AppendAuthorizationHeader();
-
-            var response = await _httpClient.DeleteAsync($"{_apiUrl}/AppointmentConsumedParts/remove/{consumedPartId}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Đã hủy phụ tùng phát sinh thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Hủy thất bại: {content}" });
+            return Json(new { success = false, message = "Có lỗi xảy ra khi xác nhận đơn." });
         }
     }
 }

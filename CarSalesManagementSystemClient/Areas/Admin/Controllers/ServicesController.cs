@@ -7,17 +7,18 @@ using CarSalesManagementSystemClient.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
-    public class MaintenancePackagesController : Controller
+    public class ServicesController : Controller
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiUrl;
 
-        public MaintenancePackagesController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public ServicesController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient();
             _apiUrl = $"{(configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5084").TrimEnd('/')}/api";
@@ -66,22 +67,22 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
             return $"{(int)response.StatusCode} {response.ReasonPhrase}: {content}";
         }
 
-        [HttpGet("/Admin/MaintenancePackages")]
+        [HttpGet("/Admin/Services")]
         public async Task<IActionResult> Index(int page = 1)
         {
             int pageSize = 10;
             try
             {
                 AppendAuthorizationHeader();
-                var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenancePackages");
+                var response = await _httpClient.GetAsync($"{_apiUrl}/Services");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var apiResult = JsonSerializer.Deserialize<ApiResponse<List<MaintenancePackageViewModel>>>(content, JsonOptions);
+                    var apiResult = JsonSerializer.Deserialize<ApiResponse<List<ServiceSummaryViewModel>>>(content, JsonOptions);
                     if (apiResult?.Success == true)
                     {
-                        var allPackages = apiResult.Data ?? new List<MaintenancePackageViewModel>();
-                        int totalItems = allPackages.Count;
+                        var allServices = apiResult.Data ?? new List<ServiceSummaryViewModel>();
+                        int totalItems = allServices.Count;
                         int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
                         if (totalPages == 0) totalPages = 1;
                         if (page < 1) page = 1;
@@ -89,118 +90,94 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 
                         ViewBag.CurrentPage = page;
                         ViewBag.TotalPages = totalPages;
-                        
-                        try {
-                            var srvResp = await _httpClient.GetAsync($"{_apiUrl}/Services/available");
-                            if (srvResp.IsSuccessStatusCode) {
-                                var srvContent = await srvResp.Content.ReadAsStringAsync();
-                                var srvResult = JsonSerializer.Deserialize<ApiResponse<List<ServiceSummaryViewModel>>>(srvContent, JsonOptions);
-                                if (srvResult?.Success == true) {
-                                    ViewBag.Services = srvResult.Data;
-                                }
-                            }
-                        } catch { }
 
-                        var paginatedData = allPackages.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                        var paginatedData = allServices.Skip((page - 1) * pageSize).Take(pageSize).ToList();
                         return View(paginatedData);
                     }
                 }
 
-                TempData["ErrorMessage"] = "Khong the tai danh sach goi bao duong: " + await ReadApiErrorAsync(response);
+                TempData["ErrorMessage"] = "Không thể tải danh sách dịch vụ: " + await ReadApiErrorAsync(response);
             }
             catch (System.Exception ex)
             {
-                TempData["ErrorMessage"] = "Khong the tai danh sach goi bao duong: " + ex.Message;
+                TempData["ErrorMessage"] = "Không thể tải danh sách dịch vụ: " + ex.Message;
             }
 
             ViewBag.CurrentPage = 1;
             ViewBag.TotalPages = 1;
-
-            // Fetch Services for dropdown
-            try {
-                var srvResp = await _httpClient.GetAsync($"{_apiUrl}/Services/available");
-                if (srvResp.IsSuccessStatusCode) {
-                    var srvContent = await srvResp.Content.ReadAsStringAsync();
-                    var srvResult = JsonSerializer.Deserialize<ApiResponse<List<ServiceSummaryViewModel>>>(srvContent, JsonOptions);
-                    if (srvResult?.Success == true) {
-                        ViewBag.Services = srvResult.Data;
-                    }
-                }
-            } catch { }
-
-            return View(new List<MaintenancePackageViewModel>());
+            return View(new List<ServiceSummaryViewModel>());
         }
 
-        [HttpGet("/Admin/MaintenancePackages/Get/{id:int}")]
+        [HttpGet("/Admin/Services/Get/{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
             try
             {
                 AppendAuthorizationHeader();
-                var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenancePackages/{id}");
+                var response = await _httpClient.GetAsync($"{_apiUrl}/Services/{id}");
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
-                    var apiResult = JsonSerializer.Deserialize<ApiResponse<MaintenancePackageViewModel>>(content, JsonOptions);
+                    var apiResult = JsonSerializer.Deserialize<ApiResponse<ServiceSummaryViewModel>>(content, JsonOptions);
                     if (apiResult?.Success == true && apiResult.Data != null)
                     {
                         return Json(new { success = true, data = apiResult.Data });
                     }
                 }
 
-                return Json(new { success = false, message = "Khong the tai goi bao duong: " + await ReadApiErrorAsync(response) });
+                return Json(new { success = false, message = "Không thể tải dịch vụ: " + await ReadApiErrorAsync(response) });
             }
             catch (System.Exception ex)
             {
-                return Json(new { success = false, message = "Khong the tai goi bao duong: " + ex.Message });
+                return Json(new { success = false, message = "Không thể tải dịch vụ: " + ex.Message });
             }
         }
 
-        [HttpPost("/Admin/MaintenancePackages/Save")]
-        public async Task<IActionResult> Save([FromForm] MaintenancePackageViewModel model)
+        [HttpPost("/Admin/Services/Save")]
+        public async Task<IActionResult> Save([FromForm] ServiceSummaryViewModel model)
         {
             try
             {
                 AppendAuthorizationHeader();
                 var body = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json");
-                var response = model.PackageId == 0
-                    ? await _httpClient.PostAsync($"{_apiUrl}/MaintenancePackages", body)
-                    : await _httpClient.PutAsync($"{_apiUrl}/MaintenancePackages/{model.PackageId}", body);
+                var response = model.ServiceId == 0
+                    ? await _httpClient.PostAsync($"{_apiUrl}/Services", body)
+                    : await _httpClient.PutAsync($"{_apiUrl}/Services/{model.ServiceId}", body);
 
                 if (response.IsSuccessStatusCode)
                 {
                     return Json(new
                     {
                         success = true,
-                        message = model.PackageId == 0 ? "Them goi bao duong thanh cong!" : "Cap nhat thanh cong!"
+                        message = model.ServiceId == 0 ? "Thêm dịch vụ thành công!" : "Cập nhật thành công!"
                     });
                 }
 
-                return Json(new { success = false, message = "Luu that bai: " + await ReadApiErrorAsync(response) });
+                return Json(new { success = false, message = "Lưu thất bại: " + await ReadApiErrorAsync(response) });
             }
             catch (System.Exception ex)
             {
-                return Json(new { success = false, message = "Luu that bai: " + ex.Message });
+                return Json(new { success = false, message = "Lưu thất bại: " + ex.Message });
             }
         }
 
-        [HttpDelete("/Admin/MaintenancePackages/Delete/{id:int}")]
+        [HttpDelete("/Admin/Services/Delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
                 AppendAuthorizationHeader();
-                var response = await _httpClient.DeleteAsync($"{_apiUrl}/MaintenancePackages/{id}");
+                var response = await _httpClient.DeleteAsync($"{_apiUrl}/Services/{id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    return Json(new { success = true, message = "Xoa goi bao duong thanh cong!" });
+                    return Json(new { success = true, message = "Xóa dịch vụ thành công!" });
                 }
 
-                return Json(new { success = false, message = "Xoa that bai: " + await ReadApiErrorAsync(response) });
+                return Json(new { success = false, message = "Xóa thất bại: " + await ReadApiErrorAsync(response) });
             }
             catch (System.Exception ex)
             {
-                return Json(new { success = false, message = "Xoa that bai: " + ex.Message });
+                return Json(new { success = false, message = "Xóa thất bại: " + ex.Message });
             }
         }
     }

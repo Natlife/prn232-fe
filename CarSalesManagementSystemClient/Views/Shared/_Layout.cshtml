@@ -8,15 +8,17 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CarSalesManagementSystemClient.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-light">
     @{
-        var cartJson = Context.Session.GetString("PartCart");
-        var cartItems = string.IsNullOrEmpty(cartJson)
-            ? new List<CarSalesManagementSystemClient.Models.CartItemViewModel>()
-            : System.Text.Json.JsonSerializer.Deserialize<List<CarSalesManagementSystemClient.Models.CartItemViewModel>>(cartJson)
-                ?? new List<CarSalesManagementSystemClient.Models.CartItemViewModel>();
-        var cartCount = cartItems.Sum(x => x.Quantity);
+        var cartJson = Context.Session.GetString("UnifiedCartSession");
+        int cartCount = 0;
+        if (!string.IsNullOrEmpty(cartJson))
+        {
+            var unifiedCart = System.Text.Json.JsonSerializer.Deserialize<CarSalesManagementSystemClient.Models.UnifiedCart>(cartJson);
+            cartCount = unifiedCart?.Items?.Sum(x => x.Quantity) ?? 0;
+        }
         var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
         var act = ViewContext.RouteData.Values["Action"]?.ToString();
     }
@@ -28,7 +30,7 @@
                     <span>Chào mừng bạn tới <span class="text-danger fw-bold">Group7</span></span>
                 </div>
                 <div class="d-flex align-items-center">
-                    <a asp-controller="PartOrders" asp-action="Cart" class="text-white text-decoration-none me-4 position-relative">
+                    <a asp-controller="Cart" asp-action="Index" class="text-white text-decoration-none me-4 position-relative">
                         <i class="bi bi-cart3 fs-5"></i>
                         <span id="navbarCartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(cartCount > 0 ? "" : "d-none")" style="font-size: 9px; padding: 3px 6px;">
                             @cartCount
@@ -108,8 +110,15 @@
                         </li>
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item @(ctrl == "MaintenanceAppointments" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "MaintenanceAppointments" ? "text-danger" : "text-dark hover-bg-warning")" href="/Admin/MaintenanceAppointments">BẢO DƯỠNG (ADMIN)</a>
+                            <li class="nav-item dropdown @(ctrl == "MaintenancePackages" || ctrl == "MaintenanceAppointments" || ctrl == "Services" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 dropdown-toggle @(ctrl == "MaintenancePackages" || ctrl == "MaintenanceAppointments" || ctrl == "Services" ? "text-danger" : "text-dark hover-bg-warning")" href="#" id="navbarAdminMaintenanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    BẢO DƯỠNG (ADMIN) <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
+                                </a>
+                                <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarAdminMaintenanceDropdown" style="background-color: #ffc107;">
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" href="/Admin/MaintenanceAppointments">LỊCH HẸN</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" href="/Admin/MaintenancePackages">GÓI BẢO DƯỠNG</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" href="/Admin/Services">DỊCH VỤ LẺ</a></li>
+                                </ul>
                             </li>
                         }
                         else
@@ -119,7 +128,8 @@
                                     BẢO DƯỠNG <i class="bi bi-chevron-down ms-1" style="font-size: 10px;"></i>
                                 </a>
                                 <ul class="dropdown-menu border-0 rounded-0 shadow-sm m-0" aria-labelledby="navbarMaintenanceDropdown" style="background-color: #ffc107;">
-                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="Index">DỊCH VỤ</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="Index">GÓI BẢO DƯỠNG</a></li>
+                                    <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="Services">DỊCH VỤ LẺ</a></li>
                                     @if (User.Identity?.IsAuthenticated == true)
                                     {
                                         <li><a class="dropdown-item text-dark hover-bg-warning py-2 px-4 fw-bold" asp-controller="Maintenance" asp-action="History">LỊCH HẸN</a></li>
@@ -396,6 +406,21 @@
     </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
     <script src="~/js/car-purchase-flow.js" asp-append-version="true"></script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: '@Html.Raw(TempData["SuccessMessage"]?.ToString()?.Replace("'", "\\'"))',
+                    icon: 'success',
+                    confirmButtonText: 'Đóng'
+                });
+            });
+        </script>
+    }
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

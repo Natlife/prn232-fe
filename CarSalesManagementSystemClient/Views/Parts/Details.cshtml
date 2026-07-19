@@ -468,9 +468,9 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang thêm...';
 
             $.ajax({
-                url: '@Url.Action("AddToCart", "PartOrders")',
+                url: '@Url.Action("AddToCart", "Cart")',
                 type: 'POST',
-                data: { partId: partId, quantity: qty },
+                data: { itemType: 'Part', itemId: partId, quantity: qty },
                 success: function(res) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-cart-plus-fill me-2"></i> Thêm vào giỏ hàng';
@@ -478,7 +478,7 @@
                         updateNavbarCartCount(res.cartCount);
                         Swal.fire({
                             title: 'Đã thêm vào giỏ hàng!',
-                            text: res.message,
+                            text: 'Bạn có muốn đi đến giỏ hàng chung để thanh toán?',
                             icon: 'success',
                             showCancelButton: true,
                             confirmButtonColor: '#ffc107',
@@ -487,7 +487,7 @@
                             cancelButtonText: 'Tiếp tục mua sắm'
                         }).then((navResult) => {
                             if (navResult.isConfirmed) {
-                                window.location.href = '@Url.Action("Cart", "PartOrders")';
+                                window.location.href = '@Url.Action("Index", "Cart")';
                             }
                         });
                     } else {

@@ -24,17 +24,57 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
+                        if (item.CustomerCar != null && item.CustomerCar.Model == "N/A - Đơn phụ tùng")
+                        {
+                            continue;
+                        }
                         <tr id="row-@item.AppointmentId">
                             <td class="ps-4">
                                 <div class="fw-bold text-dark">@item.CustomerName</div>
                                 <div class="small text-muted"><i class="bi bi-telephone-fill me-1"></i>@item.CustomerPhone</div>
                             </td>
                             <td>
-                                <span class="fw-bold text-primary">@(item.Package?.PackageName ?? "Tự chọn")</span>
+                                @if (item.Details != null && item.Details.Any())
+                                {
+                                    <ul class="list-unstyled mb-0 small">
+                                        @foreach(var d in item.Details)
+                                        {
+                                            <li>- @(d.PackageId.HasValue ? d.PackageName : d.ServiceName)</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa chọn dịch vụ</span>
+                                }
+
+                                @if (item.ConsumedParts != null && item.ConsumedParts.Any(p => p.IsIncurred))
+                                {
+                                    <div class="mt-2 pt-2 border-top">
+                                        <div class="fw-bold text-danger" style="font-size: 11px;">PHỤ TÙNG PHÁT SINH:</div>
+                                        <ul class="list-unstyled mb-0 small mt-1">
+                                            @foreach(var p in item.ConsumedParts.Where(x => x.IsIncurred))
+                                            {
+                                                <li class="text-danger d-flex align-items-center">
+                                                    <span>- @p.PartName (SL: @p.Quantity)</span>
+                                                    @if (item.Status == "Confirmed")
+                                                    {
+                                                        <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="removeIncurredPart(@p.ConsumedPartId)" title="Hủy phụ tùng này">
+                                                            <i class="bi bi-x-circle-fill"></i>
+                                                        </button>
+                                                    }
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
                             </td>
                             <td>
-                                <div class="fw-bold">@item.CarName</div>
-                                <div class="small text-muted">Biển số: @item.LicensePlate</div>
+                                @if (item.CustomerCar != null)
+                                {
+                                    <div class="fw-bold">@item.CustomerCar.Model</div>
+                                    <div class="small text-muted">Biển số: @item.CustomerCar.LicensePlate</div>
+                                }
                             </td>
                             <td>
                                 <div class="text-danger fw-bold">@item.AppointmentDate.ToString("dd/MM/yyyy")</div>
@@ -70,6 +110,8 @@
                                     bool hasRealNote = false;
                                     if (!string.IsNullOrWhiteSpace(displayNote))
                                     {
+                                        displayNote = System.Text.RegularExpressions.Regex.Replace(displayNote, @"\[PhiPhatSinh:\s*\d+\]\n?", "").Trim();
+                                        
                                         if (displayNote.Contains("[Lý do hủy:"))
                                         {
                                             int startIndex = displayNote.LastIndexOf("[Lý do hủy:");
@@ -98,8 +140,11 @@
                                         <i class="bi bi-check-circle"></i>
                                     </button>
                                 }
-                                else if (item.Status == "Confirmed")
+                                @if (item.Status == "Confirmed")
                                 {
+                                    <button class="btn btn-sm btn-outline-primary me-1" onclick="reportIncurredPart(@item.AppointmentId, '@item.CustomerName')" title="Báo cáo phụ tùng phát sinh">
+                                        <i class="bi bi-tools"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-outline-success me-1" onclick="updateStatus(@item.AppointmentId, 'Completed')" title="Hoàn thành">
                                         <i class="bi bi-check2-all"></i>
                                     </button>
@@ -140,8 +185,93 @@
     </div>
 </div>
 
+<!-- Modal Báo Cáo Phụ Tùng Phát Sinh -->
+<div class="modal fade" id="incurredPartModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title">Báo cáo phụ tùng phát sinh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="incurredPartForm">
+                    <input type="hidden" id="incurredAppointmentId" name="AppointmentId" />
+                    <p>Khách hàng: <strong id="incurredCustomerName"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Phụ tùng <span class="text-danger">*</span></label>
+                        <select class="form-select" id="incurredPartId" name="PartId" style="width: 100%;" required>
+                            <option value="">-- Đang tải danh sách phụ tùng --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">Số lượng <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="Quantity" min="1" value="1" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">Ghi chú (Lý do thay thế)</label>
+                        <textarea class="form-control" name="Notes" rows="2"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary shadow-sm" id="btnSaveIncurred">
+                            <i class="bi bi-check2-circle me-1"></i> Báo cáo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        .select2-container .select2-selection--single {
+            height: 38px;
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+    </style>
     <script>
+        $(document).ready(function() {
+            // Khởi tạo select2
+            $('#incurredPartId').select2({
+                placeholder: "-- Chọn phụ tùng --",
+                dropdownParent: $('#incurredPartModal'),
+                allowClear: true
+            });
+
+            // Tải danh sách phụ tùng
+            fetch('http://localhost:5084/odata/Parts?$filter=Status ne \'Inactive\'&$select=PartId,PartName,Price')
+                .then(response => response.json())
+                .then(data => {
+                    const select = $('#incurredPartId');
+                    select.empty();
+                    select.append(new Option('-- Chọn phụ tùng --', '', true, true));
+                    if (data && data.value) {
+                        data.value.forEach(part => {
+                            const optionText = `${part.PartName} - ${new Intl.NumberFormat('vi-VN').format(part.Price)} đ`;
+                            select.append(new Option(optionText, part.PartId));
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching parts:', error);
+                    const select = $('#incurredPartId');
+                    select.empty();
+                    select.append(new Option('-- Lỗi khi tải phụ tùng --', ''));
+                });
+        });
         function viewNote(btn, name) {
             let note = $(btn).attr('data-note');
             Swal.fire({
@@ -212,6 +342,92 @@
                 },
                 error: function() {
                     Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ.', 'error');
+                }
+            });
+        }
+
+        const incurredModal = new bootstrap.Modal(document.getElementById('incurredPartModal'));
+
+        function reportIncurredPart(appointmentId, customerName) {
+            document.getElementById('incurredAppointmentId').value = appointmentId;
+            document.getElementById('incurredCustomerName').innerText = customerName;
+            document.getElementById('incurredPartForm').reset();
+            incurredModal.show();
+        }
+
+        document.getElementById('incurredPartForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('btnSaveIncurred');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
+
+            const payload = {
+                AppointmentId: parseInt(form.AppointmentId.value),
+                PartId: parseInt(form.PartId.value),
+                Quantity: parseInt(form.Quantity.value),
+                Notes: form.Notes.value
+            };
+
+            try {
+                const formData = new FormData();
+                formData.append('appointmentId', form.AppointmentId.value);
+                formData.append('partId', form.PartId.value);
+                formData.append('quantity', form.Quantity.value);
+                formData.append('notes', form.Notes.value);
+
+                const response = await fetch('/Admin/MaintenanceAppointments/ReportIncurredPart', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    incurredModal.hide();
+                    Swal.fire('Thành công!', result.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Lỗi!', result.message || 'Lưu thất bại', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi!', 'Không thể kết nối máy chủ.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Báo cáo';
+            }
+        });
+
+        function removeIncurredPart(consumedPartId) {
+            Swal.fire({
+                title: 'Hủy phụ tùng này?',
+                text: "Bạn có chắc chắn muốn hủy phụ tùng phát sinh này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đồng ý Hủy',
+                cancelButtonText: 'Đóng'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Admin/MaintenanceAppointments/RemoveIncurredPart',
+                        type: 'POST',
+                        data: { consumedPartId: consumedPartId },
+                        success: function (res) {
+                            if (res.success) {
+                                Swal.fire('Thành công!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Lỗi!', res.message, 'error');
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Lỗi!', 'Không thể kết nối đến máy chủ.', 'error');
+                        }
+                    });
                 }
             });
         }

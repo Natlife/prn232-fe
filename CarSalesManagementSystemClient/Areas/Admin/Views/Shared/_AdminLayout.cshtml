@@ -55,14 +55,31 @@
                             <i class="bi bi-box-seam me-2"></i> Quản lý đơn combo
                         </a>
                     </li>
-                    <li>
-                        <a href="/Admin/MaintenancePackages" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" ? "active" : "")">
-                            <i class="bi bi-tools me-2"></i> Gói bảo dưỡng
+                    <li class="nav-item">
+                        <a href="#maintenanceSubmenu" data-bs-toggle="collapse" class="nav-link dropdown-toggle @((ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Services") ? "active" : "")">
+                            <i class="bi bi-tools me-2"></i> Quản lý Bảo dưỡng
                         </a>
+                        <ul class="collapse list-unstyled ms-3 mt-1 @((ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Services") ? "show" : "")" id="maintenanceSubmenu">
+                            <li>
+                                <a href="/Admin/MaintenancePackages" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" ? "text-warning fw-bold" : "")">
+                                    <i class="bi bi-box-seam-fill me-2"></i> Gói bảo dưỡng
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/Admin/Services" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Services" ? "text-warning fw-bold" : "")">
+                                    <i class="bi bi-wrench-adjustable me-2"></i> Dịch vụ lẻ
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
                         <a href="/Admin/MaintenanceAppointments" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenanceAppointments" ? "active" : "")">
-                            <i class="bi bi-calendar-check me-2"></i> Lịch hẹn
+                            <i class="bi bi-calendar-check me-2"></i> Lịch hẹn bảo dưỡng
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Orders" ? "active" : "")" href="@Url.Action("Index", "Orders", new { area = "Admin" })">
+                            <i class="bi bi-receipt me-2"></i> Quản lý đơn hàng
                         </a>
                     </li>
                 </ul>
