@@ -15,6 +15,9 @@
             <p class="text-secondary m-0 ps-3">Danh sách toàn bộ phụ tùng trong hệ thống</p>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <button class="btn btn-success fw-bold border-0 px-4 py-2 me-2" onclick="openInventoryReceiptModal()">
+                <i class="bi bi-box-seam-fill me-2"></i> NHẬP KHO PHỤ TÙNG
+            </button>
             <button class="btn btn-warning fw-bold border-0 px-4 py-2 text-dark" style="background-color: #ffc107;" onclick="openAddModal()">
                 <i class="bi bi-plus-circle-fill me-2"></i> THÊM PHỤ TÙNG MỚI
             </button>
@@ -192,6 +195,64 @@
     </div>
 </div>
 
+<!-- Inventory Receipt Modal -->
+<div class="modal fade" id="inventoryReceiptModal" tabindex="-1" aria-labelledby="inventoryReceiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="inventoryReceiptModalLabel">
+                    <i class="bi bi-box-seam-fill me-2"></i> PHIẾU NHẬP KHO PHỤ TÙNG
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nhà cung cấp <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-lg" id="receiptSupplierId" required>
+                        <option value="">-- Đang tải nhà cung cấp... --</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Ghi chú nhập kho</label>
+                    <textarea class="form-control" id="receiptNotes" rows="2" placeholder="Ví dụ: Nhập kho phụ tùng định kỳ..."></textarea>
+                </div>
+
+                <h6 class="fw-bold mb-2 text-secondary d-flex align-items-center">
+                    <i class="bi bi-list-stars me-2"></i> DANH SÁCH CHI TIẾT NHẬP KHO
+                </h6>
+                <div class="table-responsive mb-3 border rounded">
+                    <table class="table table-striped table-hover align-middle mb-0" style="font-size: 14px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;">Phụ tùng</th>
+                                <th style="width: 15%;">Số lượng</th>
+                                <th style="width: 20%;">Giá nhập (VND)</th>
+                                <th style="width: 20%;">Hạn sử dụng</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptItemsTableBody">
+                            <!-- Rows added dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="button" class="btn btn-outline-success btn-sm fw-bold px-3" onclick="addReceiptItemRow()">
+                    <i class="bi bi-plus-circle-fill me-1"></i> THÊM DÒNG PHỤ TÙNG
+                </button>
+
+                <div class="text-end mt-4">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold me-2" data-bs-dismiss="modal">HỦY BỎ</button>
+                    <button type="button" class="btn btn-success px-4 fw-bold" id="btnSaveReceipt" onclick="submitInventoryReceipt()">
+                        <i class="bi bi-check-circle-fill me-1"></i> LƯU PHIẾU NHẬP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <!-- SweetAlert2 -->
@@ -201,6 +262,193 @@
         $(document).ready(function() {
             pkgModal = new bootstrap.Modal(document.getElementById('partModal'));
         });
+
+        // Inventory Receipt flows
+        let allPartsList = [];
+        let allSuppliersList = [];
+
+        function openInventoryReceiptModal() {
+            const modal = new bootstrap.Modal(document.getElementById('inventoryReceiptModal'));
+            modal.show();
+
+            // Fetch suppliers and parts from API backend
+            if (allPartsList.length === 0 || allSuppliersList.length === 0) {
+                Promise.all([
+                    fetch('http://localhost:5084/api/Suppliers').then(res => res.json()),
+                    fetch('http://localhost:5084/odata/Parts?$expand=Category').then(res => res.json())
+                ]).then(([suppliers, partsData]) => {
+                    allSuppliersList = suppliers;
+                    allPartsList = partsData.value || partsData;
+
+                    // Populate Supplier dropdown
+                    const supplierSelect = document.getElementById('receiptSupplierId');
+                    supplierSelect.innerHTML = '<option value="">-- Chọn nhà cung cấp --</option>';
+                    allSuppliersList.forEach(s => {
+                        supplierSelect.innerHTML += `<option value="${s.supplierId}">${s.supplierName} (${s.contactName})</option>`;
+                    });
+
+                    // Reset rows
+                    document.getElementById('receiptItemsTableBody').innerHTML = '';
+                    addReceiptItemRow();
+                }).catch(err => {
+                    Swal.fire('Lỗi', 'Không thể tải danh sách nhà cung cấp hoặc phụ tùng: ' + err.message, 'error');
+                });
+            } else {
+                document.getElementById('receiptItemsTableBody').innerHTML = '';
+                addReceiptItemRow();
+            }
+        }
+
+        function addReceiptItemRow() {
+            const tbody = document.getElementById('receiptItemsTableBody');
+            
+            // Build options list
+            let partOptions = '<option value="">-- Chọn phụ tùng --</option>';
+            allPartsList.forEach(p => {
+                const categoryName = p.Category?.CategoryName || '';
+                const isPerishable = ["Dầu nhớt", "Hóa chất", "Ắc quy"].includes(categoryName);
+                const perishableBadge = isPerishable ? ' *Hạn sử dụng' : '';
+                partOptions += `<option value="${p.partId}" data-code="${p.partCode}" data-name="${p.partName}" data-perishable="${isPerishable}">${p.partName} (${p.partCode})${perishableBadge}</option>`;
+            });
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm receipt-part-select" onchange="onReceiptPartChange(this)">
+                        ${partOptions}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm receipt-qty" min="1" value="1" required />
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm receipt-price" min="0" placeholder="0" required />
+                </td>
+                <td>
+                    <input type="date" class="form-control form-control-sm receipt-expired" />
+                    <small class="text-danger d-none expired-req">* Bắt buộc</small>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-link text-danger p-0" onclick="removeReceiptRow(this)"><i class="bi bi-trash-fill fs-5"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function onReceiptPartChange(selectEl) {
+            const selectedOption = selectEl.options[selectEl.selectedIndex];
+            const isPerishable = selectedOption.getAttribute('data-perishable') === 'true';
+            const row = selectEl.closest('tr');
+            const expiredInput = row.querySelector('.receipt-expired');
+            const expiredReq = row.querySelector('.expired-req');
+            
+            if (isPerishable) {
+                expiredInput.setAttribute('required', 'required');
+                expiredReq.classList.remove('d-none');
+            } else {
+                expiredInput.removeAttribute('required');
+                expiredReq.classList.add('d-none');
+            }
+        }
+
+        function removeReceiptRow(btn) {
+            const tbody = document.getElementById('receiptItemsTableBody');
+            if (tbody.children.length > 1) {
+                btn.closest('tr').remove();
+            } else {
+                Swal.fire('Nhắc nhở', 'Phải có ít nhất 1 phụ tùng nhập kho.', 'warning');
+            }
+        }
+
+        function submitInventoryReceipt() {
+            const supplierId = document.getElementById('receiptSupplierId').value;
+            if (!supplierId) {
+                Swal.fire('Nhắc nhở', 'Vui lòng chọn nhà cung cấp.', 'warning');
+                return;
+            }
+            const notes = document.getElementById('receiptNotes').value.trim();
+            
+            const rows = document.querySelectorAll('#receiptItemsTableBody tr');
+            const items = [];
+            
+            for (let row of rows) {
+                const partSelect = row.querySelector('.receipt-part-select');
+                const partId = partSelect.value;
+                if (!partId) {
+                    Swal.fire('Nhắc nhở', 'Vui lòng chọn phụ tùng cho tất cả các hàng.', 'warning');
+                    return;
+                }
+                const quantity = parseInt(row.querySelector('.receipt-qty').value);
+                const importPrice = parseFloat(row.querySelector('.receipt-price').value);
+                const expiredInput = row.querySelector('.receipt-expired');
+                const isPerishable = partSelect.options[partSelect.selectedIndex].getAttribute('data-perishable') === 'true';
+                
+                let expiredAt = expiredInput.value ? new Date(expiredInput.value).toISOString() : null;
+                
+                if (isPerishable && !expiredAt) {
+                    Swal.fire('Nhắc nhở', 'Các phụ tùng thuộc nhóm Dầu nhớt, Hóa chất, Ắc quy bắt buộc phải nhập Hạn sử dụng.', 'warning');
+                    return;
+                }
+                
+                if (isNaN(quantity) || quantity <= 0) {
+                    Swal.fire('Nhắc nhở', 'Số lượng phải lớn hơn 0.', 'warning');
+                    return;
+                }
+                if (isNaN(importPrice) || importPrice < 0) {
+                    Swal.fire('Nhắc nhở', 'Giá nhập không được nhỏ hơn 0.', 'warning');
+                    return;
+                }
+                
+                items.push({
+                    partId: parseInt(partId),
+                    quantity: quantity,
+                    importPrice: importPrice,
+                    expiredAt: expiredAt
+                });
+            }
+
+            const payload = {
+                supplierId: parseInt(supplierId),
+                notes: notes,
+                items: items
+            };
+
+            const token = '@User.FindFirst("jwt_token")?.Value';
+            
+            const saveBtn = document.getElementById('btnSaveReceipt');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang lưu...';
+
+            fetch('http://localhost:5084/api/inventory/receipt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi lưu phiếu nhập kho'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: 'Tạo phiếu nhập kho thành công.',
+                    icon: 'success',
+                    confirmButtonColor: '#ffc107'
+                }).then(() => {
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> LƯU PHIẾU NHẬP';
+                Swal.fire('Thất bại', err.message, 'error');
+            });
+        }
 
         function getHeaders() {
             return {

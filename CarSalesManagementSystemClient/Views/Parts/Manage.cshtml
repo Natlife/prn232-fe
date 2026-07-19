@@ -5,44 +5,130 @@
     var categories = ViewBag.Categories as IEnumerable<CarSalesManagementSystemClient.Models.PartCategoryViewModel> ?? new List<PartCategoryViewModel>();
 }
 
-<div class="container-fluid py-5 px-md-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
-                QUẢN LÝ PHỤ TÙNG
+<!-- Google Fonts Outfit & Bootstrap Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<div class="container-fluid py-4 px-md-5" style="font-family: 'Outfit', sans-serif; background-color: #f8f9fa;">
+    
+    <!-- Header Block -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 class="fw-extrabold text-dark m-0 d-flex align-items-center gap-2" style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px;">
+                <span class="text-warning">|</span> QUẢN LÝ PHỤ TÙNG
             </h1>
-            <p class="text-secondary m-0 ps-3">Danh sách toàn bộ phụ tùng trong hệ thống</p>
+            <p class="text-muted m-0 mt-1" style="font-size: 15px; font-weight: 400;">
+                <i class="bi bi-gear-wide-connected me-1 text-secondary"></i> Dashboard quản lý tồn kho &amp; nhập kho phụ tùng chính hãng
+            </p>
         </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <button class="btn btn-warning fw-bold border-0 px-4 py-2 text-dark" style="background-color: #ffc107;" onclick="openAddModal()">
-                <i class="bi bi-plus-circle-fill me-2"></i> THÊM PHỤ TÙNG MỚI
+        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            @if (User.IsInRole("Admin"))
+            {
+                <button class="btn btn-primary fw-semibold d-inline-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm btn-top-action" onclick="openAddCategoryModal()">
+                    <i class="bi bi-folder-plus fs-5"></i> THÊM DANH MỤC
+                </button>
+                <button class="btn btn-info fw-semibold text-white d-inline-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm btn-top-action" onclick="openAddSupplierModal()">
+                    <i class="bi bi-people fs-5"></i> THÊM NHÀ CUNG CẤP
+                </button>
+            }
+            <button class="btn btn-success fw-semibold text-white d-inline-flex align-items-center gap-2 px-4 py-2 border-0 shadow-sm btn-top-action" onclick="openInventoryReceiptModal()">
+                <i class="bi bi-box-seam fs-5"></i> NHẬP KHO PHỤ TÙNG
             </button>
         </div>
     </div>
 
     @if (ViewBag.ErrorMessage != null)
     {
-        <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.ErrorMessage
+        <div class="alert alert-danger border-0 rounded-3 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i> @ViewBag.ErrorMessage
         </div>
     }
 
-    <!-- Table Card -->
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <!-- Stat Dashboard Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 d-flex flex-row align-items-center bg-white stats-card h-100">
+                <div class="rounded-4 bg-primary bg-opacity-10 p-3 me-3 text-primary d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-wrench-adjustable fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-secondary fw-semibold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">TỔNG SỐ PHỤ TÙNG</h6>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.8rem; font-weight: 700;">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 d-flex flex-row align-items-center bg-white stats-card h-100">
+                <div class="rounded-4 bg-success bg-opacity-10 p-3 me-3 text-success d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-box fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-secondary fw-semibold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">TỔNG TỒN KHO</h6>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.8rem; font-weight: 700;">@Model.Sum(p => p.Quantity)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 d-flex flex-row align-items-center bg-white stats-card h-100">
+                <div class="rounded-4 bg-warning bg-opacity-10 p-3 me-3 text-warning d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-exclamation-octagon fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-secondary fw-semibold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">SẮP HẾT HÀNG</h6>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.8rem; font-weight: 700;">@Model.Count(p => p.Quantity <= 5 && p.Status == "Available")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 d-flex flex-row align-items-center bg-white stats-card h-100">
+                <div class="rounded-4 bg-danger bg-opacity-10 p-3 me-3 text-danger d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+                    <i class="bi bi-slash-circle fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="text-secondary fw-semibold mb-1" style="font-size: 13px; letter-spacing: 0.5px;">NGƯNG KINH DOANH</h6>
+                    <h3 class="fw-bold mb-0 text-dark" style="font-size: 1.8rem; font-weight: 700;">@Model.Count(p => p.Status == "Inactive")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white p-3">
+        <div class="row g-3">
+            <div class="col-md-7 col-lg-8">
+                <div class="input-group" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text border-0 bg-light text-secondary px-3"><i class="bi bi-search fs-5"></i></span>
+                    <input type="text" class="form-control border-0 bg-light py-2" id="searchTerm" placeholder="Tìm kiếm nhanh phụ tùng theo tên hoặc mã sản phẩm..." onkeyup="filterPartsTable()" style="font-size: 14px;" />
+                </div>
+            </div>
+            <div class="col-md-5 col-lg-4">
+                <select class="form-select border-0 bg-light py-2" id="filterCategory" onchange="filterPartsTable()" style="font-size: 14px; border-radius: 10px;">
+                    <option value="">Tất cả danh mục</option>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.CategoryName">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-dark text-white">
+                <table class="table align-middle mb-0">
+                    <thead>
                         <tr>
-                            <th class="ps-4">Hình ảnh</th>
-                            <th>Mã phụ tùng</th>
-                            <th>Tên phụ tùng</th>
-                            <th>Danh mục</th>
-                            <th>Thương hiệu</th>
-                            <th>Giá bán</th>
-                            <th>Tồn kho</th>
-                            <th>Trạng thái</th>
-                            <th class="text-end pe-4">Hành động</th>
+                            <th class="ps-4" style="width: 10%;">Hình ảnh</th>
+                            <th style="width: 15%;">Mã</th>
+                            <th style="width: 25%;">Tên phụ tùng</th>
+                            <th style="width: 15%;">Danh mục</th>
+                            <th style="width: 12%;">Thương hiệu</th>
+                            <th style="width: 13%;">Giá bán</th>
+                            <th style="width: 10%;">Tồn kho</th>
+                            <th style="width: 12%;">Trạng thái</th>
+                            <th class="text-end pe-4" style="width: 18%;">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,8 +136,8 @@
                         {
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-secondary">
-                                    <i class="bi bi-tools fs-1 d-block mb-3"></i>
-                                    Chưa có phụ tùng nào được tạo.
+                                    <i class="bi bi-tools fs-1 d-block mb-3 text-muted"></i>
+                                    Chưa có phụ tùng nào được tạo trong hệ thống.
                                 </td>
                             </tr>
                         }
@@ -65,45 +151,60 @@
                                     
                                 <tr>
                                     <td class="ps-4">
-                                        <img src="@displayImageUrl" alt="@part.PartName" class="rounded object-fit-cover" style="width: 60px; height: 60px;" />
+                                        <div class="img-wrapper">
+                                            <img src="@displayImageUrl" alt="@part.PartName" class="part-img" />
+                                        </div>
                                     </td>
-                                    <td class="fw-bold text-secondary" style="font-family: monospace;">@part.PartCode</td>
+                                    <td class="fw-semibold text-secondary part-code-cell" style="font-family: monospace; font-size: 13px;">@part.PartCode</td>
                                     <td>
-                                        <div class="fw-bold text-dark">@part.PartName</div>
+                                        <div class="fw-bold text-dark part-name-cell" style="font-size: 15px;">@part.PartName</div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-light text-dark border">@part.Category?.CategoryName</span>
+                                        <span class="cat-tag part-cat-cell">@part.Category?.CategoryName</span>
                                     </td>
-                                    <td>@part.Brand</td>
-                                    <td class="fw-bold text-danger">@part.Price.ToString("N0") đ</td>
-                                    <td class="fw-bold">@part.Quantity</td>
+                                    <td class="text-secondary fw-medium" style="font-size: 14px;">@part.Brand</td>
+                                    <td class="fw-bold text-danger" style="font-size: 15px;">@part.Price.ToString("N0") đ</td>
                                     <td>
-                                        @if (part.Status == "Available")
+                                        @if (part.Quantity <= part.MinStockLevel)
                                         {
-                                            <span class="badge bg-success">Còn hàng</span>
-                                        }
-                                        else if (part.Status == "Out of Stock")
-                                        {
-                                            <span class="badge bg-warning text-dark">Hết hàng</span>
+                                            <span class="fw-bold text-danger d-flex align-items-center gap-1">
+                                                <i class="bi bi-exclamation-triangle-fill"></i> @part.Quantity
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">Ngưng bán</span>
+                                            <span class="fw-bold text-success">@part.Quantity</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (part.Status == "Available")
+                                        {
+                                            <span class="badge badge-premium bg-success bg-opacity-10 text-success">Còn hàng</span>
+                                        }
+                                        else if (part.Status == "Out of Stock")
+                                        {
+                                            <span class="badge badge-premium bg-warning bg-opacity-10 text-warning text-dark">Hết hàng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-premium bg-danger bg-opacity-10 text-danger">Ngưng bán</span>
                                         }
                                     </td>
                                     <td class="text-end pe-4">
-                                        @if (part.Status != "Inactive")
-                                        {
-                                            <button class="btn btn-outline-warning btn-sm me-2 fw-bold" onclick="confirmDiscontinue(@part.PartId, '@part.PartName')">
-                                                <i class="bi bi-slash-circle me-1"></i> Ngưng bán
+                                        <div class="d-flex justify-content-end gap-1">
+                                            @if (part.Status != "Inactive")
+                                            {
+                                                <button class="btn btn-sm btn-action-premium btn-outline-warning border-0" onclick="confirmDiscontinue(@part.PartId, '@part.PartName')" title="Ngưng bán phụ tùng này">
+                                                    <i class="bi bi-slash-circle fs-5"></i>
+                                                </button>
+                                            }
+                                            <button class="btn btn-sm btn-action-premium btn-outline-primary border-0" onclick="openEditModal(@part.PartId)" title="Chỉnh sửa thông tin">
+                                                <i class="bi bi-pencil-square fs-5"></i>
                                             </button>
-                                        }
-                                        <button class="btn btn-outline-primary btn-sm me-2 fw-bold" onclick="openEditModal(@part.PartId)">
-                                            <i class="bi bi-pencil-square me-1"></i> Sửa
-                                        </button>
-                                        <button class="btn btn-outline-success btn-sm fw-bold" onclick="confirmResell(@part.PartId, '@part.PartName')">
-                                            <i class="bi bi-arrow-repeat me-1"></i> Bán lại
-                                        </button>
+                                            <button class="btn btn-sm btn-action-premium btn-outline-success border-0" onclick="confirmResell(@part.PartId, '@part.PartName')" title="Bán lại phụ tùng">
+                                                <i class="bi bi-arrow-repeat fs-5"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -189,12 +290,617 @@
     </div>
 </div>
 
+<!-- Inventory Receipt Modal -->
+<div class="modal fade" id="inventoryReceiptModal" tabindex="-1" aria-labelledby="inventoryReceiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="inventoryReceiptModalLabel">
+                    <i class="bi bi-box-seam-fill me-2"></i> PHIẾU NHẬP KHO PHỤ TÙNG
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Nhà cung cấp <span class="text-danger">*</span></label>
+                        <select class="form-select" id="receiptSupplierId" required onchange="onReceiptFilterChanged()">
+                            <option value="">-- Đang tải nhà cung cấp... --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Danh mục phụ tùng <span class="text-danger">*</span></label>
+                        <select class="form-select" id="receiptCategoryId" required onchange="onReceiptFilterChanged()">
+                            <option value="">-- Chọn danh mục --</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat.CategoryId" data-name="@cat.CategoryName">@cat.CategoryName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Ghi chú nhập kho</label>
+                    <textarea class="form-control" id="receiptNotes" rows="2" placeholder="Ví dụ: Nhập kho phụ tùng định kỳ..."></textarea>
+                </div>
+
+                <h6 class="fw-bold mb-2 text-secondary d-flex align-items-center">
+                    <i class="bi bi-list-stars me-2"></i> DANH SÁCH CHI TIẾT NHẬP KHO
+                </h6>
+                <div class="table-responsive mb-3 border rounded">
+                    <table class="table align-middle mb-0" style="font-size: 14px;" id="receiptItemsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 35%;">Phụ tùng</th>
+                                <th style="width: 15%;">Số lượng</th>
+                                <th style="width: 20%;">Giá nhập (VND)</th>
+                                <th style="width: 25%;">Hạn sử dụng</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="receiptItemsTableBody">
+                            <!-- Rows added dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="button" class="btn btn-outline-success btn-sm fw-bold px-3" onclick="addReceiptItemRow()">
+                    <i class="bi bi-plus-circle-fill me-1"></i> THÊM DÒNG PHỤ TÙNG
+                </button>
+
+                <div class="text-end mt-4">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold me-2" data-bs-dismiss="modal">HỦY BỎ</button>
+                    <button type="button" class="btn btn-success px-4 fw-bold" id="btnSaveReceipt" onclick="submitInventoryReceipt()">
+                        <i class="bi bi-check-circle-fill me-1"></i> LƯU PHIẾU NHẬP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="addCategoryModalLabel">
+                    <i class="bi bi-folder-plus me-2"></i> THÊM DANH MỤC MỚI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addCategoryForm" onsubmit="submitAddCategory(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newCatName" required placeholder="Ví dụ: Má phanh, Lốp xe..." />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả chi tiết</label>
+                        <textarea class="form-control" id="newCatDesc" rows="3" placeholder="Mô tả phân loại phụ tùng..."></textarea>
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-secondary px-4 fw-bold me-2" data-bs-dismiss="modal">HỦY</button>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">THÊM MỚI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-info text-white py-3">
+                <h5 class="modal-title fw-bold" id="addSupplierModalLabel">
+                    <i class="bi bi-people-fill me-2"></i> THÊM NHÀ CUNG CẤP MỚI
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="addSupplierForm" onsubmit="submitAddSupplier(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên nhà cung cấp <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newSupName" required placeholder="Ví dụ: Công ty Phụ tùng Bosch Việt Nam" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Người liên hệ</label>
+                        <input type="text" class="form-control" id="newSupContact" placeholder="Họ và tên người liên hệ" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số điện thoại</label>
+                        <input type="text" class="form-control" id="newSupPhone" placeholder="Ví dụ: 0912345678" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email liên hệ</label>
+                        <input type="email" class="form-control" id="newSupEmail" placeholder="Ví dụ: info@bosch.vn" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Địa chỉ</label>
+                        <input type="text" class="form-control" id="newSupAddress" placeholder="Địa chỉ trụ sở công ty" />
+                    </div>
+                    <div class="text-end mt-4">
+                        <button type="button" class="btn btn-secondary px-4 fw-bold me-2" data-bs-dismiss="modal">HỦY</button>
+                        <button type="submit" class="btn btn-info px-4 fw-bold text-white">THÊM MỚI</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         var partModal = new bootstrap.Modal(document.getElementById('partModal'));
+
+        // Inventory Receipt flows
+        var allSuppliersList = [];
+        var filteredPartsList = [];
+        var receiptRowIndex = 0;
+
+        // Open Inventory Receipt Modal
+        function openInventoryReceiptModal() {
+            const modal = new bootstrap.Modal(document.getElementById('inventoryReceiptModal'));
+            modal.show();
+
+            if (allSuppliersList.length === 0) {
+                fetch('http://localhost:5084/api/Suppliers')
+                    .then(res => res.json())
+                    .then(suppliers => {
+                        allSuppliersList = suppliers;
+
+                        // Populate Supplier dropdown
+                        const supplierSelect = document.getElementById('receiptSupplierId');
+                        supplierSelect.innerHTML = '<option value="">-- Chọn nhà cung cấp --</option>';
+                        allSuppliersList.forEach(s => {
+                            if (s.status === 'Active') {
+                                supplierSelect.innerHTML += `<option value="${s.supplierId}">${s.supplierName}</option>`;
+                            }
+                        });
+
+                        // Reset rows and selection
+                        document.getElementById('receiptCategoryId').value = '';
+                        document.getElementById('receiptNotes').value = '';
+                        document.getElementById('receiptItemsTableBody').innerHTML = '';
+                        filteredPartsList = [];
+                        addReceiptItemRow();
+                    })
+                    .catch(err => {
+                        Swal.fire('Lỗi', 'Không thể tải danh sách nhà cung cấp: ' + err.message, 'error');
+                    });
+            } else {
+                document.getElementById('receiptCategoryId').value = '';
+                document.getElementById('receiptNotes').value = '';
+                document.getElementById('receiptItemsTableBody').innerHTML = '';
+                filteredPartsList = [];
+                addReceiptItemRow();
+            }
+        }
+
+        // Handle filter triggers (Category & Supplier)
+        function onReceiptFilterChanged() {
+            const supplierId = document.getElementById('receiptSupplierId').value;
+            const categoryId = document.getElementById('receiptCategoryId').value;
+
+            if (!categoryId) {
+                filteredPartsList = [];
+                updateAllRowDropdowns();
+                return;
+            }
+
+            fetch(`/Parts/GetFilteredParts?categoryId=${categoryId}&supplierId=${supplierId || 0}`)
+                .then(res => res.json())
+                .then(parts => {
+                    filteredPartsList = parts;
+                    updateAllRowDropdowns();
+                })
+                .catch(err => {
+                    console.error("Lỗi tải phụ tùng đã lọc: ", err);
+                    filteredPartsList = [];
+                    updateAllRowDropdowns();
+                });
+        }
+
+        // Update dropdown list options on all rows
+        function updateAllRowDropdowns() {
+            const selects = document.querySelectorAll('.receipt-part-select');
+            selects.forEach(selectEl => {
+                const currentVal = selectEl.value;
+                populatePartSelectOptions(selectEl);
+                if (currentVal && selectEl.querySelector(`option[value="${currentVal}"]`)) {
+                    selectEl.value = currentVal;
+                } else {
+                    selectEl.value = "";
+                    onReceiptPartChange(selectEl);
+                }
+            });
+        }
+
+        // Populate options in a single select tag
+        function populatePartSelectOptions(selectEl) {
+            let partOptions = '<option value="">-- Chọn phụ tùng --</option>';
+
+            const categorySelect = document.getElementById('receiptCategoryId');
+            const categoryName = categorySelect.options[categorySelect.selectedIndex]?.getAttribute('data-name') || '';
+            const isPerishable = ["Dầu nhớt", "Hóa chất", "Ắc quy"].includes(categoryName);
+            const perishableBadge = isPerishable ? ' *Hạn sử dụng' : '';
+
+            filteredPartsList.forEach(p => {
+                partOptions += `<option value="${p.partId}" data-code="${p.partCode}" data-name="${p.partName}" data-perishable="${isPerishable}">${p.partName} (${p.partCode})${perishableBadge}</option>`;
+            });
+
+            // Add the special "[NEW]" option
+            partOptions += `<option value="[NEW]" data-perishable="false" style="color: #198754; font-weight: bold;">[+] -- THÊM MỚI PHỤ TÙNG --</option>`;
+
+            selectEl.innerHTML = partOptions;
+        }
+
+        // Add a new row to the receipt detail items table
+        function addReceiptItemRow() {
+            const tbody = document.getElementById('receiptItemsTableBody');
+            const currentIndex = receiptRowIndex++;
+
+            const trMain = document.createElement('tr');
+            trMain.id = `receiptRow_Main_${currentIndex}`;
+            trMain.setAttribute('data-index', currentIndex);
+
+            const trForm = document.createElement('tr');
+            trForm.id = `receiptRow_Form_${currentIndex}`;
+            trForm.className = 'new-part-form-row d-none bg-light';
+            trForm.setAttribute('data-index', currentIndex);
+
+            const selectId = `receiptPartSelect_${currentIndex}`;
+
+            trMain.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm receipt-part-select" id="${selectId}" onchange="onReceiptPartChange(this)">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm receipt-qty" min="1" value="1" required />
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm receipt-price" min="0" placeholder="0" required />
+                </td>
+                <td>
+                    <input type="date" class="form-control form-control-sm receipt-expired" />
+                    <small class="text-danger d-none expired-req">* Bắt buộc</small>
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-link text-danger p-0" onclick="removeReceiptRow(${currentIndex})"><i class="bi bi-trash-fill fs-5"></i></button>
+                </td>
+            `;
+
+            trForm.innerHTML = `
+                <td colspan="5" class="p-3 border rounded shadow-sm" style="background-color: #fcfcfc;">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Tên phụ tùng mới <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm new-part-name" placeholder="Ví dụ: Kính chiếu hậu Vios" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Mã phụ tùng mới <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm new-part-code" placeholder="Ví dụ: KCH-TOY-01" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Thương hiệu</label>
+                            <input type="text" class="form-control form-control-sm new-part-brand" placeholder="Ví dụ: Toyota OEM" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Giá bán ra đề xuất (VND) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control form-control-sm new-part-price-sell" placeholder="Giá bán khách" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Đơn vị tính</label>
+                            <input type="text" class="form-control form-control-sm new-part-uom" value="Cái" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Bảo hành (tháng)</label>
+                            <input type="number" class="form-control form-control-sm new-part-warranty" value="0" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Vị trí kho</label>
+                            <input type="text" class="form-control form-control-sm new-part-location" placeholder="Khu B - Kệ 2" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Min Level (cảnh báo)</label>
+                            <input type="number" class="form-control form-control-sm new-part-min" value="5" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Max Level (chứa tối đa)</label>
+                            <input type="number" class="form-control form-control-sm new-part-max" value="100" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold mb-1" style="font-size:11px; color:#555;">Mô tả ngắn</label>
+                            <input type="text" class="form-control form-control-sm new-part-desc" placeholder="Ghi chú thêm..." />
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            tbody.appendChild(trMain);
+            tbody.appendChild(trForm);
+
+            const selectEl = document.getElementById(selectId);
+            populatePartSelectOptions(selectEl);
+        }
+
+        // Toggle form sub-row based on selection (regular vs new part)
+        function onReceiptPartChange(selectEl) {
+            const val = selectEl.value;
+            const row = selectEl.closest('tr');
+            const currentIndex = row.getAttribute('data-index');
+            const formRow = document.getElementById(`receiptRow_Form_${currentIndex}`);
+
+            const expiredInput = row.querySelector('.receipt-expired');
+            const expiredReq = row.querySelector('.expired-req');
+
+            const categorySelect = document.getElementById('receiptCategoryId');
+            const categoryName = categorySelect.options[categorySelect.selectedIndex]?.getAttribute('data-name') || '';
+            const isPerishableCategory = ["Dầu nhớt", "Hóa chất", "Ắc quy"].includes(categoryName);
+
+            if (val === "[NEW]") {
+                formRow.classList.remove('d-none');
+                if (isPerishableCategory) {
+                    expiredInput.setAttribute('required', 'required');
+                    expiredReq.classList.remove('d-none');
+                } else {
+                    expiredInput.removeAttribute('required');
+                    expiredReq.classList.add('d-none');
+                }
+            } else {
+                formRow.classList.add('d-none');
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                const isPerishable = selectedOption?.getAttribute('data-perishable') === 'true';
+
+                if (isPerishable) {
+                    expiredInput.setAttribute('required', 'required');
+                    expiredReq.classList.remove('d-none');
+                } else {
+                    expiredInput.removeAttribute('required');
+                    expiredReq.classList.add('d-none');
+                }
+            }
+        }
+
+        // Remove row helper
+        function removeReceiptRow(index) {
+            const tbody = document.getElementById('receiptItemsTableBody');
+            const mainRows = tbody.querySelectorAll('tr[id^="receiptRow_Main_"]');
+            if (mainRows.length > 1) {
+                document.getElementById(`receiptRow_Main_${index}`).remove();
+                document.getElementById(`receiptRow_Form_${index}`).remove();
+            } else {
+                Swal.fire('Nhắc nhở', 'Phải có ít nhất 1 phụ tùng nhập kho.', 'warning');
+            }
+        }
+
+        // Submit Inventory Receipt
+        function submitInventoryReceipt() {
+            const supplierId = document.getElementById('receiptSupplierId').value;
+            const categoryId = document.getElementById('receiptCategoryId').value;
+
+            if (!supplierId) {
+                Swal.fire('Nhắc nhở', 'Vui lòng chọn nhà cung cấp.', 'warning');
+                return;
+            }
+            if (!categoryId) {
+                Swal.fire('Nhắc nhở', 'Vui lòng chọn danh mục phụ tùng nhập kho.', 'warning');
+                return;
+            }
+
+            const notes = document.getElementById('receiptNotes').value.trim();
+            const mainRows = document.querySelectorAll('#receiptItemsTableBody tr[id^="receiptRow_Main_"]');
+            const items = [];
+
+            const categorySelect = document.getElementById('receiptCategoryId');
+            const categoryName = categorySelect.options[categorySelect.selectedIndex]?.getAttribute('data-name') || '';
+            const isPerishableCategory = ["Dầu nhớt", "Hóa chất", "Ắc quy"].includes(categoryName);
+
+            for (let row of mainRows) {
+                const currentIndex = row.getAttribute('data-index');
+                const partSelect = row.querySelector('.receipt-part-select');
+                const partIdVal = partSelect.value;
+
+                if (!partIdVal) {
+                    Swal.fire('Nhắc nhở', 'Vui lòng chọn phụ tùng cho tất cả các hàng.', 'warning');
+                    return;
+                }
+
+                const quantity = parseInt(row.querySelector('.receipt-qty').value);
+                const importPrice = parseFloat(row.querySelector('.receipt-price').value);
+                const expiredInput = row.querySelector('.receipt-expired');
+                const expiredAt = expiredInput.value ? new Date(expiredInput.value).toISOString() : null;
+
+                if (isNaN(quantity) || quantity <= 0) {
+                    Swal.fire('Nhắc nhở', 'Số lượng phải lớn hơn 0.', 'warning');
+                    return;
+                }
+                if (isNaN(importPrice) || importPrice < 0) {
+                    Swal.fire('Nhắc nhở', 'Giá nhập không được âm.', 'warning');
+                    return;
+                }
+
+                if (isPerishableCategory && !expiredAt) {
+                    Swal.fire('Nhắc nhở', 'Nhóm danh mục này bắt buộc phải điền Hạn sử dụng (ExpiredAt).', 'warning');
+                    return;
+                }
+
+                let itemDto = {
+                    quantity: quantity,
+                    importPrice: importPrice,
+                    expiredAt: expiredAt
+                };
+
+                if (partIdVal === "[NEW]") {
+                    const formContainer = document.getElementById(`receiptRow_Form_${currentIndex}`);
+                    const newPartName = formContainer.querySelector('.new-part-name').value.trim();
+                    const newPartCode = formContainer.querySelector('.new-part-code').value.trim();
+                    const newPartBrand = formContainer.querySelector('.new-part-brand').value.trim();
+                    const newPartPriceSell = parseFloat(formContainer.querySelector('.new-part-price-sell').value);
+                    const newPartUom = formContainer.querySelector('.new-part-uom').value.trim();
+                    const newPartWarranty = parseInt(formContainer.querySelector('.new-part-warranty').value) || 0;
+                    const newPartLocation = formContainer.querySelector('.new-part-location').value.trim();
+                    const newPartMin = parseInt(formContainer.querySelector('.new-part-min').value) || 5;
+                    const newPartMax = parseInt(formContainer.querySelector('.new-part-max').value) || 100;
+                    const newPartDesc = formContainer.querySelector('.new-part-desc').value.trim();
+
+                    if (!newPartName || !newPartCode || isNaN(newPartPriceSell)) {
+                        Swal.fire('Nhắc nhở', 'Vui lòng điền đầy đủ Tên, Mã phụ tùng và Giá bán ra cho phụ tùng thêm mới.', 'warning');
+                        return;
+                    }
+
+                    itemDto.partId = 0;
+                    itemDto.newPart = {
+                        partName: newPartName,
+                        partCode: newPartCode,
+                        brand: newPartBrand || null,
+                        price: newPartPriceSell,
+                        minStockLevel: newPartMin,
+                        maxStockLevel: newPartMax,
+                        unitOfMeasure: newPartUom || "Cái",
+                        warehouseLocation: newPartLocation || null,
+                        warrantyMonths: newPartWarranty,
+                        description: newPartDesc || null
+                    };
+                } else {
+                    itemDto.partId = parseInt(partIdVal);
+                }
+
+                items.push(itemDto);
+            }
+
+            const payload = {
+                supplierId: parseInt(supplierId),
+                categoryId: parseInt(categoryId),
+                notes: notes,
+                items: items
+            };
+
+            const saveBtn = document.getElementById('btnSaveReceipt');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang lưu...';
+
+            fetch('/Parts/CreateInventoryReceipt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi lưu phiếu nhập kho'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: 'Tạo phiếu nhập kho thành công.',
+                    icon: 'success',
+                    confirmButtonColor: '#ffc107'
+                }).then(() => {
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> LƯU PHIẾU NHẬP';
+                Swal.fire('Thất bại', err.message, 'error');
+            });
+        }
+
+        // Admin Modals actions
+        function openAddCategoryModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addCategoryModal'));
+            modal.show();
+        }
+
+        function submitAddCategory(e) {
+            e.preventDefault();
+            const name = document.getElementById('newCatName').value.trim();
+            const desc = document.getElementById('newCatDesc').value.trim();
+
+            const payload = {
+                categoryName: name,
+                description: desc
+            };
+
+            fetch('/Parts/CreateCategory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi thêm danh mục'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                Swal.fire('Thành công', 'Thêm danh mục mới thành công!', 'success').then(() => {
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                Swal.fire('Thất bại', err.message, 'error');
+            });
+        }
+
+        function openAddSupplierModal() {
+            const modal = new bootstrap.Modal(document.getElementById('addSupplierModal'));
+            modal.show();
+        }
+
+        function submitAddSupplier(e) {
+            e.preventDefault();
+            const name = document.getElementById('newSupName').value.trim();
+            const contact = document.getElementById('newSupContact').value.trim();
+            const phone = document.getElementById('newSupPhone').value.trim();
+            const email = document.getElementById('newSupEmail').value.trim();
+            const address = document.getElementById('newSupAddress').value.trim();
+
+            const payload = {
+                supplierName: name,
+                contactName: contact,
+                phone: phone,
+                email: email,
+                address: address,
+                status: 'Active'
+            };
+
+            fetch('/Parts/CreateSupplier', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi thêm nhà cung cấp'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                Swal.fire('Thành công', 'Thêm nhà cung cấp mới thành công!', 'success').then(() => {
+                    location.reload();
+                });
+            })
+            .catch(err => {
+                Swal.fire('Thất bại', err.message, 'error');
+            });
+        }
 
         function openAddModal() {
             $('#modalError').addClass('d-none');
@@ -208,7 +914,6 @@
             $('#modalError').addClass('d-none');
             $('#partForm')[0].reset();
             
-            // Fetch item detail
             $.ajax({
                 url: '/Parts/GetPartJson/' + partId,
                 type: 'GET',
@@ -233,10 +938,8 @@
             });
         }
 
-        // Handle AJAX save form
         $('#partForm').on('submit', function(e) {
             e.preventDefault();
-            
             var form = $(this);
             if (!form.valid()) return;
 
@@ -270,7 +973,6 @@
             });
         });
 
-        // Handle resell action
         function confirmResell(partId, name) {
             Swal.fire({
                 title: 'Bán lại phụ tùng',
@@ -320,7 +1022,6 @@
             });
         }
 
-        // Handle discontinue action
         function confirmDiscontinue(partId, name) {
             Swal.fire({
                 title: 'Xác nhận ngưng bán?',
@@ -357,11 +1058,122 @@
                 }
             });
         }
+
+        // Live Search & Category Filtering
+        function filterPartsTable() {
+            const searchVal = document.getElementById('searchTerm').value.toLowerCase().trim();
+            const catVal = document.getElementById('filterCategory').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('table tbody tr');
+            
+            rows.forEach(row => {
+                const nameCell = row.querySelector('.part-name-cell');
+                const codeCell = row.querySelector('.part-code-cell');
+                const catCell = row.querySelector('.part-cat-cell');
+                
+                if (!nameCell) return; // Skip if empty row
+                
+                const nameText = nameCell.textContent.toLowerCase();
+                const codeText = codeCell.textContent.toLowerCase();
+                const catText = catCell.textContent.toLowerCase();
+                
+                const matchesSearch = nameText.includes(searchVal) || codeText.includes(searchVal);
+                const matchesCategory = !catVal || catText.includes(catVal);
+                
+                if (matchesSearch && matchesCategory) {
+                    row.removeAttribute('style'); // Show row
+                } else {
+                    row.setAttribute('style', 'display: none !important;'); // Hide row
+                }
+            });
+        }
     </script>
 }
 
 <style>
-    .object-fit-cover {
+    .stats-card {
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0, 0, 0, 0.03) !important;
+    }
+    .stats-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06) !important;
+    }
+    .btn-top-action {
+        border-radius: 10px !important;
+        transition: all 0.25s ease;
+    }
+    .btn-top-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .table-responsive {
+        border-radius: 16px;
+    }
+    .table thead th {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 16px 12px;
+        border: none;
+    }
+    .table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background-color 0.2s ease;
+    }
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    .table td {
+        padding: 16px 12px;
+    }
+    .part-img {
+        width: 50px;
+        height: 50px;
         object-fit: cover;
+        border-radius: 12px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    }
+    .img-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        width: 50px;
+        height: 50px;
+    }
+    .table tbody tr:hover .part-img {
+        transform: scale(1.1);
+    }
+    .cat-tag {
+        background-color: #f1f5f9;
+        color: #475569;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+    }
+    .badge-premium {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 11px;
+        letter-spacing: 0.3px;
+    }
+    .btn-action-premium {
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+        width: 32px;
+        height: 32px;
+        padding: 0 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-action-premium:hover {
+        transform: translateY(-2px);
     }
 </style>

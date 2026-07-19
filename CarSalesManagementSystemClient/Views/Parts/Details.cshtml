@@ -178,6 +178,11 @@
                         <i class="bi bi-truck me-1"></i> Vận chuyển & Lắp đặt
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="compatibility-tab" data-bs-toggle="tab" data-bs-target="#compatibility" type="button">
+                        <i class="bi bi-shield-check me-1"></i> Kiểm tra tương thích
+                    </button>
+                </li>
             </ul>
             <div class="tab-content detail-tab-content" id="detailTabContent">
                 <!-- Description tab -->
@@ -278,6 +283,41 @@
                         </div>
                     </div>
                 </div>
+                <!-- Compatibility Check Tab -->
+                <div class="tab-pane fade" id="compatibility" role="tabpanel">
+                    <div class="p-4 bg-white rounded-3 shadow-sm border">
+                        <h4 class="fw-bold mb-3 text-dark d-flex align-items-center" style="font-family: 'Outfit', sans-serif;">
+                            <i class="bi bi-patch-question-fill text-warning me-2 fs-3"></i> KIỂM TRA PHÙ HỢP XE
+                        </h4>
+                        <p class="text-secondary mb-4">Nhập biển số xe của bạn (đã đăng ký trên hệ thống) để kiểm tra phụ tùng này có lắp vừa xe của bạn hay không.</p>
+                        
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-credit-card-2-front"></i></span>
+                                    <input type="text" id="licensePlateInput" class="form-control bg-light border-start-0 py-2 fs-6" placeholder="Ví dụ: 30G-888.88" style="text-transform: uppercase;" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-warning btn-lg w-100 fw-bold py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="performCompatibilityCheck()">
+                                    <i class="bi bi-shield-check me-1"></i> KIỂM TRA NGAY
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="compatibilityResult" class="mt-4 d-none">
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-body d-flex align-items-center p-3">
+                                    <div class="result-icon me-3"></div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1 result-title"></h5>
+                                        <p class="text-secondary mb-0 result-msg"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -329,6 +369,55 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Compatibility check using backend API
+        function performCompatibilityCheck() {
+            const licensePlate = document.getElementById('licensePlateInput').value.trim();
+            if (!licensePlate) {
+                Swal.fire('Nhắc nhở', 'Vui lòng nhập biển số xe.', 'warning');
+                return;
+            }
+            const partCode = '@Model.PartCode';
+            const resultDiv = document.getElementById('compatibilityResult');
+            const resultIcon = resultDiv.querySelector('.result-icon');
+            const resultTitle = resultDiv.querySelector('.result-title');
+            const resultMsg = resultDiv.querySelector('.result-msg');
+
+            resultDiv.classList.add('d-none');
+
+            fetch(`/Parts/CheckCompatibility?licensePlate=${encodeURIComponent(licensePlate)}&partCode=${encodeURIComponent(partCode)}`, {
+                method: 'POST'
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi kiểm tra tương thích'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                resultDiv.classList.remove('d-none');
+                if (data.isCompatible) {
+                    resultDiv.querySelector('.card').className = 'card border-start border-success border-4 shadow-sm rounded-3';
+                    resultIcon.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-2"></i>';
+                    resultTitle.textContent = 'Phụ tùng tương thích';
+                    resultTitle.className = 'fw-bold mb-1 text-success';
+                } else {
+                    resultDiv.querySelector('.card').className = 'card border-start border-danger border-4 shadow-sm rounded-3';
+                    resultIcon.innerHTML = '<i class="bi bi-x-circle-fill text-danger fs-2"></i>';
+                    resultTitle.textContent = 'Phụ tùng không tương thích';
+                    resultTitle.className = 'fw-bold mb-1 text-danger';
+                }
+                resultMsg.textContent = data.message;
+            })
+            .catch(err => {
+                resultDiv.classList.remove('d-none');
+                resultDiv.querySelector('.card').className = 'card border-start border-warning border-4 shadow-sm rounded-3';
+                resultIcon.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning fs-2"></i>';
+                resultTitle.textContent = 'Lỗi hệ thống';
+                resultTitle.className = 'fw-bold mb-1 text-warning';
+                resultMsg.textContent = err.message;
+            });
+        }
+
         // Thumbnail switcher
         function setMainImage(src, thumbEl) {
             document.getElementById('mainImage').src = src;

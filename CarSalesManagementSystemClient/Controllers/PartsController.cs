@@ -399,5 +399,115 @@ namespace CarSalesManagementSystemClient.Controllers
                 return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
             }
         }
+
+        // POST: Parts/CheckCompatibility (AJAX POST)
+        [HttpPost]
+        public async Task<IActionResult> CheckCompatibility(string licensePlate, string partCode)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/Parts/check-compatibility", new { licensePlate, partCode });
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(result);
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Kiểm tra tương thích thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/CreateInventoryReceipt (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> CreateInventoryReceipt([FromBody] object payload)
+        {
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/inventory/receipt", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(result);
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Tạo phiếu nhập kho thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // GET: Parts/GetFilteredParts
+        [HttpGet]
+        public async Task<IActionResult> GetFilteredParts(int categoryId, int supplierId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"http://localhost:5084/api/Parts/filter?categoryId={categoryId}&supplierId={supplierId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(result);
+                }
+                return BadRequest(new { message = "Lỗi tải danh sách phụ tùng đã lọc." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/CreateCategory (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateCategory([FromBody] object payload)
+        {
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/PartCategories", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(new { success = true, data = result });
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Thêm danh mục thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/CreateSupplier (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateSupplier([FromBody] object payload)
+        {
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/Suppliers", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(new { success = true, data = result });
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Thêm nhà cung cấp thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
     }
 }

@@ -53,6 +53,12 @@ namespace CarSalesManagementSystemClient.Models
 
         public DateTime CreatedAt { get; set; }
 
+        public int MinStockLevel { get; set; } = 5;
+        public int MaxStockLevel { get; set; } = 100;
+        public string? WarehouseLocation { get; set; }
+        public int WarrantyMonths { get; set; }
+        public string? UnitOfMeasure { get; set; }
+
         public PartCategoryViewModel? Category { get; set; }
     }
 

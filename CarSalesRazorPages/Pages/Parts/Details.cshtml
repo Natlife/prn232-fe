@@ -1,8 +1,8 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model CarSalesRazorPages.Pages.Parts.DetailsModel
 
 @{
-    ViewData["Title"] = Model.Part!.PartName + " - Chi tiáº¿t phá»¥ tÃ¹ng";
+    ViewData["Title"] = Model.Part!.PartName + " - Chi tiết phụ tùng";
     var relatedParts = Model.RelatedParts ?? new List<CarSalesRazorPages.Models.PartViewModel>();
     var displayImageUrl = string.IsNullOrWhiteSpace(Model.Part!.ImageUrl)
         ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80"
@@ -11,13 +11,13 @@
 }
 
 <div class="part-detail-wrapper">
-    <!-- â”€â”€ Breadcrumb â”€â”€ -->
+    <!-- ── Breadcrumb ── -->
     <div class="breadcrumb-bar py-3">
         <div class="container">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a asp-page="/Index" class="bc-link">Trang chá»§</a></li>
-                    <li class="breadcrumb-item"><a asp-page="/Parts/Index" class="bc-link">Phá»¥ tÃ¹ng</a></li>
+                    <li class="breadcrumb-item"><a asp-page="/Index" class="bc-link">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-page="/Parts/Index" class="bc-link">Phụ tùng</a></li>
                     <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">@Model.Part!.PartName</li>
                 </ol>
             </nav>
@@ -25,7 +25,7 @@
     </div>
 
     <div class="container py-5">
-        <!-- â”€â”€ MAIN PRODUCT SECTION â”€â”€ -->
+        <!-- ── MAIN PRODUCT SECTION ── -->
         <div class="row g-5 align-items-start mb-5">
             <!-- LEFT: Image panel -->
             <div class="col-lg-5">
@@ -38,7 +38,7 @@
                     @if (!isAvailable)
                     {
                         <div class="out-of-stock-overlay">
-                            <span class="out-of-stock-text">Háº¾T HÃ€NG</span>
+                            <span class="out-of-stock-text">HẾT HÀNG</span>
                         </div>
                     }
                     <!-- Category badge on image -->
@@ -68,8 +68,8 @@
             <div class="col-lg-7">
                 <!-- Category chip -->
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="info-chip"><i class="bi bi-grid-fill me-1"></i> @(Model.Part!.Category?.CategoryName ?? "Phá»¥ tÃ¹ng")</span>
-                    <span class="info-chip info-chip--brand"><i class="bi bi-shield-check me-1"></i> @(Model.Part!.Brand ?? "ChÃ­nh hÃ£ng")</span>
+                    <span class="info-chip"><i class="bi bi-grid-fill me-1"></i> @(Model.Part!.Category?.CategoryName ?? "Phụ tùng")</span>
+                    <span class="info-chip info-chip--brand"><i class="bi bi-shield-check me-1"></i> @(Model.Part!.Brand ?? "Chính hãng")</span>
                 </div>
 
                 <h1 class="product-title mb-1">@Model.Part!.PartName</h1>
@@ -92,8 +92,8 @@
 
                 <!-- Price block -->
                 <div class="price-block mb-4">
-                    <span class="price-label">GiÃ¡ bÃ¡n:</span>
-                    <span class="price-value">@Model.Part!.Price.ToString("N0")<span class="price-currency"> Ä‘</span></span>
+                    <span class="price-label">Giá bán:</span>
+                    <span class="price-value">@Model.Part!.Price.ToString("N0")<span class="price-currency"> đ</span></span>
                 </div>
 
                 <!-- Stock status -->
@@ -102,19 +102,19 @@
                     {
                         <div class="stock-in">
                             <i class="bi bi-check-circle-fill me-2"></i>
-                            CÃ²n hÃ ng â€” <strong>@Model.Part!.Quantity</strong> sáº£n pháº©m trong kho
+                            Còn hàng — <strong>@Model.Part!.Quantity</strong> sản phẩm trong kho
                         </div>
                     }
                     else if (Model.Part!.Status == "Out of Stock")
                     {
                         <div class="stock-out">
-                            <i class="bi bi-x-circle-fill me-2"></i> Táº¡m háº¿t hÃ ng
+                            <i class="bi bi-x-circle-fill me-2"></i> Tạm hết hàng
                         </div>
                     }
                     else
                     {
                         <div class="stock-inactive">
-                            <i class="bi bi-slash-circle-fill me-2"></i> NgÆ°ng kinh doanh
+                            <i class="bi bi-slash-circle-fill me-2"></i> Ngưng kinh doanh
                         </div>
                     }
                 </div>
@@ -134,7 +134,7 @@
                         </div>
                         <button class="btn-add-cart flex-grow-1" id="btnAddToCart"
                                 onclick="addToCartDetail(@Model.Part!.PartId, @Model.Part!.Quantity)">
-                            <i class="bi bi-cart-plus-fill me-2"></i> ThÃªm vÃ o giá» hÃ ng
+                            <i class="bi bi-cart-plus-fill me-2"></i> Thêm vào giỏ hàng
                         </button>
                     </div>
                     <a asp-page="/PartOrders/Checkout"
@@ -146,37 +146,42 @@
                 {
                     <div class="mb-4">
                         <button class="btn-add-cart w-100 disabled-btn" disabled>
-                            <i class="bi bi-x-circle me-2"></i> Sáº£n pháº©m khÃ´ng cÃ³ sáºµn
+                            <i class="bi bi-x-circle me-2"></i> Sản phẩm không có sẵn
                         </button>
                     </div>
                 }
 
                 <!-- Feature pills -->
                 <div class="feature-pills">
-                    <span class="pill"><i class="bi bi-shield-fill-check text-success me-1"></i> ChÃ­nh hÃ£ng 100%</span>
-                    <span class="pill"><i class="bi bi-arrow-return-left text-warning me-1"></i> Äá»•i tráº£ 7 ngÃ y</span>
-                    <span class="pill"><i class="bi bi-truck text-info me-1"></i> Giao hÃ ng toÃ n quá»‘c</span>
-                    <span class="pill"><i class="bi bi-headset text-danger me-1"></i> Há»— trá»£ 24/7</span>
+                    <span class="pill"><i class="bi bi-shield-fill-check text-success me-1"></i> Chính hãng 100%</span>
+                    <span class="pill"><i class="bi bi-arrow-return-left text-warning me-1"></i> Đổi trả 7 ngày</span>
+                    <span class="pill"><i class="bi bi-truck text-info me-1"></i> Giao hàng toàn quốc</span>
+                    <span class="pill"><i class="bi bi-headset text-danger me-1"></i> Hỗ trợ 24/7</span>
                 </div>
             </div>
         </div>
 
-        <!-- â”€â”€ SPECS + DESCRIPTION TABS â”€â”€ -->
+        <!-- ── SPECS + DESCRIPTION TABS ── -->
         <div class="detail-tabs-card mb-5">
             <ul class="nav nav-tabs detail-nav-tabs" id="detailTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc" type="button">
-                        <i class="bi bi-card-text me-1"></i> MÃ´ táº£ sáº£n pháº©m
+                        <i class="bi bi-card-text me-1"></i> Mô tả sản phẩm
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="spec-tab" data-bs-toggle="tab" data-bs-target="#spec" type="button">
-                        <i class="bi bi-list-check me-1"></i> ThÃ´ng sá»‘ ká»¹ thuáº­t
+                        <i class="bi bi-list-check me-1"></i> Thông số kỹ thuật
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="delivery-tab" data-bs-toggle="tab" data-bs-target="#delivery" type="button">
-                        <i class="bi bi-truck me-1"></i> Váº­n chuyá»ƒn & Láº¯p Ä‘áº·t
+                        <i class="bi bi-truck me-1"></i> Vận chuyển & Lắp đặt
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="compatibility-tab" data-bs-toggle="tab" data-bs-target="#compatibility" type="button">
+                        <i class="bi bi-shield-check me-1"></i> Kiểm tra tương thích
                     </button>
                 </li>
             </ul>
@@ -185,7 +190,7 @@
                 <div class="tab-pane fade show active" id="desc" role="tabpanel">
                     @if (string.IsNullOrWhiteSpace(Model.Part!.Description))
                     {
-                        <p class="text-secondary fst-italic mb-0">ChÆ°a cÃ³ mÃ´ táº£ chi tiáº¿t cho sáº£n pháº©m nÃ y. Vui lÃ²ng liÃªn há»‡ cá»­a hÃ ng Ä‘á»ƒ biáº¿t thÃªm thÃ´ng tin.</p>
+                        <p class="text-secondary fst-italic mb-0">Chưa có mô tả chi tiết cho sản phẩm này. Vui lòng liên hệ cửa hàng để biết thêm thông tin.</p>
                     }
                     else
                     {
@@ -198,43 +203,43 @@
                         <table class="table table-hover spec-table mb-0">
                             <tbody>
                                 <tr>
-                                    <th scope="row" class="spec-label">MÃ£ phá»¥ tÃ¹ng</th>
+                                    <th scope="row" class="spec-label">Mã phụ tùng</th>
                                     <td><code>@Model.Part!.PartCode</code></td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="spec-label">ThÆ°Æ¡ng hiá»‡u</th>
-                                    <td>@(Model.Part!.Brand ?? "â€”")</td>
+                                    <th scope="row" class="spec-label">Thương hiệu</th>
+                                    <td>@(Model.Part!.Brand ?? "—")</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="spec-label">Danh má»¥c</th>
-                                    <td>@(Model.Part!.Category?.CategoryName ?? "â€”")</td>
+                                    <th scope="row" class="spec-label">Danh mục</th>
+                                    <td>@(Model.Part!.Category?.CategoryName ?? "—")</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="spec-label">Tá»“n kho</th>
+                                    <th scope="row" class="spec-label">Tồn kho</th>
                                     <td>
                                         @if (Model.Part!.Quantity > 0)
                                         {
-                                            <span class="text-success fw-bold">@Model.Part!.Quantity sáº£n pháº©m</span>
+                                            <span class="text-success fw-bold">@Model.Part!.Quantity sản phẩm</span>
                                         }
                                         else
                                         {
-                                            <span class="text-danger fw-bold">Háº¿t hÃ ng</span>
+                                            <span class="text-danger fw-bold">Hết hàng</span>
                                         }
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="spec-label">Tráº¡ng thÃ¡i</th>
+                                    <th scope="row" class="spec-label">Trạng thái</th>
                                     <td>
                                         @switch (Model.Part!.Status)
                                         {
                                             case "Available":
-                                                <span class="badge bg-success px-3 py-2">Äang bÃ¡n</span>
+                                                <span class="badge bg-success px-3 py-2">Đang bán</span>
                                                 break;
                                             case "Out of Stock":
-                                                <span class="badge bg-warning text-dark px-3 py-2">Háº¿t hÃ ng</span>
+                                                <span class="badge bg-warning text-dark px-3 py-2">Hết hàng</span>
                                                 break;
                                             case "Inactive":
-                                                <span class="badge bg-secondary px-3 py-2">NgÆ°ng bÃ¡n</span>
+                                                <span class="badge bg-secondary px-3 py-2">Ngưng bán</span>
                                                 break;
                                             default:
                                                 <span class="badge bg-secondary px-3 py-2">@Model.Part!.Status</span>
@@ -243,7 +248,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" class="spec-label">NgÃ y cáº­p nháº­t</th>
+                                    <th scope="row" class="spec-label">Ngày cập nhật</th>
                                     <td>@Model.Part!.CreatedAt.ToString("dd/MM/yyyy")</td>
                                 </tr>
                             </tbody>
@@ -256,25 +261,60 @@
                         <div class="col-md-4">
                             <div class="delivery-option-card">
                                 <div class="delivery-icon"><i class="bi bi-shop"></i></div>
-                                <h6 class="fw-bold mt-2 mb-1">Nháº­n táº¡i cá»­a hÃ ng</h6>
-                                <p class="text-secondary mb-1" style="font-size:13px;">Äáº¿n trá»±c tiáº¿p showroom nháº­n hÃ ng.</p>
-                                <span class="text-success fw-bold">Miá»…n phÃ­</span>
+                                <h6 class="fw-bold mt-2 mb-1">Nhận tại cửa hàng</h6>
+                                <p class="text-secondary mb-1" style="font-size:13px;">Đến trực tiếp showroom nhận hàng.</p>
+                                <span class="text-success fw-bold">Miễn phí</span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="delivery-option-card">
                                 <div class="delivery-icon"><i class="bi bi-truck"></i></div>
-                                <h6 class="fw-bold mt-2 mb-1">Giao hÃ ng táº­n nÆ¡i</h6>
-                                <p class="text-secondary mb-1" style="font-size:13px;">Ship Ä‘áº¿n Ä‘á»‹a chá»‰ cá»§a báº¡n.</p>
-                                <span class="text-warning fw-bold">+ 30.000 Ä‘</span>
+                                <h6 class="fw-bold mt-2 mb-1">Giao hàng tận nơi</h6>
+                                <p class="text-secondary mb-1" style="font-size:13px;">Ship đến địa chỉ của bạn.</p>
+                                <span class="text-warning fw-bold">+ 30.000 đ</span>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="delivery-option-card">
                                 <div class="delivery-icon"><i class="bi bi-tools"></i></div>
-                                <h6 class="fw-bold mt-2 mb-1">Láº¯p Ä‘áº·t táº¡i garage</h6>
-                                <p class="text-secondary mb-1" style="font-size:13px;">Giao & láº¯p Ä‘áº·t táº¡i garage cá»§a báº¡n.</p>
-                                <span class="text-danger fw-bold">+ 50.000 Ä‘</span>
+                                <h6 class="fw-bold mt-2 mb-1">Lắp đặt tại garage</h6>
+                                <p class="text-secondary mb-1" style="font-size:13px;">Giao & lắp đặt tại garage của bạn.</p>
+                                <span class="text-danger fw-bold">+ 50.000 đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Compatibility Check Tab -->
+                <div class="tab-pane fade" id="compatibility" role="tabpanel">
+                    <div class="p-4 bg-white rounded-3 shadow-sm border">
+                        <h4 class="fw-bold mb-3 text-dark d-flex align-items-center" style="font-family: 'Outfit', sans-serif;">
+                            <i class="bi bi-patch-question-fill text-warning me-2 fs-3"></i> KIỂM TRA PHÙ HỢP XE
+                        </h4>
+                        <p class="text-secondary mb-4">Nhập biển số xe của bạn (đã đăng ký trên hệ thống) để kiểm tra phụ tùng này có lắp vừa xe của bạn hay không.</p>
+                        
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-light border-end-0 text-secondary"><i class="bi bi-credit-card-2-front"></i></span>
+                                    <input type="text" id="licensePlateInput" class="form-control bg-light border-start-0 py-2 fs-6" placeholder="Ví dụ: 30G-888.88" style="text-transform: uppercase;" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" class="btn btn-warning btn-lg w-100 fw-bold py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="performCompatibilityCheck()">
+                                    <i class="bi bi-shield-check me-1"></i> KIỂM TRA NGAY
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="compatibilityResult" class="mt-4 d-none">
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-body d-flex align-items-center p-3">
+                                    <div class="result-icon me-3"></div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1 result-title"></h5>
+                                        <p class="text-secondary mb-0 result-msg"></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -282,13 +322,13 @@
             </div>
         </div>
 
-        <!-- â”€â”€ RELATED PARTS â”€â”€ -->
+        <!-- ── RELATED PARTS ── -->
         @if (relatedParts.Any())
         {
             <div class="related-section">
                 <div class="section-title-row mb-4">
                     <div class="section-accent-bar"></div>
-                    <h2 class="section-title">Phá»¥ tÃ¹ng cÃ¹ng danh má»¥c</h2>
+                    <h2 class="section-title">Phụ tùng cùng danh mục</h2>
                 </div>
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
                     @foreach (var rp in relatedParts)
@@ -306,14 +346,14 @@
                                         <small class="text-warning fw-bold text-uppercase" style="font-size:11px;">@rp.Brand</small>
                                         <h6 class="text-dark fw-bold mb-1 mt-1 related-name">@rp.PartName</h6>
                                         <div class="d-flex justify-content-between align-items-center mt-2">
-                                            <span class="text-danger fw-bold">@rp.Price.ToString("N0") Ä‘</span>
+                                            <span class="text-danger fw-bold">@rp.Price.ToString("N0") đ</span>
                                             @if (rp.Quantity > 0)
                                             {
-                                                <span class="badge bg-success" style="font-size:10px;">CÃ²n hÃ ng</span>
+                                                <span class="badge bg-success" style="font-size:10px;">Còn hàng</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary" style="font-size:10px;">Háº¿t hÃ ng</span>
+                                                <span class="badge bg-secondary" style="font-size:10px;">Hết hàng</span>
                                             }
                                         </div>
                                     </div>
@@ -330,6 +370,59 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Compatibility check using backend API
+        function performCompatibilityCheck() {
+            const licensePlate = document.getElementById('licensePlateInput').value.trim();
+            if (!licensePlate) {
+                Swal.fire('Nhắc nhở', 'Vui lòng nhập biển số xe.', 'warning');
+                return;
+            }
+            const partCode = '@Model.Part!.PartCode';
+            const resultDiv = document.getElementById('compatibilityResult');
+            const resultIcon = resultDiv.querySelector('.result-icon');
+            const resultTitle = resultDiv.querySelector('.result-title');
+            const resultMsg = resultDiv.querySelector('.result-msg');
+
+            resultDiv.classList.add('d-none');
+
+            fetch('http://localhost:5084/api/Parts/check-compatibility', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ licensePlate: licensePlate, partCode: partCode })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Lỗi kiểm tra tương thích'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                resultDiv.classList.remove('d-none');
+                if (data.isCompatible) {
+                    resultDiv.querySelector('.card').className = 'card border-start border-success border-4 shadow-sm rounded-3';
+                    resultIcon.innerHTML = '<i class="bi bi-check-circle-fill text-success fs-2"></i>';
+                    resultTitle.textContent = 'Phụ tùng tương thích';
+                    resultTitle.className = 'fw-bold mb-1 text-success';
+                } else {
+                    resultDiv.querySelector('.card').className = 'card border-start border-danger border-4 shadow-sm rounded-3';
+                    resultIcon.innerHTML = '<i class="bi bi-x-circle-fill text-danger fs-2"></i>';
+                    resultTitle.textContent = 'Phụ tùng không tương thích';
+                    resultTitle.className = 'fw-bold mb-1 text-danger';
+                }
+                resultMsg.textContent = data.message;
+            })
+            .catch(err => {
+                resultDiv.classList.remove('d-none');
+                resultDiv.querySelector('.card').className = 'card border-start border-warning border-4 shadow-sm rounded-3';
+                resultIcon.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning fs-2"></i>';
+                resultTitle.textContent = 'Lỗi hệ thống';
+                resultTitle.className = 'fw-bold mb-1 text-warning';
+                resultMsg.textContent = err.message;
+            });
+        }
+
         // Thumbnail switcher
         function setMainImage(src, thumbEl) {
             document.getElementById('mainImage').src = src;
@@ -352,14 +445,14 @@
             var isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
             if (!isAuthenticated) {
                 Swal.fire({
-                    title: 'YÃªu cáº§u Ä‘Äƒng nháº­p!',
-                    text: 'Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thÃªm phá»¥ tÃ¹ng vÃ o giá» hÃ ng.',
+                    title: 'Yêu cầu đăng nhập!',
+                    text: 'Vui lòng đăng nhập để thêm phụ tùng vào giỏ hàng.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#ffc107',
                     cancelButtonColor: '#262626',
-                    confirmButtonText: 'ÄÄƒng nháº­p',
-                    cancelButtonText: 'Há»§y'
+                    confirmButtonText: 'Đăng nhập',
+                    cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         var myModal = new bootstrap.Modal(document.getElementById('loginModal'));
@@ -371,45 +464,45 @@
 
             var qty = parseInt(document.getElementById('qtyInput').value);
             if (qty < 1 || qty > maxQty) {
-                Swal.fire('Sá»‘ lÆ°á»£ng khÃ´ng há»£p lá»‡', `Vui lÃ²ng chá»n tá»« 1 Ä‘áº¿n ${maxQty}`, 'warning');
+                Swal.fire('Số lượng không hợp lệ', `Vui lòng chọn từ 1 đến ${maxQty}`, 'warning');
                 return;
             }
 
             var btn = document.getElementById('btnAddToCart');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Äang thÃªm...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang thêm...';
 
             $.ajax({
-                url: ''/PartOrders/Checkout?handler=AddToCart'',
+                url: '/PartOrders/Checkout?handler=AddToCart',
                 type: 'POST',
                 data: { partId: partId, quantity: qty },
                 success: function(res) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-cart-plus-fill me-2"></i> ThÃªm vÃ o giá» hÃ ng';
+                    btn.innerHTML = '<i class="bi bi-cart-plus-fill me-2"></i> Thêm vào giỏ hàng';
                     if (res.success) {
                         updateNavbarCartCount(res.cartCount);
                         Swal.fire({
-                            title: 'ÄÃ£ thÃªm vÃ o giá» hÃ ng!',
+                            title: 'Đã thêm vào giỏ hàng!',
                             text: res.message,
                             icon: 'success',
                             showCancelButton: true,
                             confirmButtonColor: '#ffc107',
                             cancelButtonColor: '#262626',
-                            confirmButtonText: 'Äi Ä‘áº¿n giá» hÃ ng',
-                            cancelButtonText: 'Tiáº¿p tá»¥c mua sáº¯m'
+                            confirmButtonText: 'Đi đến giỏ hàng',
+                            cancelButtonText: 'Tiếp tục mua sắm'
                         }).then((navResult) => {
                             if (navResult.isConfirmed) {
-                                window.location.href = ''/PartOrders/Cart'';
+                                window.location.href = '/PartOrders/Cart';
                             }
                         });
                     } else {
-                        Swal.fire('Tháº¥t báº¡i!', res.message, 'error');
+                        Swal.fire('Thất bại!', res.message, 'error');
                     }
                 },
                 error: function() {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-cart-plus-fill me-2"></i> ThÃªm vÃ o giá» hÃ ng';
-                    Swal.fire('Lá»—i!', 'ÄÃ£ xáº£y ra lá»—i káº¿t ná»‘i.', 'error');
+                    btn.innerHTML = '<i class="bi bi-cart-plus-fill me-2"></i> Thêm vào giỏ hàng';
+                    Swal.fire('Lỗi!', 'Đã xảy ra lỗi kết nối.', 'error');
                 }
             });
         }
@@ -425,13 +518,13 @@
 }
 
 <style>
-    /* â”€â”€ Wrapper â”€â”€ */
+    /* ── Wrapper ── */
     .part-detail-wrapper {
         background: #f8f9fa;
         min-height: 80vh;
     }
 
-    /* â”€â”€ Breadcrumb bar â”€â”€ */
+    /* ── Breadcrumb bar ── */
     .breadcrumb-bar {
         background: #1a1a2e;
         border-bottom: 3px solid #ffc107;
@@ -446,7 +539,7 @@
     }
     .bc-link:hover { color: #ffc107; }
 
-    /* â”€â”€ Image card â”€â”€ */
+    /* ── Image card ── */
     .img-card { background: #fff; }
     .img-zoom-container { overflow: hidden; }
     .product-main-img {
@@ -477,7 +570,7 @@
         letter-spacing: 0.5px;
     }
 
-    /* â”€â”€ Thumbnails â”€â”€ */
+    /* ── Thumbnails ── */
     .thumb-strip { flex-wrap: wrap; }
     .thumb {
         width: 68px; height: 68px;
@@ -491,7 +584,7 @@
     .thumb:hover { transform: scale(1.06); }
     .thumb.active { border-color: #ffc107; }
 
-    /* â”€â”€ Info panel â”€â”€ */
+    /* ── Info panel ── */
     .info-chip {
         background: #fff8e1;
         color: #b8860b;
@@ -526,7 +619,7 @@
 
     .star-rating { color: #ffc107; font-size: 14px; }
 
-    /* â”€â”€ Price â”€â”€ */
+    /* ── Price ── */
     .price-block { display: flex; align-items: baseline; gap: 12px; }
     .price-label { font-size: 14px; color: #777; }
     .price-value {
@@ -538,7 +631,7 @@
     }
     .price-currency { font-size: 1.2rem; }
 
-    /* â”€â”€ Stock â”€â”€ */
+    /* ── Stock ── */
     .stock-in {
         background: #e8f5e9; color: #2e7d32;
         padding: 10px 16px; border-radius: 10px;
@@ -558,7 +651,7 @@
         border-left: 4px solid #9c27b0;
     }
 
-    /* â”€â”€ Cart actions â”€â”€ */
+    /* ── Cart actions ── */
     .cart-actions { display: flex; align-items: stretch; gap: 0; }
     .qty-selector {
         display: flex; align-items: center;
@@ -614,7 +707,7 @@
         box-shadow: 0 8px 20px rgba(26,26,46,0.35);
     }
 
-    /* â”€â”€ Feature pills â”€â”€ */
+    /* ── Feature pills ── */
     .feature-pills { display: flex; flex-wrap: wrap; gap: 8px; }
     .pill {
         background: #fff;
@@ -626,7 +719,7 @@
         box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
-    /* â”€â”€ Tabs â”€â”€ */
+    /* ── Tabs ── */
     .detail-tabs-card {
         background: #fff;
         border-radius: 16px;
@@ -656,7 +749,7 @@
     }
     .detail-tab-content { padding: 28px; }
 
-    /* â”€â”€ Spec table â”€â”€ */
+    /* ── Spec table ── */
     .spec-table th, .spec-table td { padding: 12px 16px; vertical-align: middle; }
     .spec-label {
         width: 35%;
@@ -665,7 +758,7 @@
         background: #fafafa;
     }
 
-    /* â”€â”€ Delivery option cards â”€â”€ */
+    /* ── Delivery option cards ── */
     .delivery-option-card {
         background: #f8f9fa;
         border: 2px solid #e0e0e0;
@@ -683,7 +776,7 @@
         color: #1a1a2e;
     }
 
-    /* â”€â”€ Related section â”€â”€ */
+    /* ── Related section ── */
     .section-title-row { display: flex; align-items: center; gap: 14px; }
     .section-accent-bar {
         width: 5px; height: 36px;
@@ -729,6 +822,3 @@
         .btn-add-cart { width: 100%; }
     }
 </style>
-
-
-
