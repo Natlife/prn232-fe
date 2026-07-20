@@ -1,0 +1,1486 @@
+@model CarSalesManagementSystemClient.Models.PartViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Lịch sử biến động phụ tùng - " + Model.PartName;
+
+    var transactions = ViewBag.Transactions
+        as IEnumerable<CarSalesManagementSystemClient.Models.InventoryTransactionViewModel>
+        ?? new List<CarSalesManagementSystemClient.Models.InventoryTransactionViewModel>();
+
+    var transactionList = transactions.ToList();
+
+    var displayImageUrl = string.IsNullOrWhiteSpace(Model.ImageUrl)
+        ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=900&q=85"
+        : Model.ImageUrl;
+
+    var today = DateTime.Today;
+    var isExpired = Model.ExpiredAt.HasValue
+        && Model.ExpiredAt.Value.Date < today;
+
+    var isExpiringSoon = Model.ExpiredAt.HasValue
+        && !isExpired
+        && Model.ExpiredAt.Value.Date <= today.AddDays(30);
+
+    var daysToExpiry = Model.ExpiredAt.HasValue
+        ? (Model.ExpiredAt.Value.Date - today).Days
+        : (int?)null;
+
+    var isLowStock = Model.Quantity <= Model.MinStockLevel;
+
+    var stockPercentage = Model.MaxStockLevel > 0
+        ? (int)Math.Round((double)Model.Quantity / Model.MaxStockLevel * 100)
+        : 0;
+
+    stockPercentage = Math.Max(0, Math.Min(stockPercentage, 100));
+
+    var importCount = transactionList.Count(x => x.TransactionType == "Import");
+    var exportCount = transactionList.Count(x => x.TransactionType == "Export");
+    var returnCount = transactionList.Count(x => x.TransactionType == "Return");
+    var adjustmentCount = transactionList.Count(x => x.TransactionType == "Adjustment");
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+<div class="part-history-page">
+    <div class="container-fluid px-3 px-lg-4 py-4 py-lg-5">
+
+        <!-- Page header -->
+        <header class="page-header">
+            <div class="page-header__content">
+                <a asp-action="Manage" class="back-link">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    <span>Quay lại quản lý phụ tùng</span>
+                </a>
+
+                <div class="page-heading">
+                    <div>
+                        <div class="eyebrow">Quản lý kho phụ tùng</div>
+                        <h1>Lịch sử biến động kho</h1>
+                        <p>
+                            Theo dõi thông tin tồn kho và toàn bộ giao dịch nhập, xuất,
+                            hoàn trả hoặc điều chỉnh của phụ tùng.
+                        </p>
+                    </div>
+
+                    <div class="part-identity">
+                        <span class="part-identity__code">@Model.PartCode</span>
+                        <span class="part-identity__name">@Model.PartName</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert-modern alert-modern--danger" role="alert">
+                <div class="alert-modern__icon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div>
+                    <strong>Không thể tải đầy đủ dữ liệu</strong>
+                    <div>@ViewBag.ErrorMessage</div>
+                </div>
+            </div>
+        }
+
+        <!-- Quick statistics -->
+        <section class="summary-grid" aria-label="Tổng quan biến động kho">
+            <article class="summary-card">
+                <div class="summary-card__icon summary-card__icon--primary">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div>
+                    <span class="summary-card__label">Tồn kho hiện tại</span>
+                    <strong>@Model.Quantity <small>@Model.UnitOfMeasure</small></strong>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-card__icon summary-card__icon--success">
+                    <i class="bi bi-arrow-down-left"></i>
+                </div>
+                <div>
+                    <span class="summary-card__label">Lần nhập kho</span>
+                    <strong>@importCount</strong>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-card__icon summary-card__icon--danger">
+                    <i class="bi bi-arrow-up-right"></i>
+                </div>
+                <div>
+                    <span class="summary-card__label">Lần xuất kho</span>
+                    <strong>@exportCount</strong>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-card__icon summary-card__icon--neutral">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div>
+                    <span class="summary-card__label">Hoàn / điều chỉnh</span>
+                    <strong>@(returnCount + adjustmentCount)</strong>
+                </div>
+            </article>
+        </section>
+
+        <div class="content-grid">
+
+            <!-- Product information -->
+            <aside class="part-panel">
+                <div class="part-card">
+                    <div class="part-card__media">
+                        <img src="@displayImageUrl"
+                             alt="@Model.PartName"
+                             loading="lazy"
+                             onerror="this.src='https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=900&q=85';" />
+
+                        <div class="part-card__media-overlay"></div>
+
+                        <div class="part-card__media-content">
+                            <span class="part-code">@Model.PartCode</span>
+                            <h2>@Model.PartName</h2>
+                            <span class="category-pill">
+                                <i class="bi bi-tag"></i>
+                                @(Model.Category?.CategoryName ?? "Chưa phân loại")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="part-card__body">
+                        <div class="section-title">
+                            <div>
+                                <span>Thông tin phụ tùng</span>
+                                <small>Dữ liệu hiện tại trong hệ thống</small>
+                            </div>
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+
+                        <div class="stock-status-box @(isLowStock ? "stock-status-box--warning" : "stock-status-box--healthy")">
+                            <div class="stock-status-box__top">
+                                <div>
+                                    <span>Tồn kho</span>
+                                    <strong>@Model.Quantity @Model.UnitOfMeasure</strong>
+                                </div>
+
+                                @if (isLowStock)
+                                {
+                                    <span class="status-chip status-chip--warning">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        Sắp hết hàng
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-chip status-chip--success">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        Ổn định
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="stock-progress" role="progressbar"
+                                 aria-valuenow="@stockPercentage"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                <span style="width: @stockPercentage%"></span>
+                            </div>
+
+                            <div class="stock-status-box__limits">
+                                <span>Tối thiểu: <strong>@Model.MinStockLevel</strong></span>
+                                <span>Tối đa: <strong>@Model.MaxStockLevel</strong></span>
+                            </div>
+                        </div>
+
+                        <dl class="detail-list">
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-buildings"></i></span>
+                                    Thương hiệu
+                                </dt>
+                                <dd>@(string.IsNullOrWhiteSpace(Model.Brand) ? "OEM / Không xác định" : Model.Brand)</dd>
+                            </div>
+
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-cash-stack"></i></span>
+                                    Giá bán
+                                </dt>
+                                <dd class="price-value">@Model.Price.ToString("N0") đ</dd>
+                            </div>
+
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-geo-alt"></i></span>
+                                    Vị trí kho
+                                </dt>
+                                <dd>@(string.IsNullOrWhiteSpace(Model.WarehouseLocation) ? "Chưa sắp xếp" : Model.WarehouseLocation)</dd>
+                            </div>
+
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-shield-check"></i></span>
+                                    Bảo hành
+                                </dt>
+                                <dd>@Model.WarrantyMonths tháng</dd>
+                            </div>
+
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-calendar3"></i></span>
+                                    Hạn sử dụng
+                                </dt>
+                                <dd>
+                                    @if (!Model.ExpiredAt.HasValue)
+                                    {
+                                        <span class="status-chip status-chip--neutral">Không áp dụng</span>
+                                    }
+                                    else if (isExpired)
+                                    {
+                                        <span class="status-chip status-chip--danger">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            Đã hết hạn @Math.Abs(daysToExpiry ?? 0) ngày
+                                        </span>
+                                    }
+                                    else if (isExpiringSoon)
+                                    {
+                                        <span class="status-chip status-chip--warning">
+                                            <i class="bi bi-clock-fill"></i>
+                                            Còn @daysToExpiry ngày
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="expiry-date">
+                                            @Model.ExpiredAt.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                    }
+                                </dd>
+                            </div>
+
+                            <div class="detail-list__item">
+                                <dt>
+                                    <span class="detail-icon"><i class="bi bi-toggle-on"></i></span>
+                                    Trạng thái
+                                </dt>
+                                <dd>
+                                    @if (Model.Status == "Available")
+                                    {
+                                        <span class="status-chip status-chip--success">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Đang kinh doanh
+                                        </span>
+                                    }
+                                    else if (Model.Status == "OutOfStock" || Model.Status == "Out of Stock")
+                                    {
+                                        <span class="status-chip status-chip--warning">
+                                            <i class="bi bi-box"></i>
+                                            Tạm hết hàng
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-chip status-chip--danger">
+                                            <i class="bi bi-slash-circle-fill"></i>
+                                            Ngưng kinh doanh
+                                        </span>
+                                    }
+                                </dd>
+                            </div>
+                        </dl>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Description))
+                        {
+                            <div class="description-box">
+                                <div class="description-box__title">
+                                    <i class="bi bi-card-text"></i>
+                                    Mô tả
+                                </div>
+                                <p>@Model.Description</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Transactions -->
+            <main class="transaction-panel">
+                <section class="transaction-card">
+                    <div class="transaction-card__header">
+                        <div>
+                            <div class="section-kicker">Inventory ledger</div>
+                            <h2>Nhật ký biến động kho</h2>
+                            <p>@transactionList.Count giao dịch đã được ghi nhận cho phụ tùng này.</p>
+                        </div>
+
+                        <span class="record-count">
+                            <i class="bi bi-clock-history"></i>
+                            @transactionList.Count bản ghi
+                        </span>
+                    </div>
+
+                    <div class="transaction-toolbar">
+                        <label class="search-field" for="transactionSearch">
+                            <i class="bi bi-search"></i>
+                            <input id="transactionSearch"
+                                   type="search"
+                                   placeholder="Tìm theo người thực hiện, mã tham chiếu hoặc ghi chú..."
+                                   autocomplete="off"
+                                   oninput="filterTransactions()" />
+                        </label>
+
+                        <select id="transactionTypeFilter"
+                                class="type-filter"
+                                onchange="filterTransactions()"
+                                aria-label="Lọc theo loại giao dịch">
+                            <option value="">Tất cả giao dịch</option>
+                            <option value="Import">Nhập kho</option>
+                            <option value="Export">Xuất kho</option>
+                            <option value="Return">Hoàn hàng</option>
+                            <option value="Adjustment">Điều chỉnh</option>
+                        </select>
+                    </div>
+
+                    @if (!transactionList.Any())
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state__icon">
+                                <i class="bi bi-inboxes"></i>
+                            </div>
+                            <h3>Chưa có biến động kho</h3>
+                            <p>
+                                Phụ tùng này chưa phát sinh giao dịch nhập, xuất,
+                                hoàn hàng hoặc điều chỉnh tồn kho.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive transaction-table-wrapper">
+                            <table class="transaction-table">
+                                <thead>
+                                    <tr>
+                                        <th>Thời gian</th>
+                                        <th>Loại giao dịch</th>
+                                        <th class="text-center">Số lượng</th>
+                                        <th>Người thực hiện</th>
+                                        <th>Tham chiếu</th>
+                                        <th>Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionTableBody">
+                                    @foreach (var tx in transactionList)
+                                    {
+                                        var isPositive = tx.TransactionType == "Import"
+                                            || tx.TransactionType == "Return";
+
+                                        var quantityValue = Math.Abs(tx.Quantity);
+
+                                        var searchableText = string.Join(" ",
+                                            tx.TransactionType,
+                                            tx.StaffName,
+                                            tx.ReferenceType,
+                                            tx.ReferenceId,
+                                            tx.Notes
+                                        ).ToLowerInvariant();
+
+                                        <tr class="transaction-row"
+                                            data-type="@tx.TransactionType"
+                                            data-search="@searchableText">
+                                            <td>
+                                                <div class="date-cell">
+                                                    <span class="date-cell__icon">
+                                                        <i class="bi bi-calendar-event"></i>
+                                                    </span>
+                                                    <span>@tx.TransactionDate</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if (tx.TransactionType == "Import")
+                                                {
+                                                    <span class="transaction-type transaction-type--import">
+                                                        <i class="bi bi-arrow-down-left"></i>
+                                                        Nhập kho
+                                                    </span>
+                                                }
+                                                else if (tx.TransactionType == "Export")
+                                                {
+                                                    <span class="transaction-type transaction-type--export">
+                                                        <i class="bi bi-arrow-up-right"></i>
+                                                        Xuất kho
+                                                    </span>
+                                                }
+                                                else if (tx.TransactionType == "Return")
+                                                {
+                                                    <span class="transaction-type transaction-type--return">
+                                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                                        Hoàn hàng
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="transaction-type transaction-type--adjustment">
+                                                        <i class="bi bi-sliders"></i>
+                                                        Điều chỉnh
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="quantity-chip @(isPositive ? "quantity-chip--positive" : "quantity-chip--negative")">
+                                                    @(isPositive ? "+" : "−")@quantityValue
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="user-cell">
+                                                    <span class="user-avatar">
+                                                        <i class="bi bi-person"></i>
+                                                    </span>
+                                                    <span>@(string.IsNullOrWhiteSpace(tx.StaffName) ? "Không xác định" : tx.StaffName)</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if (tx.ReferenceId.HasValue)
+                                                {
+                                                    <span class="reference-chip">
+                                                        @tx.ReferenceType #@tx.ReferenceId
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="muted-value">Không có</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="note-cell">
+                                                    @(string.IsNullOrWhiteSpace(tx.Notes) ? "Không có ghi chú" : tx.Notes)
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="transactionEmptyFilter" class="filter-empty-state d-none">
+                            <i class="bi bi-search"></i>
+                            <strong>Không tìm thấy giao dịch phù hợp</strong>
+                            <span>Thử thay đổi từ khóa hoặc loại giao dịch.</span>
+                            <button type="button" onclick="resetTransactionFilters()">Xóa bộ lọc</button>
+                        </div>
+                    }
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function normalizeSearchText(value) {
+            return (value || "")
+                .toLocaleLowerCase("vi-VN")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function filterTransactions() {
+            const searchInput = document.getElementById("transactionSearch");
+            const typeFilter = document.getElementById("transactionTypeFilter");
+            const rows = document.querySelectorAll(".transaction-row");
+            const emptyState = document.getElementById("transactionEmptyFilter");
+
+            if (!searchInput || !typeFilter || rows.length === 0) {
+                return;
+            }
+
+            const searchValue = normalizeSearchText(searchInput.value.trim());
+            const typeValue = typeFilter.value;
+            let visibleCount = 0;
+
+            rows.forEach((row) => {
+                const rowSearch = normalizeSearchText(row.dataset.search);
+                const rowType = row.dataset.type;
+
+                const matchesSearch = !searchValue || rowSearch.includes(searchValue);
+                const matchesType = !typeValue || rowType === typeValue;
+                const isVisible = matchesSearch && matchesType;
+
+                row.classList.toggle("d-none", !isVisible);
+
+                if (isVisible) {
+                    visibleCount++;
+                }
+            });
+
+            if (emptyState) {
+                emptyState.classList.toggle("d-none", visibleCount > 0);
+            }
+        }
+
+        function resetTransactionFilters() {
+            const searchInput = document.getElementById("transactionSearch");
+            const typeFilter = document.getElementById("transactionTypeFilter");
+
+            if (searchInput) {
+                searchInput.value = "";
+            }
+
+            if (typeFilter) {
+                typeFilter.value = "";
+            }
+
+            filterTransactions();
+        }
+    </script>
+}
+
+<style>
+    :root {
+        --history-bg: #f4f6f8;
+        --history-surface: #ffffff;
+        --history-text: #172033;
+        --history-muted: #6c7585;
+        --history-border: #e5e9ef;
+        --history-primary: #2563eb;
+        --history-primary-soft: #eff6ff;
+        --history-success: #16855b;
+        --history-success-soft: #ebf8f2;
+        --history-danger: #d14343;
+        --history-danger-soft: #fff0f0;
+        --history-warning: #b76a00;
+        --history-warning-soft: #fff7e5;
+        --history-neutral-soft: #f1f3f6;
+        --history-radius-xl: 24px;
+        --history-radius-lg: 18px;
+        --history-radius-md: 12px;
+        --history-shadow: 0 16px 45px rgba(31, 41, 55, 0.07);
+    }
+
+    .part-history-page {
+        min-height: 100vh;
+        background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 34rem), var(--history-bg);
+        color: var(--history-text);
+        font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .page-header {
+        margin-bottom: 24px;
+    }
+
+    .page-header__content {
+        padding: 26px 30px;
+        border: 1px solid rgba(229, 233, 239, 0.9);
+        border-radius: var(--history-radius-xl);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 10px 30px rgba(31, 41, 55, 0.045);
+        backdrop-filter: blur(12px);
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 22px;
+        color: #596274;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 160ms ease, transform 160ms ease;
+    }
+
+        .back-link:hover {
+            color: var(--history-primary);
+            transform: translateX(-2px);
+        }
+
+    .page-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .eyebrow,
+    .section-kicker {
+        margin-bottom: 6px;
+        color: var(--history-primary);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .page-heading h1 {
+        margin: 0;
+        font-size: clamp(28px, 3vw, 40px);
+        font-weight: 700;
+        letter-spacing: -0.035em;
+    }
+
+    .page-heading p {
+        max-width: 720px;
+        margin: 10px 0 0;
+        color: var(--history-muted);
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    .part-identity {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-width: 220px;
+        padding-left: 24px;
+        border-left: 1px solid var(--history-border);
+    }
+
+    .part-identity__code {
+        color: var(--history-primary);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+
+    .part-identity__name {
+        max-width: 280px;
+        margin-top: 4px;
+        overflow: hidden;
+        color: var(--history-text);
+        font-size: 16px;
+        font-weight: 600;
+        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .alert-modern {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 24px;
+        padding: 16px 18px;
+        border: 1px solid transparent;
+        border-radius: var(--history-radius-lg);
+        font-size: 14px;
+    }
+
+    .alert-modern--danger {
+        border-color: #ffd7d7;
+        background: var(--history-danger-soft);
+        color: #9f3030;
+    }
+
+    .alert-modern__icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 10px;
+        background: rgba(209, 67, 67, 0.12);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-height: 92px;
+        padding: 18px;
+        border: 1px solid var(--history-border);
+        border-radius: var(--history-radius-lg);
+        background: var(--history-surface);
+        box-shadow: 0 8px 24px rgba(31, 41, 55, 0.035);
+    }
+
+    .summary-card__icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 14px;
+        font-size: 20px;
+    }
+
+    .summary-card__icon--primary {
+        background: var(--history-primary-soft);
+        color: var(--history-primary);
+    }
+
+    .summary-card__icon--success {
+        background: var(--history-success-soft);
+        color: var(--history-success);
+    }
+
+    .summary-card__icon--danger {
+        background: var(--history-danger-soft);
+        color: var(--history-danger);
+    }
+
+    .summary-card__icon--neutral {
+        background: var(--history-neutral-soft);
+        color: #5f6878;
+    }
+
+    .summary-card__label {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--history-muted);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .summary-card strong {
+        display: block;
+        color: var(--history-text);
+        font-size: 24px;
+        line-height: 1.1;
+    }
+
+        .summary-card strong small {
+            color: var(--history-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+        align-items: start;
+        gap: 24px;
+    }
+
+    .part-panel {
+        position: sticky;
+        top: 20px;
+    }
+
+    .part-card,
+    .transaction-card {
+        overflow: hidden;
+        border: 1px solid var(--history-border);
+        border-radius: var(--history-radius-xl);
+        background: var(--history-surface);
+        box-shadow: var(--history-shadow);
+    }
+
+    .part-card__media {
+        position: relative;
+        height: 250px;
+        overflow: hidden;
+        background: #1d2533;
+    }
+
+        .part-card__media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 450ms ease;
+        }
+
+    .part-card:hover .part-card__media img {
+        transform: scale(1.035);
+    }
+
+    .part-card__media-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(13, 19, 30, 0.08) 12%, rgba(13, 19, 30, 0.9) 100%);
+    }
+
+    .part-card__media-content {
+        position: absolute;
+        right: 22px;
+        bottom: 22px;
+        left: 22px;
+        color: #fff;
+    }
+
+    .part-code {
+        display: inline-flex;
+        margin-bottom: 8px;
+        padding: 5px 9px;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        border-radius: 8px;
+        background: rgba(18, 25, 38, 0.45);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        backdrop-filter: blur(6px);
+    }
+
+    .part-card__media-content h2 {
+        display: -webkit-box;
+        margin: 0 0 12px;
+        overflow: hidden;
+        font-size: 23px;
+        font-weight: 700;
+        line-height: 1.25;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .category-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .part-card__body {
+        padding: 22px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+        .section-title span {
+            display: block;
+            color: var(--history-text);
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-title small {
+            display: block;
+            margin-top: 2px;
+            color: var(--history-muted);
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .section-title > i {
+            color: #a0a8b4;
+            font-size: 18px;
+        }
+
+    .stock-status-box {
+        margin-bottom: 20px;
+        padding: 16px;
+        border: 1px solid;
+        border-radius: 16px;
+    }
+
+    .stock-status-box--healthy {
+        border-color: #ccecdf;
+        background: #f5fbf8;
+    }
+
+    .stock-status-box--warning {
+        border-color: #f6dfad;
+        background: #fffbf1;
+    }
+
+    .stock-status-box__top,
+    .stock-status-box__limits {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+        .stock-status-box__top > div > span {
+            display: block;
+            margin-bottom: 2px;
+            color: var(--history-muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stock-status-box__top strong {
+            color: var(--history-text);
+            font-size: 21px;
+        }
+
+    .stock-progress {
+        height: 7px;
+        margin: 14px 0 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(108, 117, 133, 0.13);
+    }
+
+        .stock-progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #2a9d6f, #52b788);
+        }
+
+    .stock-status-box--warning .stock-progress span {
+        background: linear-gradient(90deg, #dc8b16, #f1b84b);
+    }
+
+    .stock-status-box__limits {
+        color: var(--history-muted);
+        font-size: 11px;
+    }
+
+    .detail-list {
+        margin: 0;
+    }
+
+    .detail-list__item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 13px 0;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+        .detail-list__item:last-child {
+            border-bottom: 0;
+        }
+
+        .detail-list__item dt {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            color: var(--history-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .detail-list__item dd {
+            max-width: 58%;
+            margin: 0;
+            color: var(--history-text);
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+    .detail-icon {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 9px;
+        background: #f3f5f8;
+        color: #697385;
+        font-size: 13px;
+    }
+
+    .price-value {
+        color: var(--history-danger) !important;
+        font-size: 16px !important;
+    }
+
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .status-chip--success {
+        background: var(--history-success-soft);
+        color: var(--history-success);
+    }
+
+    .status-chip--warning {
+        background: var(--history-warning-soft);
+        color: var(--history-warning);
+    }
+
+    .status-chip--danger {
+        background: var(--history-danger-soft);
+        color: var(--history-danger);
+    }
+
+    .status-chip--neutral {
+        background: var(--history-neutral-soft);
+        color: #697385;
+    }
+
+    .expiry-date {
+        color: var(--history-primary);
+        font-weight: 700;
+    }
+
+    .description-box {
+        margin-top: 18px;
+        padding: 15px;
+        border-radius: 14px;
+        background: #f7f8fa;
+    }
+
+    .description-box__title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 7px;
+        color: #4c5668;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .description-box p {
+        margin: 0;
+        color: var(--history-muted);
+        font-size: 13px;
+        line-height: 1.65;
+        white-space: pre-line;
+    }
+
+    .transaction-card__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 26px 28px 22px;
+        border-bottom: 1px solid var(--history-border);
+    }
+
+        .transaction-card__header h2 {
+            margin: 0;
+            color: var(--history-text);
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .transaction-card__header p {
+            margin: 6px 0 0;
+            color: var(--history-muted);
+            font-size: 13px;
+        }
+
+    .record-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 11px;
+        border-radius: 10px;
+        background: var(--history-neutral-soft);
+        color: #606a7a;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .transaction-toolbar {
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) 190px;
+        gap: 12px;
+        padding: 18px 28px;
+        border-bottom: 1px solid var(--history-border);
+        background: #fbfcfd;
+    }
+
+    .search-field {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin: 0;
+    }
+
+        .search-field > i {
+            position: absolute;
+            left: 14px;
+            z-index: 1;
+            color: #8a93a2;
+        }
+
+        .search-field input,
+        .type-filter {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #dfe4eb;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--history-text);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .search-field input {
+            padding: 0 14px 0 41px;
+        }
+
+    .type-filter {
+        padding: 0 36px 0 13px;
+    }
+
+        .search-field input:focus,
+        .type-filter:focus {
+            border-color: rgba(37, 99, 235, 0.65);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.09);
+        }
+
+    .transaction-table-wrapper {
+        min-height: 300px;
+    }
+
+    .transaction-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .transaction-table th {
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--history-border);
+            background: #fff;
+            color: #7a8391;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.055em;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .transaction-table td {
+            padding: 16px;
+            border-bottom: 1px solid #edf0f4;
+            color: #4f5969;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .transaction-table tbody tr {
+            transition: background-color 160ms ease;
+        }
+
+            .transaction-table tbody tr:hover {
+                background: #fafbfc;
+            }
+
+            .transaction-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+    .date-cell,
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        white-space: nowrap;
+    }
+
+    .date-cell__icon,
+    .user-avatar {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 9px;
+        background: #f2f4f7;
+        color: #707a8a;
+        font-size: 12px;
+    }
+
+    .user-cell span:last-child {
+        max-width: 160px;
+        overflow: hidden;
+        color: #374151;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .transaction-type {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 9px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .transaction-type--import {
+        background: var(--history-success-soft);
+        color: var(--history-success);
+    }
+
+    .transaction-type--export {
+        background: var(--history-danger-soft);
+        color: var(--history-danger);
+    }
+
+    .transaction-type--return {
+        background: var(--history-primary-soft);
+        color: var(--history-primary);
+    }
+
+    .transaction-type--adjustment {
+        background: var(--history-neutral-soft);
+        color: #606a7a;
+    }
+
+    .quantity-chip {
+        display: inline-flex;
+        min-width: 54px;
+        justify-content: center;
+        padding: 7px 9px;
+        border-radius: 9px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .quantity-chip--positive {
+        background: var(--history-success-soft);
+        color: var(--history-success);
+    }
+
+    .quantity-chip--negative {
+        background: var(--history-danger-soft);
+        color: var(--history-danger);
+    }
+
+    .reference-chip {
+        display: inline-flex;
+        max-width: 180px;
+        overflow: hidden;
+        padding: 6px 8px;
+        border: 1px solid #e0e5ec;
+        border-radius: 8px;
+        background: #f8f9fb;
+        color: #4c5668;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .muted-value {
+        color: #9aa2af;
+        font-size: 12px;
+    }
+
+    .note-cell {
+        display: -webkit-box;
+        max-width: 250px;
+        overflow: hidden;
+        color: #70798a;
+        line-height: 1.5;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .empty-state,
+    .filter-empty-state {
+        display: flex;
+        min-height: 340px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        color: var(--history-muted);
+        text-align: center;
+    }
+
+    .empty-state__icon {
+        display: grid;
+        width: 68px;
+        height: 68px;
+        margin-bottom: 18px;
+        place-items: center;
+        border-radius: 20px;
+        background: var(--history-neutral-soft);
+        color: #7d8797;
+        font-size: 27px;
+    }
+
+    .empty-state h3,
+    .filter-empty-state strong {
+        margin: 0 0 7px;
+        color: var(--history-text);
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .empty-state p {
+        max-width: 420px;
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.65;
+    }
+
+    .filter-empty-state {
+        min-height: 260px;
+        gap: 7px;
+    }
+
+        .filter-empty-state > i {
+            margin-bottom: 8px;
+            color: #9aa2af;
+            font-size: 26px;
+        }
+
+        .filter-empty-state span {
+            font-size: 13px;
+        }
+
+        .filter-empty-state button {
+            margin-top: 8px;
+            padding: 8px 13px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--history-primary-soft);
+            color: var(--history-primary);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+    @@media (max-width: 1199.98px) {
+        .content-grid {
+            grid-template-columns: 320px minmax(0, 1fr);
+        }
+
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .page-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .part-identity {
+            align-items: flex-start;
+            width: 100%;
+            padding: 15px 0 0;
+            border-top: 1px solid var(--history-border);
+            border-left: 0;
+        }
+
+        .part-identity__name {
+            max-width: 100%;
+            text-align: left;
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .part-panel {
+            position: static;
+        }
+
+        .part-card {
+            display: grid;
+            grid-template-columns: minmax(260px, 38%) 1fr;
+        }
+
+        .part-card__media {
+            height: 100%;
+            min-height: 430px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .page-header__content {
+            padding: 22px 20px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .part-card {
+            display: block;
+        }
+
+        .part-card__media {
+            height: 235px;
+            min-height: auto;
+        }
+
+        .transaction-card__header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 22px 20px 18px;
+        }
+
+        .transaction-toolbar {
+            grid-template-columns: 1fr;
+            padding: 16px 20px;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 13px;
+        }
+
+        .part-card__body {
+            padding: 20px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .detail-list__item {
+            align-items: flex-start;
+        }
+
+            .detail-list__item dd {
+                max-width: 52%;
+            }
+
+        .stock-status-box__top {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .page-heading h1 {
+            font-size: 28px;
+        }
+    }
+
+    @@media print {
+        .back-link,
+        .transaction-toolbar {
+            display: none !important;
+        }
+
+        .part-history-page {
+            background: #fff;
+        }
+
+        .page-header__content,
+        .part-card,
+        .transaction-card,
+        .summary-card {
+            box-shadow: none;
+        }
+
+        .content-grid {
+            grid-template-columns: 320px 1fr;
+        }
+    }
+</style>

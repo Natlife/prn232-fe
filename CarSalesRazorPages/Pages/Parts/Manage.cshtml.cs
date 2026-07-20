@@ -51,25 +51,95 @@ public class ManageModel : PageModel
     {
         try
         {
+            var updateModel = await _httpClient.GetFromJsonAsync<UpdatePartViewModel>($"{PartsApiUrl}/{id}/details-for-edit");
+            if (updateModel != null)
+            {
+                return new JsonResult(updateModel);
+            }
+
             var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{PartsApiUrl}/{id}");
             if (part == null) return NotFound();
-            return new JsonResult(part);
+
+            return new JsonResult(new UpdatePartViewModel
+            {
+                PartId = part.PartId,
+                PartName = part.PartName,
+                PartCode = part.PartCode,
+                CategoryId = part.CategoryId,
+                Brand = part.Brand,
+                Price = part.Price,
+                MinStockLevel = part.MinStockLevel,
+                MaxStockLevel = part.MaxStockLevel,
+                UnitOfMeasure = string.IsNullOrWhiteSpace(part.UnitOfMeasure) ? "Cái" : part.UnitOfMeasure,
+                WarehouseLocation = part.WarehouseLocation,
+                WarrantyMonths = part.WarrantyMonths,
+                Description = part.Description,
+                ImageUrl = part.ImageUrl,
+                Status = part.Status,
+                CurrentQuantity = part.Quantity,
+                CurrentExpiredAt = part.ExpiredAt,
+                CanEditPartCode = true
+            });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return BadRequest(ex.Message);
+            try
+            {
+                var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{PartsApiUrl}/{id}");
+                if (part == null) return NotFound();
+                return new JsonResult(new UpdatePartViewModel
+                {
+                    PartId = part.PartId,
+                    PartName = part.PartName,
+                    PartCode = part.PartCode,
+                    CategoryId = part.CategoryId,
+                    Brand = part.Brand,
+                    Price = part.Price,
+                    MinStockLevel = part.MinStockLevel,
+                    MaxStockLevel = part.MaxStockLevel,
+                    UnitOfMeasure = string.IsNullOrWhiteSpace(part.UnitOfMeasure) ? "Cái" : part.UnitOfMeasure,
+                    WarehouseLocation = part.WarehouseLocation,
+                    WarrantyMonths = part.WarrantyMonths,
+                    Description = part.Description,
+                    ImageUrl = part.ImageUrl,
+                    Status = part.Status,
+                    CurrentQuantity = part.Quantity,
+                    CurrentExpiredAt = part.ExpiredAt,
+                    CanEditPartCode = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 
-    public async Task<IActionResult> OnPostSaveAsync([FromBody] PartViewModel part)
+    public async Task<IActionResult> OnPostSaveAsync([FromBody] UpdatePartViewModel model)
     {
         AppendAuthorizationHeader();
         try
         {
-            if (part.PartId == 0)
+            if (model.PartId == 0)
             {
-                part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
-                var response = await _httpClient.PostAsJsonAsync(PartsApiUrl, part);
+                var newPart = new PartViewModel
+                {
+                    PartName = model.PartName,
+                    PartCode = model.PartCode,
+                    CategoryId = model.CategoryId,
+                    Brand = model.Brand,
+                    Price = model.Price,
+                    MinStockLevel = model.MinStockLevel,
+                    MaxStockLevel = model.MaxStockLevel,
+                    UnitOfMeasure = model.UnitOfMeasure,
+                    WarehouseLocation = model.WarehouseLocation,
+                    WarrantyMonths = model.WarrantyMonths,
+                    Description = model.Description,
+                    ImageUrl = model.ImageUrl,
+                    Status = model.CurrentQuantity > 0 ? "Available" : "OutOfStock",
+                    Quantity = model.CurrentQuantity
+                };
+                var response = await _httpClient.PostAsJsonAsync(PartsApiUrl, newPart);
                 if (response.IsSuccessStatusCode)
                     return new JsonResult(new { success = true, message = "Thêm phụ tùng mới thành công!" });
                 var err = await ExtractErrorMessageAsync(response, "Đã xảy ra lỗi trên Server.");
@@ -77,15 +147,9 @@ public class ManageModel : PageModel
             }
             else
             {
-                var existing = await _httpClient.GetFromJsonAsync<PartViewModel>($"{PartsApiUrl}/{part.PartId}");
-                if (existing != null)
-                    part.Status = part.Quantity == 0 ? "Out of Stock" : existing.Status == "Inactive" ? "Inactive" : "Available";
-                else
-                    part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
-
-                var response = await _httpClient.PutAsJsonAsync($"{PartsApiUrl}/{part.PartId}", part);
+                var response = await _httpClient.PutAsJsonAsync($"{PartsApiUrl}/{model.PartId}", model);
                 if (response.IsSuccessStatusCode)
-                    return new JsonResult(new { success = true, message = "Cập nhật phụ tùng thành công!" });
+                    return new JsonResult(new { success = true, message = "Cập nhật thông tin phụ tùng thành công!" });
                 var err = await ExtractErrorMessageAsync(response, "Đã xảy ra lỗi trên Server.");
                 return new JsonResult(new { success = false, message = err });
             }
@@ -95,6 +159,24 @@ public class ManageModel : PageModel
             return new JsonResult(new { success = false, message = "Lỗi kết nối: " + ex.Message });
         }
     }
+
+    public async Task<IActionResult> OnPostAdjustInventoryAsync([FromBody] InventoryAdjustmentViewModel model)
+    {
+        AppendAuthorizationHeader();
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/Inventory/adjust", model);
+            if (response.IsSuccessStatusCode)
+                return new JsonResult(new { success = true, message = "Điều chỉnh tồn kho thành công!" });
+            var err = await ExtractErrorMessageAsync(response, "Không thể điều chỉnh tồn kho.");
+            return new JsonResult(new { success = false, message = err });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { success = false, message = "Lỗi kết nối: " + ex.Message });
+        }
+    }
+
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {

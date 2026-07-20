@@ -175,20 +175,74 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
+                var updateModel = await _httpClient.GetFromJsonAsync<UpdatePartViewModel>($"{_partsApiUrl}/{id}/details-for-edit");
+                if (updateModel != null)
+                {
+                    return Json(updateModel);
+                }
+
                 var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{id}");
                 if (part == null) return NotFound();
-                return Json(part);
+
+                return Json(new UpdatePartViewModel
+                {
+                    PartId = part.PartId,
+                    PartName = part.PartName,
+                    PartCode = part.PartCode,
+                    CategoryId = part.CategoryId,
+                    Brand = part.Brand,
+                    Price = part.Price,
+                    MinStockLevel = part.MinStockLevel,
+                    MaxStockLevel = part.MaxStockLevel,
+                    UnitOfMeasure = string.IsNullOrWhiteSpace(part.UnitOfMeasure) ? "Cái" : part.UnitOfMeasure,
+                    WarehouseLocation = part.WarehouseLocation,
+                    WarrantyMonths = part.WarrantyMonths,
+                    Description = part.Description,
+                    ImageUrl = part.ImageUrl,
+                    Status = part.Status,
+                    CurrentQuantity = part.Quantity,
+                    CurrentExpiredAt = part.ExpiredAt,
+                    CanEditPartCode = true
+                });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                try
+                {
+                    var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{id}");
+                    if (part == null) return NotFound();
+                    return Json(new UpdatePartViewModel
+                    {
+                        PartId = part.PartId,
+                        PartName = part.PartName,
+                        PartCode = part.PartCode,
+                        CategoryId = part.CategoryId,
+                        Brand = part.Brand,
+                        Price = part.Price,
+                        MinStockLevel = part.MinStockLevel,
+                        MaxStockLevel = part.MaxStockLevel,
+                        UnitOfMeasure = string.IsNullOrWhiteSpace(part.UnitOfMeasure) ? "Cái" : part.UnitOfMeasure,
+                        WarehouseLocation = part.WarehouseLocation,
+                        WarrantyMonths = part.WarrantyMonths,
+                        Description = part.Description,
+                        ImageUrl = part.ImageUrl,
+                        Status = part.Status,
+                        CurrentQuantity = part.Quantity,
+                        CurrentExpiredAt = part.ExpiredAt,
+                        CanEditPartCode = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
             }
         }
 
         // POST: Parts/Save (AJAX POST)
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Save(PartViewModel part)
+        public async Task<IActionResult> Save(UpdatePartViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -198,46 +252,38 @@ namespace CarSalesManagementSystemClient.Controllers
 
             try
             {
-                if (part.PartId == 0) // Create new
-                {
-                    part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
-                }
-                else // Update existing
-                {
-                    // Fetch existing part details to preserve status if it was Inactive (Ngưng bán)
-                    var existing = await _httpClient.GetFromJsonAsync<PartViewModel>($"{_partsApiUrl}/{part.PartId}");
-                    if (existing != null)
-                    {
-                        if (part.Quantity == 0)
-                        {
-                            part.Status = "Out of Stock";
-                        }
-                        else
-                        {
-                            part.Status = existing.Status == "Inactive" ? "Inactive" : "Available";
-                        }
-                    }
-                    else
-                    {
-                        part.Status = part.Quantity > 0 ? "Available" : "Out of Stock";
-                    }
-                }
-
                 AppendAuthorizationHeader();
                 HttpResponseMessage response;
 
-                if (part.PartId == 0) // Create new
+                if (model.PartId == 0) // Create new
                 {
-                    response = await _httpClient.PostAsJsonAsync(_partsApiUrl, part);
+                    var newPart = new PartViewModel
+                    {
+                        PartName = model.PartName,
+                        PartCode = model.PartCode,
+                        CategoryId = model.CategoryId,
+                        Brand = model.Brand,
+                        Price = model.Price,
+                        MinStockLevel = model.MinStockLevel,
+                        MaxStockLevel = model.MaxStockLevel,
+                        UnitOfMeasure = model.UnitOfMeasure,
+                        WarehouseLocation = model.WarehouseLocation,
+                        WarrantyMonths = model.WarrantyMonths,
+                        Description = model.Description,
+                        ImageUrl = model.ImageUrl,
+                        Status = model.CurrentQuantity > 0 ? "Available" : "OutOfStock",
+                        Quantity = model.CurrentQuantity
+                    };
+                    response = await _httpClient.PostAsJsonAsync(_partsApiUrl, newPart);
                 }
-                else // Update existing
+                else // Update existing metadata
                 {
-                    response = await _httpClient.PutAsJsonAsync($"{_partsApiUrl}/{part.PartId}", part);
+                    response = await _httpClient.PutAsJsonAsync($"{_partsApiUrl}/{model.PartId}", model);
                 }
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string msg = part.PartId == 0 ? "Thêm phụ tùng mới thành công!" : "Cập nhật phụ tùng thành công!";
+                    string msg = model.PartId == 0 ? "Thêm phụ tùng mới thành công!" : "Cập nhật thông tin phụ tùng thành công!";
                     return Json(new { success = true, message = msg });
                 }
                 
@@ -249,6 +295,37 @@ namespace CarSalesManagementSystemClient.Controllers
                 return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
             }
         }
+
+        // POST: Parts/AdjustInventory (AJAX POST)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> AdjustInventory(InventoryAdjustmentViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = string.Join("<br/>", errors) });
+            }
+
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/Inventory/adjust", model);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, message = "Điều chỉnh tồn kho thành công!" });
+                }
+
+                string errMsg = await ExtractErrorMessageAsync(response, "Đã xảy ra lỗi khi điều chỉnh tồn kho.");
+                return Json(new { success = false, message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
 
         private async Task<string> ExtractErrorMessageAsync(HttpResponseMessage response, string defaultMessage)
         {
@@ -424,12 +501,18 @@ namespace CarSalesManagementSystemClient.Controllers
         // POST: Parts/CreateInventoryReceipt (AJAX POST)
         [HttpPost]
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<IActionResult> CreateInventoryReceipt([FromBody] object payload)
+        public async Task<IActionResult> CreateInventoryReceipt([FromBody] InventoryReceiptCreateViewModel model)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                    return BadRequest(new { message = string.Join("<br/>", errors) });
+                }
+
                 AppendAuthorizationHeader();
-                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/inventory/receipt", payload);
+                var response = await _httpClient.PostAsJsonAsync("http://localhost:5084/api/inventory/receipt", model);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<object>();
@@ -450,13 +533,17 @@ namespace CarSalesManagementSystemClient.Controllers
         {
             try
             {
-                var response = await _httpClient.GetAsync($"http://localhost:5084/api/Parts/filter?categoryId={categoryId}&supplierId={supplierId}");
+                string url = categoryId > 0 
+                    ? $"http://localhost:5084/api/Parts/filter?categoryId={categoryId}&supplierId={supplierId}"
+                    : "http://localhost:5084/api/Parts";
+
+                var response = await _httpClient.GetAsync(url);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = await response.Content.ReadFromJsonAsync<object>();
                     return Json(result);
                 }
-                return BadRequest(new { message = "Lỗi tải danh sách phụ tùng đã lọc." });
+                return BadRequest(new { message = "Lỗi tải danh sách phụ tùng." });
             }
             catch (Exception ex)
             {
@@ -507,6 +594,50 @@ namespace CarSalesManagementSystemClient.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // GET: Parts/History/5 (Admin view history)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> History(int id)
+        {
+            try
+            {
+                // Fetch Part Details
+                var part = await _httpClient.GetFromJsonAsync<PartViewModel>($"http://localhost:5084/api/Parts/{id}");
+                if (part == null)
+                {
+                    return NotFound();
+                }
+
+                // Fetch Categories
+                try
+                {
+                    var categories = await _httpClient.GetFromJsonAsync<IEnumerable<PartCategoryViewModel>>(_categoriesApiUrl);
+                    if (categories != null && part.CategoryId > 0)
+                    {
+                        part.Category = categories.FirstOrDefault(c => c.CategoryId == part.CategoryId);
+                    }
+                }
+                catch { }
+
+                // Fetch Transactions
+                AppendAuthorizationHeader();
+                var transactionsResponse = await _httpClient.GetAsync($"http://localhost:5084/api/Inventory/transactions/{id}");
+                var transactions = new List<InventoryTransactionViewModel>();
+                if (transactionsResponse.IsSuccessStatusCode)
+                {
+                    transactions = await transactionsResponse.Content.ReadFromJsonAsync<List<InventoryTransactionViewModel>>() 
+                                   ?? new List<InventoryTransactionViewModel>();
+                }
+
+                ViewBag.Transactions = transactions;
+                return View(part);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Lỗi khi tải lịch sử phụ tùng: " + ex.Message;
+                return View(new PartViewModel());
             }
         }
     }
