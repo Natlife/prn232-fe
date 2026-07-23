@@ -142,8 +142,8 @@
                         </li>
                         @if (User.Identity?.IsAuthenticated == true && !User.IsInRole("Admin"))
                         {
-                            <li class="nav-item @(ctrl == "ComboOrder" && act == "History" ? "bg-dark" : "")">
-                                <a class="nav-link px-4 py-3 @(ctrl == "ComboOrder" && act == "History" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="ComboOrder" asp-action="History">ĐƠN HÀNG COMBO CỦA TÔI</a>
+                            <li class="nav-item @(ctrl == "Invoices" ? "bg-dark" : "")">
+                                <a class="nav-link px-4 py-3 @(ctrl == "Invoices" ? "text-danger" : "text-dark hover-bg-warning")" asp-controller="Invoices" asp-action="Index">HÓA ĐƠN CỦA TÔI</a>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))
@@ -155,10 +155,7 @@
                                 <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Cars" asp-action="Index">QUẢN LÝ XE</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">QUẢN LÝ CAPTCHA</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-controller="ComboOrder" asp-action="AdminOrders">QUẢN LÝ ĐƠN COMBO</a>
+                                <a class="nav-link text-dark px-4 py-3 hover-bg-warning" asp-area="Admin" asp-controller="Captchas" asp-action="Index">HÓA ĐƠN & CAPTCHA</a>
                             </li>
                         }
                     </ul>

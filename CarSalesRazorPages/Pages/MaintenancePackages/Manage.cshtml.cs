@@ -10,11 +10,18 @@ namespace CarSalesRazorPages.Pages.MaintenancePackages;
 public class ManageModel : PageModel
 {
     private readonly HttpClient _httpClient;
-    private const string ApiUrl = "http://localhost:5084/odata/MaintenancePackages";
+    private const string ApiUrl = "http://localhost:5084/api/MaintenancePackages";
 
     public ManageModel(IHttpClientFactory httpClientFactory)
     {
         _httpClient = httpClientFactory.CreateClient();
+    }
+
+    public class ApiResponseWrapper<T>
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
     }
 
     public List<MaintenancePackage> Packages { get; set; } = new();
@@ -23,8 +30,8 @@ public class ManageModel : PageModel
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<ODataResponse<MaintenancePackage>>(ApiUrl);
-            Packages = response?.Value ?? new List<MaintenancePackage>();
+            var result = await _httpClient.GetFromJsonAsync<ApiResponseWrapper<List<MaintenancePackage>>>(ApiUrl);
+            Packages = result?.Data ?? new List<MaintenancePackage>();
         }
         catch (Exception ex)
         {
@@ -47,7 +54,7 @@ public class ManageModel : PageModel
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync($"{ApiUrl}({id})", package);
+            var response = await _httpClient.PutAsJsonAsync($"{ApiUrl}/{id}", package);
             if (response.IsSuccessStatusCode) return new JsonResult(new { success = true, message = "Cập nhật gói thành công!" });
             return new JsonResult(new { success = false, message = "Cập nhật thất bại: " + await response.Content.ReadAsStringAsync() });
         }
@@ -58,7 +65,7 @@ public class ManageModel : PageModel
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"{ApiUrl}({id})");
+            var response = await _httpClient.DeleteAsync($"{ApiUrl}/{id}");
             if (response.IsSuccessStatusCode) return new JsonResult(new { success = true, message = "Xóa gói thành công!" });
             return new JsonResult(new { success = false, message = "Xóa thất bại: " + await response.Content.ReadAsStringAsync() });
         }

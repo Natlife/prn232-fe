@@ -8,7 +8,7 @@ namespace CarSalesRazorPages.Pages.Parts;
 public class DetailsModel : PageModel
 {
     private readonly HttpClient _httpClient;
-    private const string PartsOdataUrl = "http://localhost:5084/odata/Parts";
+    private const string PartsApiUrl = "http://localhost:5084/api/Parts";
 
     public DetailsModel(IHttpClientFactory httpClientFactory)
     {
@@ -22,10 +22,10 @@ public class DetailsModel : PageModel
     {
         try
         {
-            Part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{PartsOdataUrl}({id})?$expand=Category");
+            Part = await _httpClient.GetFromJsonAsync<PartViewModel>($"{PartsApiUrl}/{id}?$expand=Category");
             if (Part == null) return NotFound();
 
-            var relatedUri = $"{PartsOdataUrl}?$expand=Category&$filter=CategoryId eq {Part.CategoryId} and PartId ne {id} and Status ne 'Inactive'&$top=4&$orderby=CreatedAt desc";
+            var relatedUri = $"{PartsApiUrl}?$expand=Category&$filter=CategoryId eq {Part.CategoryId} and PartId ne {id} and Status ne 'Inactive'&$top=4&$orderby=CreatedAt desc";
             var relatedResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>(relatedUri);
             RelatedParts = relatedResponse?.Value ?? new List<PartViewModel>();
 

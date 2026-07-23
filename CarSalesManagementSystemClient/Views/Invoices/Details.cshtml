@@ -1,0 +1,161 @@
+@model CarSalesManagementSystemClient.Models.InvoiceListItemViewModel
+@{
+    ViewData["Title"] = "Chi tiết hóa đơn " + Model.InvoiceNumber;
+    string Money(decimal v) => v.ToString("N0") + " đ";
+    string TypeLabel(string t) => t switch { "Car" => "Ô tô", "Part" => "Phụ tùng", "Service" => "Dịch vụ", "Combined" => "Gộp", _ => t };
+}
+
+<div class="container py-5" style="max-width: 820px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0"><i class="bi bi-receipt me-2 text-warning"></i>Chi tiết hóa đơn</h3>
+        <a href="/Invoices" class="btn btn-outline-secondary btn-sm fw-bold"><i class="bi bi-arrow-left me-1"></i>Danh sách hóa đơn</a>
+    </div>
+
+    <div class="card shadow-sm mb-3" style="border:none; border-radius:14px;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between flex-wrap gap-2 border-bottom pb-3 mb-3">
+                <div>
+                    <div class="fw-bold fs-5 font-monospace">@Model.InvoiceNumber</div>
+                    <div class="text-muted small">Lập ngày @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                    <span class="badge bg-secondary mt-1">@TypeLabel(Model.InvoiceType)</span>
+                    <span class="badge bg-dark mt-1">@(Model.IsDeposit ? "Đặt cọc" : "Mua đứt")</span>
+                </div>
+                <div class="text-end">
+                    @if (Model.IsCancelled)
+                    {
+                        <span class="badge bg-danger">Đã hủy</span>
+                    }
+                    else if (Model.IsPaid)
+                    {
+                        <span class="badge bg-success">Đã thanh toán</span>
+                    }
+                    else if (Model.IsDeposited)
+                    {
+                        <span class="badge bg-info text-dark">Đã đặt cọc</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Chờ xác thực</span>
+                    }
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-secondary mb-2">Danh mục</h6>
+            <ul class="list-group list-group-flush mb-3">
+                @foreach (var line in Model.Lines)
+                {
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span>
+                            <span class="badge @(line.ItemType == "Car" ? "bg-warning text-dark" : line.ItemType == "Part" ? "bg-secondary" : "bg-info text-dark") me-1">@TypeLabel(line.ItemType)</span>
+                            @line.Description
+                        </span>
+                        <span class="fw-semibold">@Money(line.SubTotal)</span>
+                    </li>
+                }
+            </ul>
+
+            <div class="row justify-content-end">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between small mb-1"><span>Tạm tính:</span><span>@Money(Model.TotalSubTotal)</span></div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Chiết khấu:</span><span>- @Money(Model.DiscountAmount)</span></div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Thuế:</span><span>@Money(Model.TaxAmount)</span></div>
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-danger border-top pt-2"><span>Tổng cộng:</span><span>@Money(Model.TotalAmount)</span></div>
+                    @if (Model.IsDeposit && Model.DepositAmount.HasValue)
+                    {
+                        <div class="d-flex justify-content-between small mt-2"><span>Tiền cọc:</span><span class="fw-semibold">@Money(Model.DepositAmount.Value)</span></div>
+                        @if (Model.IsDeposited)
+                        {
+                            <div class="d-flex justify-content-between small text-success"><span>Đã cọc:</span><span class="fw-semibold">@Money(Model.DepositPaidAmount ?? 0)</span></div>
+                            <div class="d-flex justify-content-between small text-danger"><span>Còn phải trả:</span><span class="fw-semibold">@Money(Model.RemainingAmount)</span></div>
+                            @if (Model.DepositExpiresAt.HasValue)
+                            {
+                                <div class="d-flex justify-content-between small"><span>Giữ chỗ đến:</span><span class="fw-semibold">@Model.DepositExpiresAt.Value.ToString("dd/MM/yyyy HH:mm")</span></div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Notes))
+    {
+        <div class="alert alert-light border small"><i class="bi bi-sticky me-1"></i>@Model.Notes</div>
+    }
+
+    @if (Model.IsCancelled)
+    {
+        <div class="alert alert-danger">Hóa đơn đã bị hủy.</div>
+    }
+    else if (Model.NextAction == "deposit")
+    {
+        <div class="card border-warning">
+            <div class="card-body">
+                @if (Model.DepositAmount.HasValue)
+                {
+                    <div class="alert alert-warning py-2"><i class="bi bi-bank me-1"></i>Vui lòng chuyển khoản <strong>đặt cọc: @Money(Model.DepositAmount.Value)</strong> rồi liên hệ nhân viên (hotline (+84) 0359492991) để nhận mã.</div>
+                }
+                <label class="fw-semibold mb-1">Nhập mã xác thực <span class="text-primary">ĐẶT CỌC</span> (nhân viên cấp):</label>
+                <div class="d-flex gap-2">
+                    <input type="text" id="captchaInput" class="form-control text-uppercase" maxlength="20" placeholder="VD: A1B2C3" style="max-width:220px; letter-spacing:3px; font-weight:700;">
+                    <button class="btn btn-warning fw-bold text-dark" id="btnVerify" data-stage="deposit"><i class="bi bi-cash-stack me-1"></i>Xác nhận đặt cọc</button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.NextAction == "final")
+    {
+        <div class="card border-success">
+            <div class="card-body">
+                <label class="fw-semibold mb-1">Nhập mã xác thực @(Model.IsDeposit ? "TẤT TOÁN (trả nốt " + Money(Model.RemainingAmount) + ")" : "MUA ĐỨT") (nhân viên cấp):</label>
+                <div class="d-flex gap-2">
+                    <input type="text" id="captchaInput" class="form-control text-uppercase" maxlength="20" placeholder="VD: A1B2C3" style="max-width:220px; letter-spacing:3px; font-weight:700;">
+                    <button class="btn btn-success fw-bold" id="btnVerify" data-stage="final"><i class="bi bi-check-circle me-1"></i>@(Model.IsDeposit ? "Tất toán" : "Xác nhận mua đứt")</button>
+                </div>
+            </div>
+        </div>
+    }
+    else if (Model.IsPaid)
+    {
+        <div class="alert alert-success"><i class="bi bi-check-circle-fill me-1"></i>Hóa đơn đã hoàn tất thanh toán.</div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const input = document.getElementById('captchaInput');
+        const btn = document.getElementById('btnVerify');
+        if (input) input.addEventListener('input', () => input.value = input.value.toUpperCase());
+        if (!btn) return;
+
+        btn.addEventListener('click', async function () {
+            const code = (input && input.value || '').trim();
+            const stage = btn.getAttribute('data-stage');
+            if (!code) {
+                if (window.Swal) Swal.fire('Thiếu mã', 'Vui lòng nhập mã xác thực.', 'warning'); else alert('Vui lòng nhập mã xác thực.');
+                return;
+            }
+            const original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+            try {
+                const url = stage === 'deposit' ? '/Invoices/VerifyDeposit' : '/Invoices/VerifyFinal';
+                const body = new URLSearchParams({ masterInvoiceId: '@Model.MasterInvoiceId', captchaCode: code });
+                const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+                const res = await resp.json();
+                btn.disabled = false; btn.innerHTML = original;
+                if (res.success) {
+                    if (window.Swal) { await Swal.fire('Thành công!', res.message, 'success'); } else { alert(res.message); }
+                    window.location.reload();
+                } else {
+                    if (window.Swal) Swal.fire('Thất bại', res.message, 'error'); else alert(res.message);
+                }
+            } catch (e) {
+                btn.disabled = false; btn.innerHTML = original;
+                if (window.Swal) Swal.fire('Lỗi', 'Đã xảy ra lỗi kết nối.', 'error'); else alert('Đã xảy ra lỗi kết nối.');
+            }
+        });
+    })();
+</script>
+}

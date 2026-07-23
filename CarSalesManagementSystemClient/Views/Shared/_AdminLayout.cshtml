@@ -164,11 +164,6 @@
                 <i class="bi bi-file-earmark-text text-info"></i> Quản lý đơn phụ tùng
             </a>
 
-            <a class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "ComboOrder" && ViewContext.RouteData.Values["action"]?.ToString() == "AdminOrders" ? "active" : "")"
-               asp-area="" asp-controller="ComboOrder" asp-action="AdminOrders">
-                <i class="bi bi-box-seam text-warning"></i> Quản lý đơn combo
-            </a>
-
             @{
                 bool isMaintenanceActive = ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["controller"]?.ToString() == "Services";
             }

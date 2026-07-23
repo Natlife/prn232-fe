@@ -13,7 +13,6 @@ public class ManageModel : PageModel
     private readonly HttpClient _httpClient;
     private const string PartsApiUrl = "http://localhost:5084/api/Parts";
     private const string CategoriesApiUrl = "http://localhost:5084/api/PartCategories";
-    private const string PartsOdataUrl = "http://localhost:5084/odata/Parts";
 
     public ManageModel(IHttpClientFactory httpClientFactory)
     {
@@ -49,7 +48,7 @@ public class ManageModel : PageModel
                 Suppliers = new List<SupplierViewModel>();
             }
 
-            var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>($"{PartsOdataUrl}?$expand=Category&$orderby=CreatedAt desc");
+            var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>($"{PartsApiUrl}?$expand=Category&$orderby=CreatedAt desc");
             Parts = odataResponse?.Value ?? new List<PartViewModel>();
         }
         catch (Exception ex)

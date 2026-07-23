@@ -366,134 +366,16 @@
                     </div>
                 </div>
 
-                <div class="row g-3 mt-auto">
-                    <div class="col-6">
-                        <button id="btnDepositOpen"
-                                class="btn btn-action-deposit w-100 d-flex align-items-center justify-content-center gap-2"
-                                data-carid="@Model.CarId"
-                                data-carname="@Model.CarName"
-                                data-price="@Model.Price">
-                            <i class="bi bi-cash-stack fs-5"></i>
-                            <span>D?t C?c Xe</span>
-                        </button>
-                    </div>
-                    <div class="col-6">
-                        <button id="btnBuyoutOpen"
-                                class="btn btn-action-buy w-100 d-flex align-items-center justify-content-center gap-2"
-                                data-carid="@Model.CarId"
-                                data-carname="@Model.CarName"
-                                data-price="@Model.Price">
-                            <i class="bi bi-cart-check fs-5"></i>
-                            <span>Mua D?t Xe</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="depositModalOverlay" class="deposit-modal-overlay" role="dialog" aria-modal="true">
-    <div class="deposit-modal-box font-outfit">
-        <button id="btnDepositClose" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">
-            <i class="bi bi-x-lg"></i>
-        </button>
-
-        <div id="depositStep1" class="deposit-step active">
-            <div class="text-center mb-3">
-                <span style="font-size:2.5rem;">??</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1" id="step1Title">D?t c?c gi? xe</h4>
-                <p class="text-muted" style="font-size:14px;" id="step1Subtitle">Li?n h? showroom d? x?c nh?n v? ho?n t?t d?t c?c</p>
-            </div>
-
-            <div class="deposit-phone-badge">
-                <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">?? HOTLINE SHOWROOM</div>
-                <div class="phone-number">0987 173 229</div>
-                <div class="text-muted mt-1" style="font-size:12px;" id="step1HotlineDesc">Li?n h? tr?c ti?p d? trao d?i v? d?t c?c xe</div>
-            </div>
-
-            <div class="deposit-info-row">
-                <span class="label"><i class="bi bi-car-front me-1"></i> Xe</span>
-                <span class="value" id="step1CarName"></span>
-            </div>
-            <div class="deposit-info-row">
-                <span class="label" id="step1AmountLabel"><i class="bi bi-cash me-1"></i> Ti?n c?c (5%)</span>
-                <span class="value text-danger" id="step1DepositAmt"></span>
-            </div>
-            <div class="deposit-info-row" id="step1ExpiryRow">
-                <span class="label" id="step1ExpiryLabel"><i class="bi bi-calendar-check me-1"></i> Th?i h?n gi? c?c</span>
-                <span class="value" id="step1ExpiryVal">14 ng?y</span>
-            </div>
-
-            <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;" id="step1Alert">
-                <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
-                <span id="step1AlertText">Sau 14 ng?y n?u kh?ng ho?n t?t mua xe, ti?n c?c s? <strong>b? m?t</strong> v? xe du?c tr? l?i showroom.</span>
-            </div>
-
-            <button id="btnGoStep2" class="btn-deposit-submit">
-                <i class="bi bi-arrow-right-circle me-2"></i> T?i d? li?n h? - Nh?p m? x?c nh?n
-            </button>
-        </div>
-
-        <div id="depositStep2" class="deposit-step">
-            <div class="text-center mb-4">
-                <span style="font-size:2.5rem;">??</span>
-                <h4 class="fw-bold text-dark mt-2 mb-1" id="step2Title">Nh?p m? x?c nh?n</h4>
-                <p class="text-muted" style="font-size:14px;" id="step2Subtitle">Nh?p m? do nh?n vi?n showroom cung c?p qua di?n tho?i d? kho? lu?t d?t c?c</p>
-            </div>
-
-            <div id="depositLoginWarning" class="alert alert-info d-none" style="font-size:13px; border-radius:10px;">
-                <i class="bi bi-info-circle me-1 text-warning"></i> <span id="loginWarningText">B?n c?n dang nh?p d? d?t c?c.</span>
-            </div>
-
-            <label class="fw-bold text-dark mb-2" style="font-size:14px;">
-                <i class="bi bi-key-fill me-1 text-warning"></i> M? x?c nh?n t? nh?n vi?n
-            </label>
-            <input id="captchaInput" type="text" class="captcha-input"
-                   placeholder="VD: ABC123" maxlength="20"
-                   autocomplete="off" spellcheck="false">
-
-            <div id="depositError" class="text-danger mt-2" style="font-size:13px; display:none;">
-                <i class="bi bi-exclamation-circle me-1"></i>
-                <span id="depositErrorMsg"></span>
-            </div>
-
-            <button id="btnSubmitDeposit" class="btn-deposit-submit">
-                <i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">X?c nh?n d?t c?c</span>
-            </button>
-
-            <button id="btnBackStep1" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;">
-                <i class="bi bi-arrow-left me-1"></i> Quay l?i
-            </button>
-        </div>
-
-        <div id="depositStep3" class="deposit-step">
-            <div class="text-center">
-                <div class="deposit-success-icon">?</div>
-                <h4 class="fw-bold text-success mb-2" id="step3Title">D?t c?c th?nh c?ng!</h4>
-                <p class="text-muted" style="font-size:14px;" id="step3Subtitle">Xe d? du?c gi? ri?ng cho b?n.</p>
-
-                <div class="deposit-info-row mt-3">
-                    <span class="label" id="step3AmtLabel">S? ti?n c?c</span>
-                    <span class="value text-danger" id="step3DepositAmt"></span>
-                </div>
-                <div class="deposit-info-row" id="step3ExpiryRow">
-                    <span class="label">H?n ho?n t?t mua xe</span>
-                    <span class="value" id="step3Expiry"></span>
-                </div>
-                <div class="deposit-info-row">
-                    <span class="label">M? giao d?ch</span>
-                    <span class="value" id="step3RequestId"></span>
+                <div class="mt-auto mb-2">
+                    <button id="btnAddCarToCart"
+                            class="btn btn-warning w-100 fw-bold py-2 border-0 text-dark d-flex align-items-center justify-content-center gap-2"
+                            style="background-color:#ffc107;"
+                            data-carid="@Model.CarId">
+                        <i class="bi bi-cart-plus-fill fs-5"></i>
+                        <span>Thêm vào giỏ hàng</span>
+                    </button>
                 </div>
 
-                <div class="alert alert-success mt-3" style="font-size:13px; border-radius:10px;">
-                    <i class="bi bi-telephone-fill me-1"></i>
-                    Showroom s? li?n h? x?c nh?n l?i trong v?ng 24h l?m vi?c.
-                </div>
-
-                <button id="btnDepositDone" class="btn-deposit-submit">
-                    <i class="bi bi-check-circle me-2"></i> Ho?n t?t
-                </button>
             </div>
         </div>
     </div>
@@ -788,215 +670,68 @@
         }
     });
 
-    // ??????????????????????????????????????????????????????
-    //  DEPOSIT / BUYOUT MODAL LOGIC
-    // ??????????????????????????????????????????????????????
-    const depositOverlay  = document.getElementById('depositModalOverlay');
-    const btnOpen         = document.getElementById('btnDepositOpen');
-    const btnBuyoutOpen   = document.getElementById('btnBuyoutOpen');
-    const btnClose        = document.getElementById('btnDepositClose');
-    const btnGoStep2      = document.getElementById('btnGoStep2');
-    const btnBackStep1    = document.getElementById('btnBackStep1');
-    const btnSubmit       = document.getElementById('btnSubmitDeposit');
-    const btnDone         = document.getElementById('btnDepositDone');
-    const captchaInput    = document.getElementById('captchaInput');
-    const depositError    = document.getElementById('depositError');
-    const depositErrorMsg = document.getElementById('depositErrorMsg');
-    const loginWarning    = document.getElementById('depositLoginWarning');
-
-    let currentCarId    = null;
-    let currentCarPrice = null;
-    let modalMode       = 'deposit'; // 'deposit' | 'buyout'
-    const currentCarStatus = "@Model.Status";
-
-    if (currentCarStatus === 'Reserved') {
-        btnOpen?.closest('.col-6')?.classList.add('d-none');
-        btnBuyoutOpen?.closest('.col-6')?.classList.replace('col-6', 'col-12');
-        const buyoutText = btnBuyoutOpen?.querySelector('span');
-        if (buyoutText) {
-            buyoutText.textContent = 'Mua d?t - Thanh to?n ph?n c?n l?i';
-        }
-    }
-
-    function showStep(n) {
-        ['depositStep1','depositStep2','depositStep3'].forEach((id, i) => {
-            document.getElementById(id).classList.toggle('active', i === n - 1);
-        });
-    }
-
-    function formatVnd(amount) {
-        return Number(amount).toLocaleString('vi-VN') + ' VND';
-    }
-
-    function openModal(mode) {
-        modalMode = mode;
-        const btn = (mode === 'deposit') ? btnOpen : btnBuyoutOpen;
-        if (!btn) return;
-
-        currentCarId    = parseInt(btn.dataset.carid);
-        currentCarPrice = parseFloat(btn.dataset.price);
-        const buyoutAmount = currentCarStatus === 'Reserved'
-            ? Math.round(currentCarPrice * 0.95)
-            : currentCarPrice;
-        const carName   = btn.dataset.carname;
-
-        document.getElementById('step1CarName').textContent = carName;
-
-        if (mode === 'deposit') {
-            const deposit = Math.round(currentCarPrice * 0.05);
-            document.getElementById('step1Title').textContent = 'D?t c?c gi? xe';
-            document.getElementById('step1Subtitle').textContent = 'Li?n h? showroom d? x?c nh?n v? ho?n t?t d?t c?c';
-            document.getElementById('step1HotlineDesc').textContent = 'Li?n h? tr?c ti?p d? trao d?i v? d?t c?c xe';
-            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Ti?n c?c (5%)';
-            document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
-            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-calendar-check me-1"></i> Th?i h?n gi? c?c';
-            document.getElementById('step1ExpiryVal').textContent = '14 ng?y';
-            document.getElementById('step1Alert').style.display = 'flex';
-            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> T?i d? li?n h? - Nh?p m? x?c nh?n';
-            
-            document.getElementById('step2Title').textContent = 'Nh?p m? x?c nh?n';
-            document.getElementById('step2Subtitle').textContent = 'Nh?p m? do nh?n vi?n showroom cung c?p qua di?n tho?i d? kho? lu?t d?t c?c';
-            document.getElementById('loginWarningText').textContent = 'B?n c?n dang nh?p d? d?t c?c.';
-            document.getElementById('btnSubmitText').textContent = 'X?c nh?n d?t c?c';
-        } else {
-            document.getElementById('step1Title').textContent = 'Mua d?t xe';
-            document.getElementById('step1Subtitle').textContent = 'Li?n h? showroom d? thanh to?n v? ho?n t?t mua d?t';
-            document.getElementById('step1HotlineDesc').textContent = 'Li?n h? tr?c ti?p d? chuy?n kho?n thanh to?n mua d?t xe';
-            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Gi? b?n xe (100%)';
-            if (currentCarStatus === 'Reserved') {
-                document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> S?' ti?n c?n l?i ph?i tr?';
+    // ===== Thêm xe vào giỏ hàng chung (captcha dùng chung theo hóa đơn master) =====
+    const isAuthenticatedCar = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+    const btnAddCarToCart = document.getElementById('btnAddCarToCart');
+    btnAddCarToCart?.addEventListener('click', async () => {
+        if (!isAuthenticatedCar) {
+            if (window.Swal) {
+                const r = await window.Swal.fire({
+                    title: 'Yêu cầu đăng nhập!',
+                    text: 'Vui lòng đăng nhập để thêm xe vào giỏ hàng.',
+                    icon: 'warning', showCancelButton: true,
+                    confirmButtonColor: '#ffc107', cancelButtonColor: '#262626',
+                    confirmButtonText: 'Đăng nhập', cancelButtonText: 'Hủy'
+                });
+                if (r.isConfirmed) window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+            } else if (confirm('Vui lòng đăng nhập để thêm xe vào giỏ hàng. Đi đến trang đăng nhập?')) {
+                window.location.href = '/Auth/Login';
             }
-            document.getElementById('step1DepositAmt').textContent = formatVnd(buyoutAmount);
-            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> B?n giao d? ki?n';
-            document.getElementById('step1ExpiryVal').textContent = 'S?m nh?t';
-            document.getElementById('step1Alert').style.display = 'none';
-            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> T?i d? thanh to?n - Nh?p m? giao d?ch';
-
-            document.getElementById('step2Title').textContent = 'Nh?p m? giao d?ch';
-            document.getElementById('step2Subtitle').textContent = 'Nh?p m? giao d?ch do nh?n vi?n cung c?p sau khi thanh to?n th?nh c?ng';
-            document.getElementById('loginWarningText').textContent = 'B?n c?n dang nh?p d? mua d?t.';
-            document.getElementById('btnSubmitText').textContent = 'X?c nh?n mua d?t';
-        }
-
-        captchaInput.value = '';
-        depositError.style.display = 'none';
-        loginWarning.classList.add('d-none');
-        showStep(1);
-        depositOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal() {
-        depositOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    btnOpen?.addEventListener('click', () => openModal('deposit'));
-    btnBuyoutOpen?.addEventListener('click', () => openModal('buyout'));
-    btnClose?.addEventListener('click', closeModal);
-    btnDone?.addEventListener('click', () => {
-        closeModal();
-        window.location.reload();
-    });
-
-    // Close on overlay click
-    depositOverlay?.addEventListener('click', (e) => {
-        if (e.target === depositOverlay) closeModal();
-    });
-
-    btnGoStep2?.addEventListener('click', () => showStep(2));
-    btnBackStep1?.addEventListener('click', () => showStep(1));
-
-    // Helper: parse JWT from cookie claims (user identity)
-    function getUserInfo() {
-        const userId   = @(User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
-        const fullName = "@(User.FindFirst("name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "")";
-        const email    = "@(User.FindFirst("email")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")";
-        return { userId: Number(userId), fullName, email };
-    }
-
-    btnSubmit?.addEventListener('click', async () => {
-        const code = captchaInput.value.trim().toUpperCase();
-        if (!code) {
-            depositErrorMsg.textContent = 'Vui l?ng nh?p m? x?c nh?n.';
-            depositError.style.display = 'block';
             return;
         }
 
-        const user = getUserInfo();
-        if (!user.userId || user.userId <= 0) {
-            loginWarning.classList.remove('d-none');
-            depositErrorMsg.textContent = modalMode === 'deposit' ? 'B?n c?n dang nh?p d? d?t c?c.' : 'B?n c?n dang nh?p d? mua d?t.';
-            depositError.style.display = 'block';
-            return;
-        }
-
-        depositError.style.display = 'none';
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Dang x? l?...';
+        const carId = parseInt(btnAddCarToCart.dataset.carid);
+        const original = btnAddCarToCart.innerHTML;
+        btnAddCarToCart.disabled = true;
+        btnAddCarToCart.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang thêm...';
 
         try {
-            const payload = {
-                carId:        currentCarId,
-                customerId:   user.userId,
-                customerName: user.fullName || 'Kh?ch h?ng',
-                customerPhone: '0987173229',
-                customerEmail: user.email,
-                captchaCode:  code
-            };
-
-            const endpoint = modalMode === 'deposit' ? 'deposit' : 'buyout';
-            const resp = await fetch(`/Cars/SubmitPurchaseRequest?endpoint=${endpoint}`, {
+            const body = new URLSearchParams({ itemType: 'Car', itemId: String(carId), quantity: '1' });
+            const resp = await fetch('/Cart/AddToCart', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
             });
+            const res = await resp.json();
+            btnAddCarToCart.disabled = false;
+            btnAddCarToCart.innerHTML = original;
 
-            const data = await resp.json();
-            const success = (data.success !== undefined) ? data.success : data.Success;
-            const depositAmount = (data.depositAmount !== undefined) ? data.depositAmount : data.DepositAmount;
-            const depositExpiry = (data.depositExpiry !== undefined) ? data.depositExpiry : data.DepositExpiry;
-            const requestId = (data.requestId !== undefined) ? data.requestId : data.RequestId;
-            const message = (data.message !== undefined) ? data.message : data.Message;
+            if (res.success) {
+                const badge = document.getElementById('navbarCartCount');
+                if (badge && res.cartCount !== undefined) badge.textContent = res.cartCount;
 
-            if (resp.ok && success) {
-                if (modalMode === 'deposit') {
-                    document.getElementById('step3Title').textContent = 'D?t c?c th?nh c?ng!';
-                    document.getElementById('step3Subtitle').textContent = 'Xe d? du?c gi? ri?ng cho b?n.';
-                    document.getElementById('step3AmtLabel').textContent = 'S? ti?n c?c';
-                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
-                    document.getElementById('step3ExpiryRow').style.display = 'flex';
-                    if (depositExpiry) {
-                        document.getElementById('step3Expiry').textContent = new Date(depositExpiry).toLocaleDateString('vi-VN');
-                    }
-                } else {
-                    document.getElementById('step3Title').textContent = 'Mua d?t th?nh c?ng!';
-                    document.getElementById('step3Subtitle').textContent = 'C?m on b?n d? mua xe t?i showroom ch?ng t?i.';
-                    document.getElementById('step3AmtLabel').textContent = 'T?ng s? ti?n';
-                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
-                    document.getElementById('step3ExpiryRow').style.display = 'none';
-                }
-                document.getElementById('step3RequestId').textContent   = '#' + requestId;
-                showStep(3);
-                if (modalMode === 'buyout') {
-                    setTimeout(() => window.location.reload(), 1500);
+                if (window.Swal) {
+                    const r = await window.Swal.fire({
+                        title: 'Đã thêm xe vào giỏ hàng!',
+                        text: 'Bạn có muốn đến giỏ hàng để tiến hành thủ tục?',
+                        icon: 'success', showCancelButton: true,
+                        confirmButtonColor: '#ffc107', cancelButtonColor: '#262626',
+                        confirmButtonText: 'Đến giỏ hàng', cancelButtonText: 'Tiếp tục xem xe'
+                    });
+                    if (r.isConfirmed) window.location.href = '/Cart';
+                } else if (confirm('Đã thêm xe vào giỏ hàng. Đến giỏ hàng ngay?')) {
+                    window.location.href = '/Cart';
                 }
             } else {
-                depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'D?t c?c kh?ng th?nh c?ng.' : 'Mua d?t kh?ng th?nh c?ng.');
-                depositError.style.display = 'block';
+                if (window.Swal) window.Swal.fire('Không thể thêm', res.message || 'Xe không khả dụng.', 'error');
+                else alert(res.message || 'Không thể thêm xe vào giỏ hàng.');
             }
         } catch (err) {
-            depositErrorMsg.textContent = 'Kh?ng th? k?t n?i d?n m?y ch?. Vui l?ng th? l?i.';
-            depositError.style.display = 'block';
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `<i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">${modalMode === 'deposit' ? 'X?c nh?n d?t c?c' : 'X?c nh?n mua d?t'}</span>`;
+            btnAddCarToCart.disabled = false;
+            btnAddCarToCart.innerHTML = original;
+            if (window.Swal) window.Swal.fire('Lỗi!', 'Đã xảy ra lỗi kết nối.', 'error');
+            else alert('Đã xảy ra lỗi kết nối.');
         }
-    });
-
-    // Auto-uppercase captcha input
-    captchaInput?.addEventListener('input', () => {
-        captchaInput.value = captchaInput.value.toUpperCase();
     });
 
 </script>

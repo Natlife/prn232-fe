@@ -79,7 +79,7 @@
                                         <img src="@carImg" alt="@(request.Car?.CarName ?? "Xe")" 
                                              class="rounded-3 object-fit-cover shadow-sm" 
                                              style="width: 70px; height: 45px;" 
-                                             onerror="this.src='@defaultCarImg'">
+                                             onerror="this.onerror=null; this.src='@defaultCarImg';">
                                         <div>
                                             <a asp-action="Details" asp-route-id="@request.CarId" class="fw-bold text-dark text-decoration-none hover-text-warning">
                                                 @(request.Car?.CarName ?? "Th?ng tin xe kh?ng kh? d?ng")

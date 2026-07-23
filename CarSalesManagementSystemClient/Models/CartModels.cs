@@ -35,9 +35,9 @@ namespace CarSalesManagementSystemClient.Models
 
         public void AddItem(UnifiedCartItem newItem)
         {
-            if (newItem.ItemType == "Package" || newItem.ItemType == "Service")
+            if (newItem.ItemType == "Package" || newItem.ItemType == "Service" || newItem.ItemType == "Car")
             {
-                // Services and Packages can only be added once (quantity 1 max per type/id)
+                // Cars, Services and Packages can only be added once (quantity 1 max per type/id)
                 var existing = Items.Find(i => i.ItemType == newItem.ItemType && i.ItemId == newItem.ItemId);
                 if (existing == null)
                 {
@@ -101,5 +101,8 @@ namespace CarSalesManagementSystemClient.Models
         public string? AppointmentDate { get; set; }
         public string? AppointmentTime { get; set; }
         public string? Note { get; set; }
+
+        /// <summary>"Deposit" (đặt cọc) hoặc "Buyout" (mua đứt) — áp dụng cho hóa đơn tổng.</summary>
+        public string PurchaseType { get; set; } = "Buyout";
     }
 }

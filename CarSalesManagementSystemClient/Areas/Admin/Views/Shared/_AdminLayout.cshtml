@@ -50,11 +50,6 @@
                             <i class="bi bi-key-fill me-2"></i> Tạo mã captcha
                         </a>
                     </li>
-                    <li>
-                        <a href="/ComboOrder/AdminOrders" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "ComboOrder" ? "active" : "")">
-                            <i class="bi bi-box-seam me-2"></i> Quản lý đơn combo
-                        </a>
-                    </li>
                     <li class="nav-item">
                         <a href="#maintenanceSubmenu" data-bs-toggle="collapse" class="nav-link dropdown-toggle @((ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Services") ? "active" : "")">
                             <i class="bi bi-tools me-2"></i> Quản lý Bảo dưỡng

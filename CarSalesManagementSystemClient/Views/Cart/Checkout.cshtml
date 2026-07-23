@@ -253,9 +253,28 @@
 
                     <!-- STEP 3: THÔNG TIN XE -->
                     <div class="wizard-step" id="step-3">
-                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-car-front text-warning me-2"></i>BƯỚC 3: Nhập thông tin xe cần bảo dưỡng</h4>
-                        
-                        <div class="p-4 bg-light rounded-4 border mb-4">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-car-front text-warning me-2"></i>BƯỚC 3: Thông tin xe cần bảo dưỡng</h4>
+
+                        <!-- Chọn nguồn xe: chỉ hiện khi trong giỏ có mua xe -->
+                        <div id="carSourceChoice" class="d-none mb-4">
+                            <label class="form-label fw-semibold text-secondary mb-2">Bạn muốn bảo dưỡng xe nào?</label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0" style="cursor:pointer;">
+                                        <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceInCart" value="InCart" checked>
+                                        <span><strong>Xe trong giỏ hàng</strong><br><span class="small text-muted" id="carSourceInCartName">Xe bạn đang mua</span></span>
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0" style="cursor:pointer;">
+                                        <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceOther" value="Other">
+                                        <span><strong>Xe khác</strong><br><span class="small text-muted">Xe bạn đã có sẵn</span></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="carInfoInputs" class="p-4 bg-light rounded-4 border mb-4">
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label for="CarNameInput" class="form-label fw-semibold text-secondary">Tên xe / Mẫu xe</label>
@@ -269,10 +288,14 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="alert alert-info rounded-3 small mb-0">
+
+                        <div id="carInCartHint" class="alert alert-success rounded-3 small mb-0 d-none">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Bảo dưỡng cho xe đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).
+                        </div>
+                        <div id="carOtherHint" class="alert alert-info rounded-3 small mb-0">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            Nếu giỏ hàng của bạn không có gói bảo dưỡng hay linh kiện bảo dưỡng nào, bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua thông tin xe này.
+                            Nếu giỏ hàng không có gói/linh kiện bảo dưỡng nào, bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua thông tin xe.
                         </div>
 
                         <div class="d-flex justify-content-between mt-5">
@@ -315,6 +338,20 @@
                         <div class="row g-4">
                             <!-- Left columns: Summary list -->
                             <div class="col-md-7">
+                                <!-- Section 0: Ô tô (yêu cầu mua) -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden d-none" id="summaryCarCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5 d-flex align-items-center">
+                                        🚗 Ô TÔ (YÊU CẦU MUA)
+                                        <a tabindex="0" role="button" class="ms-2 text-warning" data-bs-toggle="popover" data-bs-trigger="focus" title="Về việc mua ô tô"
+                                           data-bs-content="Xe cần nhân viên xác nhận. Sau khi đặt hàng, bạn vào 'Hóa đơn của tôi', liên hệ nhân viên nhận mã và nhập để xác thực đặt cọc/mua đứt.">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                        </a>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryCarList"></ul>
+                                    </div>
+                                </div>
+
                                 <!-- Section A: Standalone Parts -->
                                 <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden" id="summaryStandaloneCard">
                                     <div class="card-header bg-dark text-warning fw-bold py-2.5">
@@ -326,18 +363,10 @@
                                         </ul>
                                     </div>
                                     <div class="card-footer bg-light">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold text-secondary small">Hình thức nhận hàng:</label>
-                                            <div class="d-flex gap-4">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="deliveryMethod" id="del-pickup" value="Pickup" checked>
-                                                    <label class="form-check-label small" for="del-pickup">Nhận tại showroom</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="deliveryMethod" id="del-shipping" value="Shipping">
-                                                    <label class="form-check-label small" for="del-shipping">Giao hàng tận nơi</label>
-                                                </div>
-                                            </div>
+                                        @* Tạm thời chỉ hỗ trợ nhận tại showroom — ẩn lựa chọn giao hàng. *@
+                                        <input type="radio" name="deliveryMethod" id="del-pickup" value="Pickup" checked class="d-none">
+                                        <div class="small text-secondary">
+                                            <i class="bi bi-shop me-1 text-warning"></i>Hình thức nhận: <strong>Nhận tại showroom</strong>
                                         </div>
                                         <div class="mb-2 d-none" id="shippingAddressContainer">
                                             <label for="ShippingAddressInput" class="form-label fw-bold text-secondary small">Địa chỉ nhận phụ tùng:</label>
@@ -393,30 +422,74 @@
                                         <h6 class="fw-bold text-warning border-bottom border-secondary pb-2 mb-3">TỔNG CHI PHÍ TẠM TÍNH</h6>
                                         
                                         <div class="d-flex justify-content-between mb-2 small">
+                                            <span>Ô tô (yêu cầu mua):</span>
+                                            <span class="fw-bold text-warning" id="totalCarDisplay">0 đ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2 small">
                                             <span>Phụ tùng mua riêng:</span>
                                             <span class="fw-bold" id="totalStandaloneDisplay">0 đ</span>
                                         </div>
-                                        <div class="d-flex justify-content-between mb-2 small border-bottom border-secondary pb-2">
-                                            <span>Chi phí bảo dưỡng dự kiến:</span>
-                                            <span class="fw-bold text-warning" id="totalMaintenanceDisplay">0 đ</span>
+                                        <div id="maintenanceCostBlock" class="border-bottom border-secondary pb-2 mb-2 d-none">
+                                            <div class="d-flex justify-content-between small fw-bold text-warning mb-1">
+                                                <span>
+                                                    Chi phí bảo dưỡng dự kiến
+                                                    <a tabindex="0" role="button" class="text-info ms-1" data-bs-toggle="popover" data-bs-trigger="focus" title="Chi phí dự kiến"
+                                                       data-bs-content="Chi phí bảo dưỡng là dự kiến, có thể thay đổi nếu phát sinh phụ tùng/dịch vụ bổ sung và chỉ chốt sau khi bạn xác nhận.">
+                                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                                    </a>:
+                                                </span>
+                                                <span id="totalMaintenanceDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowPackage">
+                                                <span>• Gói bảo dưỡng:</span><span id="totalPackageDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowService">
+                                                <span>• Dịch vụ lẻ:</span><span id="totalServiceDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowMaintParts">
+                                                <span>• Phụ tùng bảo dưỡng:</span><span id="totalMaintPartsDisplay">0 đ</span>
+                                            </div>
                                         </div>
                                         <div class="d-flex justify-content-between pt-1">
                                             <span class="fw-bold fs-6">Tổng cộng:</span>
                                             <span class="fw-bold fs-5 text-danger" id="totalOrderDisplay">0 đ</span>
                                         </div>
+                                        <div class="small text-white-50 mt-2"><i class="bi bi-info-circle me-1"></i>Phụ tùng/dịch vụ phát sinh (nếu có) sẽ được tính bổ sung khi bảo dưỡng và cần bạn duyệt.</div>
                                     </div>
-                                </div>
-
-                                <div class="alert alert-info mt-3 rounded-3 small" style="font-size: 11px; line-height: 1.5;">
-                                    <i class="bi bi-info-circle-fill me-1"></i>
-                                    <strong>Thông báo bắt buộc:</strong> Chi phí bảo dưỡng trên là chi phí dự kiến. Chi phí cuối cùng có thể thay đổi nếu phát sinh phụ tùng hoặc dịch vụ bổ sung và chỉ được tính sau khi khách hàng xác nhận.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-5">
+                        <!-- Chọn hình thức thanh toán cho hóa đơn tổng -->
+                        <div class="card border rounded-3 shadow-sm mt-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark mb-3">
+                                    Hình thức thanh toán
+                                    <a tabindex="0" role="button" class="text-info ms-1" data-bs-toggle="popover" data-bs-trigger="focus" title="Đặt cọc / Mua đứt"
+                                       data-bs-content="Đặt cọc: trả trước 10% để giữ chỗ (tối đa 2 tuần), sau đó tất toán phần còn lại. Mua đứt: thanh toán toàn bộ. Cả hai đều xác thực bằng mã do nhân viên cấp ở trang Hóa đơn của tôi.">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                    </a>
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="w-100 p-3 border rounded-4 d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                                            <input class="form-check-input mt-1" type="radio" name="purchaseType" value="Deposit">
+                                            <span><strong>Đặt cọc</strong><br><span class="small text-muted">Cọc ~10% giữ chỗ tối đa 2 tuần, tất toán sau.</span></span>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="w-100 p-3 border rounded-4 d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                                            <input class="form-check-input mt-1" type="radio" name="purchaseType" value="Buyout" checked>
+                                            <span><strong>Mua đứt</strong><br><span class="small text-muted">Thanh toán toàn bộ một lần.</span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
                             <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(4)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button type="button" class="btn btn-dark text-warning fw-bold rounded-3 px-5" id="btnSubmitOrder" onclick="submitCheckout()"><i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn</button>
+                            <button type="button" class="btn btn-dark text-warning fw-bold rounded-3 px-5" id="btnSubmitOrder" onclick="submitCheckout()"><i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn</button>
                         </div>
                     </div>
 
@@ -439,16 +512,24 @@
                                         <div class="fw-bold text-dark">Lịch bảo dưỡng <span class="text-primary font-monospace" id="lblAppointmentId"></span>:</div>
                                         <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Đang chờ duyệt lịch hẹn sửa chữa.</div>
                                     </div>
+                                    <div class="d-none mt-3" id="resCar">
+                                        <div class="fw-bold text-dark">Yêu cầu mua xe <span class="text-primary font-monospace" id="lblCarRequestIds"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Nhân viên sẽ liên hệ lập hóa đơn và cấp mã xác thực để bạn hoàn tất.</div>
+                                    </div>
+                                    <div class="d-none mt-3 border-top pt-3" id="resInvoice">
+                                        <div class="fw-bold text-dark">Hóa đơn tổng <span class="text-success font-monospace" id="lblInvoiceNumber"></span> — <span id="lblPurchaseType"></span></div>
+                                        <div class="text-secondary small"><i class="bi bi-shield-lock me-1 text-warning"></i>Vào <strong>Hóa đơn của tôi</strong>, liên hệ nhân viên (hotline (+84) 0359492991) để nhận mã và nhập xác thực.</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="alert alert-warning d-inline-block rounded-3 small mx-auto" style="max-width: 550px;">
-                            <i class="bi bi-info-circle-fill me-1"></i> Showroom sẽ xác nhận đơn hàng và lịch hẹn của bạn sớm nhất qua số điện thoại. Chi phí bảo dưỡng cuối cùng được thanh toán sau khi hoàn thành dịch vụ tại quầy.
+                            <i class="bi bi-info-circle-fill me-1"></i> Với hóa đơn <strong>đặt cọc</strong>, cọc giữ chỗ tối đa <strong>2 tuần</strong>; quá hạn đơn tự hủy và không hoàn cọc. Chi phí bảo dưỡng cuối cùng thanh toán sau khi hoàn thành dịch vụ.
                         </div>
 
                         <div class="mt-4">
-                            <a href="/Maintenance/History" class="btn btn-gold rounded-pill px-4 me-2"><i class="bi bi-clock-history"></i> Lịch sử đặt lịch</a>
+                            <a href="/Invoices" class="btn btn-gold rounded-pill px-4 me-2"><i class="bi bi-receipt-cutoff"></i> Hóa đơn của tôi</a>
                             <a href="/" class="btn btn-outline-secondary rounded-pill px-4">Về Trang chủ</a>
                         </div>
                     </div>
@@ -463,6 +544,9 @@
         const cartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cart));
         let activeStep = 1;
 
+        // Xe đang có trong giỏ (nếu có) — dùng cho lựa chọn "bảo dưỡng xe trong giỏ".
+        const carInCart = cartData.Items.find(i => i.ItemType === 'Car') || null;
+
         $(document).ready(function() {
             // Setup delivery address toggle
             $('input[name="deliveryMethod"]').change(function() {
@@ -473,9 +557,43 @@
                 }
             });
 
+            // Bước 3: nếu giỏ có xe -> hiện 2 lựa chọn nguồn xe.
+            if (carInCart) {
+                $('#carSourceChoice').removeClass('d-none');
+                $('#carSourceInCartName').text(carInCart.Name);
+                $('input[name="carSource"]').change(applyCarSource);
+                applyCarSource();
+            }
+
             // Initialize total price calculations
             recalculateSummary();
+
+            // Kích hoạt popover cho các icon dấu "!" giải thích.
+            try {
+                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+                    new bootstrap.Popover(el);
+                });
+            } catch (e) { /* bootstrap chưa sẵn sàng - bỏ qua */ }
         });
+
+        // Trả về nguồn xe hiện chọn: 'InCart' | 'Other'. Nếu giỏ không có xe -> luôn 'Other'.
+        function getCarSource() {
+            if (!carInCart) return 'Other';
+            return $('input[name="carSource"]:checked').val() || 'InCart';
+        }
+
+        function applyCarSource() {
+            const src = getCarSource();
+            if (src === 'InCart') {
+                $('#carInfoInputs').addClass('d-none');
+                $('#carInCartHint').removeClass('d-none');
+                $('#carOtherHint').addClass('d-none');
+            } else {
+                $('#carInfoInputs').removeClass('d-none');
+                $('#carInCartHint').addClass('d-none');
+                $('#carOtherHint').removeClass('d-none');
+            }
+        }
 
         function changePurpose(itemType, itemId, purpose) {
             $.ajax({
@@ -496,24 +614,39 @@
         }
 
         function recalculateSummary() {
-            let totalStandalone = 0;
-            let totalMaintenance = 0;
+            let totalStandalone = 0, totalCar = 0;
+            let totalPackage = 0, totalService = 0, totalMaintParts = 0;
 
             cartData.Items.forEach(item => {
+                const line = item.Price * item.Quantity;
                 if (item.ItemType === 'Part') {
-                    if (item.Purpose === 'Maintenance') {
-                        totalMaintenance += item.Price * item.Quantity;
-                    } else {
-                        totalStandalone += item.Price * item.Quantity;
-                    }
-                } else if (item.ItemType === 'Package' || item.ItemType === 'Service') {
-                    totalMaintenance += item.Price * item.Quantity;
+                    if (item.Purpose === 'Maintenance') totalMaintParts += line;
+                    else totalStandalone += line;
+                } else if (item.ItemType === 'Package') {
+                    totalPackage += line;
+                } else if (item.ItemType === 'Service') {
+                    totalService += line;
+                } else if (item.ItemType === 'Car') {
+                    totalCar += line;
                 }
             });
 
-            $('#totalStandaloneDisplay').text(totalStandalone.toLocaleString('vi-VN') + ' đ');
-            $('#totalMaintenanceDisplay').text(totalMaintenance.toLocaleString('vi-VN') + ' đ');
-            $('#totalOrderDisplay').text((totalStandalone + totalMaintenance).toLocaleString('vi-VN') + ' đ');
+            const totalMaintenance = totalPackage + totalService + totalMaintParts;
+            const fmt = v => v.toLocaleString('vi-VN') + ' đ';
+
+            $('#totalCarDisplay').text(fmt(totalCar));
+            $('#totalStandaloneDisplay').text(fmt(totalStandalone));
+            $('#totalMaintenanceDisplay').text(fmt(totalMaintenance));
+            $('#totalPackageDisplay').text(fmt(totalPackage));
+            $('#totalServiceDisplay').text(fmt(totalService));
+            $('#totalMaintPartsDisplay').text(fmt(totalMaintParts));
+            $('#totalOrderDisplay').text(fmt(totalStandalone + totalMaintenance + totalCar));
+
+            // Ẩn/hiện các dòng theo dữ liệu thực tế cho gọn.
+            $('#maintenanceCostBlock').toggleClass('d-none', totalMaintenance === 0);
+            $('#rowPackage').toggleClass('d-none', totalPackage === 0);
+            $('#rowService').toggleClass('d-none', totalService === 0);
+            $('#rowMaintParts').toggleClass('d-none', totalMaintParts === 0);
         }
 
         function goToStep(step) {
@@ -538,9 +671,10 @@
             }
 
             if (step === 4 && activeStep === 3) {
-                const carName = $('#CarNameInput').val().trim();
-                const licensePlate = $('#LicensePlateInput').val().trim();
-                if (hasMaintenance) {
+                // Nếu chọn bảo dưỡng "xe trong giỏ" thì bỏ qua yêu cầu nhập tên xe/biển số.
+                if (hasMaintenance && getCarSource() === 'Other') {
+                    const carName = $('#CarNameInput').val().trim();
+                    const licensePlate = $('#LicensePlateInput').val().trim();
                     if (!carName || !licensePlate) {
                         showError("Vui lòng điền thông tin tên xe và biển số xe để đặt lịch bảo dưỡng.");
                         return;
@@ -593,6 +727,30 @@
         }
 
         function renderStep5Summary(hasStandalone, hasMaintenance) {
+            const hasCar = cartData.Items.some(i => i.ItemType === 'Car');
+
+            // 0. Ô tô (yêu cầu mua) — danh mục riêng
+            if (hasCar) {
+                $('#summaryCarCard').removeClass('d-none');
+                let carHtml = "";
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Car') {
+                        carHtml += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-warning text-dark me-1">Ô Tô</span>
+                                    <span class="fw-semibold">${i.Name}</span>
+                                </div>
+                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                            </li>
+                        `;
+                    }
+                });
+                $('#summaryCarList').html(carHtml);
+            } else {
+                $('#summaryCarCard').addClass('d-none');
+            }
+
             // A. Standalone Parts list
             if (hasStandalone) {
                 $('#summaryStandaloneCard').removeClass('d-none');
@@ -647,8 +805,12 @@
 
                 $('#summaryMaintenanceList').html(html);
                 
-                // Details text
-                $('#summaryCarText').text($('#CarNameInput').val() + ' (' + $('#LicensePlateInput').val() + ')');
+                // Details text (tôn trọng lựa chọn nguồn xe)
+                if (getCarSource() === 'InCart' && carInCart) {
+                    $('#summaryCarText').text(carInCart.Name + ' (xe trong giỏ hàng)');
+                } else {
+                    $('#summaryCarText').text($('#CarNameInput').val() + ' (' + $('#LicensePlateInput').val() + ')');
+                }
                 $('#summaryTimeText').text($('#AppointmentTimeInput').val() + ', ngày ' + $('#AppointmentDateInput').val());
             } else {
                 $('#summaryMaintenanceCard').addClass('d-none');
@@ -676,11 +838,12 @@
                 CustomerEmail: email,
                 DeliveryMethod: $('input[name="deliveryMethod"]:checked').val(),
                 ShippingAddress: $('#ShippingAddressInput').val().trim(),
-                CarName: hasMaintenance ? $('#CarNameInput').val().trim() : null,
-                LicensePlate: hasMaintenance ? $('#LicensePlateInput').val().trim() : null,
+                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carInCart ? carInCart.Name : $('#CarNameInput').val().trim()) : null,
+                LicensePlate: hasMaintenance ? (getCarSource() === 'InCart' ? 'Chưa cấp biển' : $('#LicensePlateInput').val().trim()) : null,
                 AppointmentDate: hasMaintenance ? $('#AppointmentDateInput').val() : null,
                 AppointmentTime: hasMaintenance ? $('#AppointmentTimeInput').val() : null,
-                Note: hasMaintenance ? $('#NoteInput').val().trim() : null
+                Note: hasMaintenance ? $('#NoteInput').val().trim() : null,
+                PurchaseType: $('input[name="purchaseType"]:checked').val() || 'Buyout'
             };
 
             // Toggle spinner on submit button
@@ -708,15 +871,30 @@
                             $('#resMaintenance').addClass('d-none');
                         }
 
+                        if (res.carRequestIds && res.carRequestIds.length > 0) {
+                            $('#resCar').removeClass('d-none');
+                            $('#lblCarRequestIds').text(res.carRequestIds.join(', '));
+                        } else {
+                            $('#resCar').addClass('d-none');
+                        }
+
+                        if (res.invoiceNumber) {
+                            $('#resInvoice').removeClass('d-none');
+                            $('#lblInvoiceNumber').text(res.invoiceNumber);
+                            $('#lblPurchaseType').text(res.purchaseType === 'Deposit' ? 'Đặt cọc' : 'Mua đứt');
+                        } else {
+                            $('#resInvoice').addClass('d-none');
+                        }
+
                         goToStep(6);
                     } else {
                         showError(res.message);
-                        $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn');
+                        $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn');
                     }
                 },
                 error: function() {
                     showError("Lỗi hệ thống khi gửi yêu cầu. Vui lòng kiểm tra lại kết nối.");
-                    $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn');
+                    $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn');
                 }
             });
         }

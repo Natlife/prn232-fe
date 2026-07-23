@@ -8,7 +8,7 @@ namespace CarSalesRazorPages.Pages.Parts;
 public class IndexModel : PageModel
 {
     private readonly HttpClient _httpClient;
-    private const string PartsOdataUrl = "http://localhost:5084/odata/Parts";
+    private const string PartsApiUrl = "http://localhost:5084/api/Parts";
     private const string CategoriesApiUrl = "http://localhost:5084/api/PartCategories";
 
     public IndexModel(IHttpClientFactory httpClientFactory)
@@ -58,7 +58,7 @@ public class IndexModel : PageModel
             odataParams.Add("$count=true");
             odataParams.Add("$expand=Category");
 
-            var requestUri = PartsOdataUrl + "?" + string.Join("&", odataParams);
+            var requestUri = PartsApiUrl + "?" + string.Join("&", odataParams);
             var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>(requestUri);
 
             PagedParts = new PagedResultViewModel<PartViewModel>

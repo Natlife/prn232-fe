@@ -11,14 +11,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// Quản lý hóa đơn tổng &amp; sinh mã captcha (đặt cọc / mua đứt) cho nhân viên.
+    /// Nhân viên sinh mã ở đây rồi cung cấp cho khách để khách nhập xác thực ở trang "Hóa đơn của tôi".
+    /// </summary>
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class CaptchasController : Controller
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiBaseUrl;
-        private string CaptchasApiUrl => $"{_apiBaseUrl}/odata/DepositCaptchas";
-        private string CarsApiUrl => $"{_apiBaseUrl}/odata/Cars";
 
         public CaptchasController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
@@ -29,81 +31,132 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
         private bool AttachJwtToken()
         {
             var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
-            if (string.IsNullOrEmpty(token))
-            {
-                return false;
-            }
-
+            if (string.IsNullOrEmpty(token)) return false;
             _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             return true;
         }
 
+        // GET: /Admin/Captchas
         public async Task<IActionResult> Index()
         {
             if (!AttachJwtToken())
             {
-                TempData["ErrorMessage"] = "Phien dang nhap khong co token hoac da het han. Vui long dang nhap lai.";
-                ViewBag.Cars = new List<CarViewModel>();
-                return View(new List<DepositCaptchaViewModel>());
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                return View(new List<InvoiceListItemViewModel>());
             }
 
             try
             {
-                var captchaRequestUri = $"{CaptchasApiUrl}?$expand=Car&$orderby=CreatedAt desc";
-                var captchaResponse = await _httpClient.GetFromJsonAsync<ODataResponse<DepositCaptchaViewModel>>(captchaRequestUri);
+                var resp = await _httpClient.GetAsync($"{_apiBaseUrl}/api/invoices");
+                if (!resp.IsSuccessStatusCode)
+                {
+                    TempData["ErrorMessage"] = "Không tải được danh sách hóa đơn (mã " + (int)resp.StatusCode + ").";
+                    return View(new List<InvoiceListItemViewModel>());
+                }
 
-                var carsRequestUri = $"{CarsApiUrl}?$filter=Status eq 'Available' or Status eq 'Reserved'";
-                var carsResponse = await _httpClient.GetFromJsonAsync<ODataResponse<CarViewModel>>(carsRequestUri);
-
-                ViewBag.Cars = carsResponse?.Value ?? new List<CarViewModel>();
-                return View(captchaResponse?.Value ?? new List<DepositCaptchaViewModel>());
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                TempData["ErrorMessage"] = "Token xac thuc da het han hoac khong hop le. Vui long dang nhap lai.";
-                ViewBag.Cars = new List<CarViewModel>();
-                return View(new List<DepositCaptchaViewModel>());
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var content = await resp.Content.ReadAsStringAsync();
+                var list = JsonSerializer.Deserialize<List<InvoiceListItemViewModel>>(content, opts)
+                           ?? new List<InvoiceListItemViewModel>();
+                return View(list);
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Khong the tai danh sach captcha: " + ex.Message;
-                ViewBag.Cars = new List<CarViewModel>();
-                return View(new List<DepositCaptchaViewModel>());
+                TempData["ErrorMessage"] = "Không thể tải danh sách hóa đơn: " + ex.Message;
+                return View(new List<InvoiceListItemViewModel>());
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Generate(int carId, string? code)
+        // GET: /Admin/Captchas/Details/5
+        public async Task<IActionResult> Details(int id)
         {
+            if (!AttachJwtToken())
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Index));
+            }
+
             try
             {
-                if (!AttachJwtToken())
+                var resp = await _httpClient.GetAsync($"{_apiBaseUrl}/api/invoices/{id}");
+                if (!resp.IsSuccessStatusCode)
                 {
-                    TempData["ErrorMessage"] = "Phien dang nhap khong co token. Vui long dang nhap lai.";
+                    TempData["ErrorMessage"] = "Không xem được hóa đơn (mã " + (int)resp.StatusCode + ").";
                     return RedirectToAction(nameof(Index));
                 }
-
-                var response = await _httpClient.PostAsJsonAsync($"{CaptchasApiUrl}/generate", new { CarId = carId, Code = code });
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(responseContent);
-
-                if (response.IsSuccessStatusCode)
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var content = await resp.Content.ReadAsStringAsync();
+                var inv = JsonSerializer.Deserialize<InvoiceListItemViewModel>(content, opts);
+                if (inv == null)
                 {
-                    TempData["SuccessMessage"] = jsonDoc.RootElement.TryGetProperty("message", out var msgProp)
-                        ? msgProp.GetString()
-                        : "Tao ma thanh cong.";
+                    TempData["ErrorMessage"] = "Không tìm thấy hóa đơn.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(inv);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Lỗi kết nối máy chủ: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: /Admin/Captchas/GenerateDeposit
+        [HttpPost]
+        public Task<IActionResult> GenerateDeposit(int masterInvoiceId)
+            => GenerateAsync("deposit", masterInvoiceId);
+
+        // POST: /Admin/Captchas/GenerateFinal
+        [HttpPost]
+        public Task<IActionResult> GenerateFinal(int masterInvoiceId)
+            => GenerateAsync("final", masterInvoiceId);
+
+        private async Task<IActionResult> GenerateAsync(string stage, int masterInvoiceId)
+        {
+            if (!AttachJwtToken())
+            {
+                TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                HttpResponseMessage response;
+                if (stage == "deposit")
+                {
+                    response = await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/invoices/deposit-captcha",
+                        new { MasterInvoiceId = masterInvoiceId, DepositExpiresInDays = 14 });
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = jsonDoc.RootElement.TryGetProperty("message", out var msgProp)
-                        ? msgProp.GetString()
-                        : "Loi khong xac dinh.";
+                    response = await _httpClient.PostAsync($"{_apiBaseUrl}/api/invoices/{masterInvoiceId}/final-captcha", null);
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                string? message = null, captcha = null;
+                try
+                {
+                    using var doc = JsonDocument.Parse(responseContent);
+                    if (doc.RootElement.TryGetProperty("message", out var m)) message = m.GetString();
+                    if (doc.RootElement.TryGetProperty("data", out var d) && d.TryGetProperty("captchaCode", out var c))
+                        captcha = c.GetString();
+                }
+                catch { /* giữ nguyên */ }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = (message ?? "Đã sinh mã thành công.")
+                        + (string.IsNullOrEmpty(captcha) ? "" : $" — MÃ: {captcha} (cung cấp cho khách).");
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message ?? "Sinh mã thất bại.";
                 }
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Co loi xay ra: " + ex.Message;
+                TempData["ErrorMessage"] = "Có lỗi xảy ra: " + ex.Message;
             }
 
             return RedirectToAction(nameof(Index));

@@ -159,22 +159,16 @@ namespace CarSalesManagementSystemClient.Controllers
             try
             {
                 AttachJwtToken();
-                var customerIdClaim = User.FindFirst("sub")?.Value 
-                    ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                
-                if (string.IsNullOrEmpty(customerIdClaim))
+                var requestUri = $"{_apiBaseUrl}/api/car-sales/requests";
+                var response = await _httpClient.GetAsync(requestUri);
+                if (response.IsSuccessStatusCode)
                 {
-                    TempData["ErrorMessage"] = "Không tìm thấy thông tin tài khoản người dùng.";
-                    return RedirectToAction("Index", "Home");
+                    var content = await response.Content.ReadAsStringAsync();
+                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var historyList = System.Text.Json.JsonSerializer.Deserialize<List<PurchaseRequestHistoryViewModel>>(content, options) ?? new List<PurchaseRequestHistoryViewModel>();
+                    return View(historyList);
                 }
-
-                int customerId = int.Parse(customerIdClaim);
-                
-                var requestUri = $"{PurchaseRequestsApiUrl}?$filter=CustomerId eq {customerId}&$expand=Car&$orderby=CreatedAt desc";
-                var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PurchaseRequestHistoryViewModel>>(requestUri);
-                var historyList = odataResponse?.Value ?? new List<PurchaseRequestHistoryViewModel>();
-
-                return View(historyList);
+                return View(new List<PurchaseRequestHistoryViewModel>());
             }
             catch (Exception ex)
             {
@@ -186,16 +180,27 @@ namespace CarSalesManagementSystemClient.Controllers
         [HttpPost]
         public async Task<IActionResult> SubmitPurchaseRequest(string endpoint, [FromBody] System.Text.Json.JsonElement payload)
         {
-            if (string.IsNullOrEmpty(endpoint) || (endpoint != "deposit" && endpoint != "buyout"))
-            {
-                return BadRequest(new { success = false, message = "Loại yêu cầu không hợp lệ." });
-            }
-
             try
             {
                 AttachJwtToken();
-                var requestUri = $"{PurchaseRequestsApiUrl}/{endpoint}";
-                var response = await _httpClient.PostAsJsonAsync(requestUri, payload);
+                var requestUri = $"{_apiBaseUrl}/api/car-sales/requests";
+                
+                int carId = payload.TryGetProperty("carId", out var carProp) ? carProp.GetInt32() : 0;
+                string name = User.Identity?.Name ?? "Khách hàng";
+                string phone = payload.TryGetProperty("customerPhone", out var phoneProp) ? phoneProp.GetString() ?? "0900000000" : "0900000000";
+                string email = payload.TryGetProperty("customerEmail", out var emailProp) ? emailProp.GetString() ?? "" : "";
+                string message = payload.TryGetProperty("message", out var msgProp) ? msgProp.GetString() ?? endpoint : endpoint;
+
+                var dto = new
+                {
+                    CarId = carId,
+                    CustomerName = name,
+                    CustomerPhone = phone,
+                    CustomerEmail = email,
+                    Message = message
+                };
+
+                var response = await _httpClient.PostAsJsonAsync(requestUri, dto);
                 var content = await response.Content.ReadAsStringAsync();
                 
                 return new ContentResult

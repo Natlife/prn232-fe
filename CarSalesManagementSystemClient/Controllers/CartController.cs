@@ -119,6 +119,45 @@ namespace CarSalesManagementSystemClient.Controllers
                     }
                 }
             }
+            else if (itemType == "Car")
+            {
+                // Xe lấy từ OData (property có thể là PascalCase 'CarId' hoặc camelCase 'carId') — đọc không phân biệt hoa/thường.
+                var response = await client.GetAsync($"/odata/Cars({itemId})");
+                if (response.IsSuccessStatusCode)
+                {
+                    var car = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+                    JsonElement? Prop(string name)
+                    {
+                        foreach (var p in car.EnumerateObject())
+                        {
+                            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+                                return p.Value;
+                        }
+                        return null;
+                    }
+
+                    var status = Prop("Status")?.GetString() ?? "Available";
+                    if (status == "Sold" || status == "Inactive")
+                    {
+                        return Json(new { success = false, message = "Xe này hiện không còn được bán." });
+                    }
+
+                    var idProp = Prop("CarId");
+                    if (idProp != null)
+                    {
+                        item = new UnifiedCartItem
+                        {
+                            ItemType = "Car",
+                            ItemId = idProp.Value.GetInt32(),
+                            Name = Prop("CarName")?.GetString() ?? "",
+                            Price = Prop("Price")?.GetDecimal() ?? 0m,
+                            Quantity = 1,
+                            ImageUrl = Prop("ImageUrl")?.GetString()
+                        };
+                    }
+                }
+            }
 
             if (item == null)
             {
@@ -128,44 +167,35 @@ namespace CarSalesManagementSystemClient.Controllers
             var cart = GetCart();
             
             // Check Package-Service Conflict Logic
-            if (itemType == "Service")
+            if (itemType == "Package")
             {
-                var response = await client.GetAsync($"/api/packageservices/service/{itemId}");
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var packageServices = await response.Content.ReadFromJsonAsync<JsonElement[]>();
-                    if (packageServices != null && packageServices.Length > 0)
+                    var response = await client.GetAsync($"/api/MaintenancePackages/{itemId}");
+                    if (response.IsSuccessStatusCode)
                     {
-                        foreach (var ps in packageServices)
+                        var content = await response.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(content);
+                        if (doc.RootElement.TryGetProperty("data", out var dataEl))
                         {
-                            int pkgId = ps.GetProperty("packageId").GetInt32();
-                            if (cart.Items.Any(i => i.ItemType == "Package" && i.ItemId == pkgId))
+                            if (dataEl.TryGetProperty("serviceIds", out var serviceIdsEl) && serviceIdsEl.ValueKind == JsonValueKind.Array)
                             {
-                                return Json(new { success = false, message = "This service is already included in a Maintenance Package you have in your cart." });
+                                foreach (var srvIdProp in serviceIdsEl.EnumerateArray())
+                                {
+                                    int srvId = srvIdProp.GetInt32();
+                                    var existingService = cart.Items.FirstOrDefault(i => i.ItemType == "Service" && i.ItemId == srvId);
+                                    if (existingService != null)
+                                    {
+                                        cart.RemoveItem("Service", existingService.ItemId);
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            else if (itemType == "Package")
-            {
-                var response = await client.GetAsync($"/api/packageservices/package/{itemId}");
-                if (response.IsSuccessStatusCode)
+                catch
                 {
-                    var packageServices = await response.Content.ReadFromJsonAsync<JsonElement[]>();
-                    if (packageServices != null)
-                    {
-                        foreach (var ps in packageServices)
-                        {
-                            int srvId = ps.GetProperty("serviceId").GetInt32();
-                            var existingService = cart.Items.FirstOrDefault(i => i.ItemType == "Service" && i.ItemId == srvId);
-                            if (existingService != null)
-                            {
-                                // Remove standalone service if package is added
-                                cart.RemoveItem("Service", existingService.ItemId);
-                            }
-                        }
-                    }
+                    // Ignore package conflict check failure if package detail endpoint fails
                 }
             }
 
@@ -276,11 +306,13 @@ namespace CarSalesManagementSystemClient.Controllers
             var maintenanceParts = cart.Items.Where(i => i.ItemType == "Part" && i.Purpose == "Maintenance").ToList();
             var maintenancePackages = cart.Items.Where(i => i.ItemType == "Package").ToList();
             var maintenanceServices = cart.Items.Where(i => i.ItemType == "Service").ToList();
+            var carItems = cart.Items.Where(i => i.ItemType == "Car").ToList();
 
             bool hasStandalone = standaloneParts.Any();
             bool hasMaintenance = maintenanceParts.Any() || maintenancePackages.Any() || maintenanceServices.Any();
+            bool hasCar = carItems.Any();
 
-            if (!hasStandalone && !hasMaintenance)
+            if (!hasStandalone && !hasMaintenance && !hasCar)
             {
                 return Json(new { success = false, message = "Giỏ hàng không có sản phẩm nào hợp lệ." });
             }
@@ -348,7 +380,7 @@ namespace CarSalesManagementSystemClient.Controllers
             var client = _httpClientFactory.CreateClient("CarShowroomApi");
             client.BaseAddress = new Uri("http://localhost:5084");
 
-            var token = User.FindFirst("jwt_token")?.Value;
+            var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
             if (!string.IsNullOrEmpty(token))
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -356,6 +388,9 @@ namespace CarSalesManagementSystemClient.Controllers
 
             string? partOrderIdStr = null;
             string? appointmentIdStr = null;
+            int? partOrderIdNum = null;
+            int? appointmentIdNum = null;
+            var carRequestNums = new List<int>();
 
             try
             {
@@ -383,14 +418,20 @@ namespace CarSalesManagementSystemClient.Controllers
                     var partResponse = await client.PostAsJsonAsync("/api/PartOrders", partOrderPayload);
                     if (!partResponse.IsSuccessStatusCode)
                     {
-                        var errorMsg = await partResponse.Content.ReadAsStringAsync();
+                        var rawError = await partResponse.Content.ReadAsStringAsync();
+                        string errorMsg = rawError;
+                        try {
+                            using var doc = JsonDocument.Parse(rawError);
+                            if (doc.RootElement.TryGetProperty("message", out var mProp)) errorMsg = mProp.GetString() ?? rawError;
+                        } catch {}
                         return Json(new { success = false, message = $"Lỗi đặt hàng phụ tùng: {errorMsg}" });
                     }
 
                     var createdOrder = await partResponse.Content.ReadFromJsonAsync<JsonElement>();
                     if (createdOrder.TryGetProperty("orderId", out var idProp))
                     {
-                        partOrderIdStr = "#PO" + idProp.GetInt32().ToString("D4");
+                        partOrderIdNum = idProp.GetInt32();
+                        partOrderIdStr = "#PO" + partOrderIdNum.Value.ToString("D4");
                     }
                 }
 
@@ -428,21 +469,114 @@ namespace CarSalesManagementSystemClient.Controllers
                     var maintResponse = await client.PostAsJsonAsync("/api/maintenanceappointments/create-with-details", maintenancePayload);
                     if (!maintResponse.IsSuccessStatusCode)
                     {
-                        var errorMsg = await maintResponse.Content.ReadAsStringAsync();
+                        var rawError = await maintResponse.Content.ReadAsStringAsync();
+                        string errorMsg = rawError;
+                        try {
+                            using var doc = JsonDocument.Parse(rawError);
+                            if (doc.RootElement.TryGetProperty("message", out var mProp)) errorMsg = mProp.GetString() ?? rawError;
+                        } catch {}
                         return Json(new { success = false, message = $"Lỗi đặt lịch bảo dưỡng: {errorMsg}" });
                     }
 
                     var createdAppointment = await maintResponse.Content.ReadFromJsonAsync<JsonElement>();
                     if (createdAppointment.TryGetProperty("data", out var dataProp) && dataProp.TryGetProperty("appointmentId", out var apptIdProp))
                     {
-                        appointmentIdStr = "#MA" + apptIdProp.GetInt32().ToString("D4");
+                        appointmentIdNum = apptIdProp.GetInt32();
+                        appointmentIdStr = "#MA" + appointmentIdNum.Value.ToString("D4");
                     }
+                }
+
+                // 3. Gửi yêu cầu mua xe cho từng xe trong giỏ (nhân viên sẽ lập hóa đơn tổng + mã captcha).
+                var carRequestIds = new List<string>();
+                if (hasCar)
+                {
+                    foreach (var car in carItems)
+                    {
+                        var carPayload = new
+                        {
+                            CarId = car.ItemId,
+                            CustomerName = model.CustomerName,
+                            CustomerPhone = model.CustomerPhone,
+                            CustomerEmail = model.CustomerEmail,
+                            Message = $"Yêu cầu mua xe '{car.Name}' từ giỏ hàng."
+                        };
+
+                        var carResponse = await client.PostAsJsonAsync("/api/car-sales/requests", carPayload);
+                        if (!carResponse.IsSuccessStatusCode)
+                        {
+                            if (carResponse.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                                return Json(new { success = false, message = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại rồi đặt lại đơn.", requireLogin = true });
+                            var rawError = await carResponse.Content.ReadAsStringAsync();
+                            string errorMsg = rawError;
+                            try {
+                                using var doc = JsonDocument.Parse(rawError);
+                                if (doc.RootElement.TryGetProperty("message", out var mProp)) errorMsg = mProp.GetString() ?? rawError;
+                            } catch {}
+                            if (string.IsNullOrWhiteSpace(errorMsg)) errorMsg = "HTTP " + (int)carResponse.StatusCode;
+                            return Json(new { success = false, message = $"Lỗi gửi yêu cầu mua xe '{car.Name}': {errorMsg}" });
+                        }
+
+                        var createdCar = await carResponse.Content.ReadFromJsonAsync<JsonElement>();
+                        int reqId = 0;
+                        if (createdCar.TryGetProperty("data", out var carData))
+                        {
+                            if (carData.TryGetProperty("requestId", out var rProp) || carData.TryGetProperty("RequestId", out rProp))
+                                reqId = rProp.GetInt32();
+                        }
+                        if (reqId > 0)
+                        {
+                            carRequestNums.Add(reqId);
+                            carRequestIds.Add("#CR" + reqId.ToString("D4"));
+                        }
+                    }
+                }
+
+                // 4. Gộp tất cả thành MỘT hóa đơn tổng (MasterInvoice) với loại đặt cọc/mua đứt đã chọn.
+                string purchaseType = (model.PurchaseType == "Deposit") ? "Deposit" : "Buyout";
+                string? invoiceNumber = null;
+                int? masterInvoiceId = null;
+
+                var checkoutUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                int.TryParse(checkoutUserIdStr, out var checkoutCustomerId);
+
+                var checkoutPayload = new
+                {
+                    CustomerId = checkoutCustomerId, // server sẽ ép lại theo JWT, gửi kèm để qua validation
+                    PurchaseType = purchaseType,
+                    Cars = carRequestNums.Select(rid => new { PurchaseRequestId = rid, RegistrationFee = 0, PlateFee = 0, InsuranceFee = 0 }).ToList(),
+                    PartOrderIds = partOrderIdNum.HasValue ? new List<int> { partOrderIdNum.Value } : new List<int>(),
+                    AppointmentIds = appointmentIdNum.HasValue ? new List<int> { appointmentIdNum.Value } : new List<int>(),
+                    DiscountAmount = 0,
+                    TaxAmount = 0,
+                    DepositExpiresInDays = 14
+                };
+
+                var invoiceResponse = await client.PostAsJsonAsync("/api/checkout/customer", checkoutPayload);
+                if (!invoiceResponse.IsSuccessStatusCode)
+                {
+                    var errorMsg = await invoiceResponse.Content.ReadAsStringAsync();
+                    return Json(new { success = false, message = $"Đã tạo đơn nhưng lập hóa đơn tổng thất bại: {errorMsg}" });
+                }
+                var invoiceResult = await invoiceResponse.Content.ReadFromJsonAsync<JsonElement>();
+                if (invoiceResult.TryGetProperty("data", out var invData))
+                {
+                    if (invData.TryGetProperty("masterInvoiceId", out var miId)) masterInvoiceId = miId.GetInt32();
+                    if (invData.TryGetProperty("invoiceNumber", out var inNo)) invoiceNumber = inNo.GetString();
                 }
 
                 // Successfully created all required requests, clear the cart session!
                 SaveCart(new UnifiedCart());
 
-                return Json(new { success = true, partOrderId = partOrderIdStr, appointmentId = appointmentIdStr });
+                return Json(new
+                {
+                    success = true,
+                    partOrderId = partOrderIdStr,
+                    appointmentId = appointmentIdStr,
+                    carRequestIds,
+                    masterInvoiceId,
+                    invoiceNumber,
+                    purchaseType
+                });
             }
             catch (Exception ex)
             {

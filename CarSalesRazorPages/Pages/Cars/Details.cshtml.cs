@@ -37,17 +37,30 @@ public class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostSubmitPurchaseRequestAsync(string endpoint, [FromBody] System.Text.Json.JsonElement payload)
     {
-        if (string.IsNullOrEmpty(endpoint) || (endpoint != "deposit" && endpoint != "buyout"))
-            return new JsonResult(new { success = false, message = "Loại yêu cầu không hợp lệ." });
-
         try
         {
             var token = Request.Cookies["jwt_token"] ?? User.FindFirst("jwt_token")?.Value;
             if (!string.IsNullOrEmpty(token))
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var requestUri = $"{_apiBaseUrl}/odata/PurchaseRequests/{endpoint}";
-            var response = await _httpClient.PostAsJsonAsync(requestUri, payload);
+            var requestUri = $"{_apiBaseUrl}/api/car-sales/requests";
+
+            int carId = payload.TryGetProperty("carId", out var carProp) ? carProp.GetInt32() : 0;
+            string name = User.Identity?.Name ?? "Khách hàng";
+            string phone = payload.TryGetProperty("customerPhone", out var phoneProp) ? phoneProp.GetString() ?? "0900000000" : "0900000000";
+            string email = payload.TryGetProperty("customerEmail", out var emailProp) ? emailProp.GetString() ?? "" : "";
+            string message = payload.TryGetProperty("message", out var msgProp) ? msgProp.GetString() ?? (endpoint == "deposit" ? "Đặt cọc xe" : "Mua đứt xe") : endpoint;
+
+            var dto = new
+            {
+                CarId = carId,
+                CustomerName = name,
+                CustomerPhone = phone,
+                CustomerEmail = email,
+                Message = message
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(requestUri, dto);
             var content = await response.Content.ReadAsStringAsync();
 
             return new ContentResult

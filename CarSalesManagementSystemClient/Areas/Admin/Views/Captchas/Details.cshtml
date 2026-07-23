@@ -1,0 +1,129 @@
+@model CarSalesManagementSystemClient.Models.InvoiceListItemViewModel
+@{
+    ViewData["Title"] = "Chi tiết hóa đơn " + Model.InvoiceNumber;
+    string Money(decimal v) => v.ToString("N0") + " đ";
+    string TypeLabel(string t) => t switch { "Car" => "Ô tô", "Part" => "Phụ tùng", "Service" => "Dịch vụ", "Combined" => "Gộp", _ => t };
+}
+
+<div class="container-fluid py-4" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Captchas" asp-action="Index" class="text-decoration-none text-dark">Hóa đơn & Captcha</a></li>
+            <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">@Model.InvoiceNumber</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card shadow-sm mb-3" style="border:none; border-radius:14px;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between flex-wrap gap-2 border-bottom pb-3 mb-3">
+                <div>
+                    <div class="fw-bold fs-5 font-monospace">@Model.InvoiceNumber</div>
+                    <div class="text-muted small">Khách: <strong>@Model.CustomerName</strong> · Lập @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                    <span class="badge bg-secondary mt-1">@TypeLabel(Model.InvoiceType)</span>
+                    <span class="badge bg-dark mt-1">@(Model.IsDeposit ? "Đặt cọc" : "Mua đứt")</span>
+                </div>
+                <div class="text-end">
+                    @if (Model.IsCancelled)
+                    {
+                        <span class="badge bg-danger">Đã hủy</span>
+                    }
+                    else if (Model.IsPaid)
+                    {
+                        <span class="badge bg-success">Đã thanh toán</span>
+                    }
+                    else if (Model.IsDeposited)
+                    {
+                        <span class="badge bg-info text-dark">Đã cọc · còn @Money(Model.RemainingAmount)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Chờ xác thực</span>
+                    }
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-secondary mb-2">Danh mục</h6>
+            <ul class="list-group list-group-flush mb-3">
+                @foreach (var line in Model.Lines)
+                {
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span>
+                            <span class="badge @(line.ItemType == "Car" ? "bg-warning text-dark" : line.ItemType == "Part" ? "bg-secondary" : "bg-info text-dark") me-1">@TypeLabel(line.ItemType)</span>
+                            @line.Description
+                        </span>
+                        <span class="fw-semibold">@Money(line.SubTotal)</span>
+                    </li>
+                }
+            </ul>
+
+            <div class="row justify-content-end">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between small mb-1"><span>Tạm tính:</span><span>@Money(Model.TotalSubTotal)</span></div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Chiết khấu:</span><span>- @Money(Model.DiscountAmount)</span></div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Thuế:</span><span>@Money(Model.TaxAmount)</span></div>
+                    <div class="d-flex justify-content-between fw-bold fs-5 text-danger border-top pt-2"><span>Tổng cộng:</span><span>@Money(Model.TotalAmount)</span></div>
+                    @if (Model.IsDeposit && Model.DepositAmount.HasValue)
+                    {
+                        <div class="d-flex justify-content-between small mt-2"><span>Tiền cọc:</span><span class="fw-semibold">@Money(Model.DepositAmount.Value)</span></div>
+                        @if (Model.IsDeposited)
+                        {
+                            <div class="d-flex justify-content-between small text-success"><span>Đã cọc:</span><span class="fw-semibold">@Money(Model.DepositPaidAmount ?? 0)</span></div>
+                            <div class="d-flex justify-content-between small text-danger"><span>Còn phải trả:</span><span class="fw-semibold">@Money(Model.RemainingAmount)</span></div>
+                            @if (Model.DepositExpiresAt.HasValue)
+                            {
+                                <div class="d-flex justify-content-between small"><span>Giữ chỗ đến:</span><span class="fw-semibold">@Model.DepositExpiresAt.Value.ToString("dd/MM/yyyy HH:mm")</span></div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm" style="border:none; border-radius:14px;">
+        <div class="card-body">
+            <h6 class="fw-bold text-secondary mb-3">Mã xác thực</h6>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3">
+                        <div class="small text-muted">Mã đặt cọc</div>
+                        <div class="fs-5 fw-bold font-monospace text-primary">@(string.IsNullOrEmpty(Model.DepositCaptchaCode) ? "—" : Model.DepositCaptchaCode) @(Model.IsDepositCaptchaUsed ? "(đã dùng)" : "")</div>
+                        @if (Model.IsDeposit && !Model.IsDepositCaptchaUsed && !Model.IsCancelled && !Model.IsPaid)
+                        {
+                            <form asp-area="Admin" asp-controller="Captchas" asp-action="GenerateDeposit" method="post" class="mt-2">
+                                <input type="hidden" name="masterInvoiceId" value="@Model.MasterInvoiceId" />
+                                <button type="submit" class="btn btn-sm btn-warning fw-bold text-dark"><i class="bi bi-cash-stack"></i> Sinh mã đặt cọc</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3">
+                        <div class="small text-muted">Mã tất toán / mua đứt</div>
+                        <div class="fs-5 fw-bold font-monospace text-success">@(string.IsNullOrEmpty(Model.FinalCaptchaCode) ? "—" : Model.FinalCaptchaCode) @(Model.IsFinalCaptchaUsed ? "(đã dùng)" : "")</div>
+                        @if (!Model.IsFinalCaptchaUsed && !Model.IsCancelled && !Model.IsPaid && (!Model.IsDeposit || Model.IsDeposited))
+                        {
+                            <form asp-area="Admin" asp-controller="Captchas" asp-action="GenerateFinal" method="post" class="mt-2">
+                                <input type="hidden" name="masterInvoiceId" value="@Model.MasterInvoiceId" />
+                                <button type="submit" class="btn btn-sm btn-success fw-bold"><i class="bi bi-check2-circle"></i> Sinh mã @(Model.IsDeposit ? "tất toán" : "mua đứt")</button>
+                            </form>
+                        }
+                        else if (Model.IsDeposit && !Model.IsDeposited)
+                        {
+                            <div class="small text-muted mt-2">Khách cần xác nhận đặt cọc trước.</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
