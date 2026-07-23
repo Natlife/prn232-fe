@@ -1,0 +1,281 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.ComboOrderViewModel>
+@{
+    ViewData["Title"] = "Đơn hàng Combo của tôi";
+}
+
+<div class="container py-5" style="min-height: 80vh;">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-dark">Trang chủ</a></li>
+            <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">Đơn hàng combo của tôi</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">📦 Đơn hàng Combo của tôi</h2>
+            <p class="text-muted mb-0">Theo dõi trạng thái và chi tiết các đơn hàng combo đã đặt qua Trợ lý ảo AI</p>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow rounded-4 text-center py-5">
+            <div class="card-body">
+                <span class="display-1 text-muted">📦</span>
+                <h4 class="fw-bold text-dark mt-4">Bạn chưa đặt đơn hàng combo nào</h4>
+                <p class="text-muted mb-4">Hãy nhắn tin với chatbot của chúng tôi để nhận các gợi ý combo tối ưu.</p>
+                <a href="/" class="btn btn-dark fw-bold text-warning rounded-pill px-4 py-2"><i class="bi bi-chat-dots-fill me-2"></i>Trò chuyện với AI ngay</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 px-4" style="width: 120px;">Mã đơn</th>
+                            <th class="py-3" style="width: 180px;">Ngày đặt</th>
+                            <th class="py-3">Hình thức</th>
+                            <th class="py-3 text-end" style="width: 180px;">Tổng tiền</th>
+                            <th class="py-3 text-center" style="width: 180px;">Trạng thái</th>
+                            <th class="py-3 px-4 text-end" style="width: 200px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="py-3 px-4 fw-bold text-primary">
+                                    #CB-@order.ComboOrderId.ToString("D4")
+                                </td>
+                                <td class="py-3 text-secondary" style="font-size: 14px;">
+                                    @order.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="py-3">
+                                    @if (order.PurchaseType == "Deposit")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-cash-coin me-1"></i>Đặt cọc (5%)</span>
+                                        <div class="small text-muted mt-1" style="font-size: 11px;">Cần thanh toán cọc: @(order.DepositAmount?.ToString("N0") ?? "0") đ</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-dark text-warning"><i class="bi bg-cart-check me-1"></i>Mua đứt (100%)</span>
+                                    }
+                                </td>
+                                <td class="py-3 text-end fw-bold text-dark">
+                                    @order.TotalAmount.ToString("N0") đ
+                                </td>
+                                <td class="py-3 text-center">
+                                    @if (order.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-1.5"><i class="bi bi-check-circle-fill me-1"></i>Đã thanh toán</span>
+                                    }
+                                    else if (order.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger rounded-pill px-3 py-1.5"><i class="bi bi-x-circle-fill me-1"></i>Đã hủy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5"><i class="bi bi-hourglass-split me-1"></i>Chờ duyệt</span>
+                                        @if (order.PurchaseType == "Deposit" && !string.IsNullOrEmpty(order.CaptchaCode) && !order.IsCaptchaUsed)
+                                        {
+                                            <div class="small text-danger mt-1 fw-bold" style="font-size: 11px;"><i class="bi bi-key-fill"></i> Có mã Captcha cọc</div>
+                                        }
+                                        else if (order.PurchaseType == "Buyout" && !string.IsNullOrEmpty(order.FinalCaptchaCode) && !order.IsFinalCaptchaUsed)
+                                        {
+                                            <div class="small text-danger mt-1 fw-bold" style="font-size: 11px;"><i class="bi bi-key-fill"></i> Có mã Captcha mua</div>
+                                        }
+                                    }
+                                </td>
+                                <td class="py-3 px-4 text-end">
+                                    <button class="btn btn-sm btn-outline-dark me-1 rounded-pill px-3" onclick="viewDetails(@order.ComboOrderId)"><i class="bi bi-eye"></i> Chi tiết</button>
+                                    @if (order.Status == "Pending")
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="cancelOrder(@order.ComboOrderId)"><i class="bi bi-trash"></i> Hủy</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Chi tiết đơn hàng -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-box-seam me-2"></i>Chi Tiết Đơn Hàng Combo</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="detailsModalBody">
+                <!-- Data loaded dynamically -->
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const ordersData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+        function viewDetails(orderId) {
+            const order = ordersData.find(o => o.ComboOrderId === orderId);
+            if (!order) return;
+
+            let itemsHtml = "";
+            order.Items.forEach(item => {
+                let typeBadge = "";
+                if (item.ItemType.toLowerCase() === 'car') typeBadge = '<span class="badge bg-primary-subtle text-primary border border-primary">Ô tô</span>';
+                else if (item.ItemType.toLowerCase() === 'package') typeBadge = '<span class="badge bg-success-subtle text-success border border-success">Gói BD</span>';
+                else if (item.ItemType.toLowerCase() === 'service') typeBadge = '<span class="badge bg-info-subtle text-info border border-info">Dịch vụ</span>';
+                else typeBadge = '<span class="badge bg-warning-subtle text-warning border border-warning">Phụ tùng</span>';
+
+                itemsHtml += `
+                    <tr>
+                        <td class="py-2.5">${typeBadge}</td>
+                        <td class="py-2.5 fw-semibold">${item.ItemName}</td>
+                        <td class="py-2.5 text-end">${item.UnitPrice.toLocaleString('vi-VN')} đ</td>
+                        <td class="py-2.5 text-center">${item.Quantity}</td>
+                        <td class="py-2.5 text-end fw-bold">${item.SubTotal.toLocaleString('vi-VN')} đ</td>
+                    </tr>
+                `;
+            });
+
+            const html = `
+                <div class="row g-3 mb-4 border-bottom pb-3">
+                    <div class="col-md-6">
+                        <div class="text-secondary small">Mã đơn hàng:</div>
+                        <div class="fw-bold fs-5 text-primary">#CB-${String(order.ComboOrderId).padStart(4, '0')}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="text-secondary small">Ngày đặt hàng:</div>
+                        <div class="fw-semibold">${new Date(order.CreatedAt).toLocaleString('vi-VN')}</div>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <div class="text-secondary small">Người mua:</div>
+                        <div class="fw-semibold">${order.CustomerName} (${order.CustomerPhone})</div>
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <div class="text-secondary small">Hình thức:</div>
+                        <div class="fw-semibold">${order.PurchaseType === 'Deposit' ? 'Đặt cọc giữ xe (5%)' : 'Mua đứt toàn bộ (100%)'}</div>
+                    </div>
+                    ${order.ShippingAddress ? `
+                    <div class="col-md-12 mt-3">
+                        <div class="text-secondary small">Địa chỉ giao hàng:</div>
+                        <div class="fw-semibold">${order.ShippingAddress}</div>
+                    </div>
+                    ` : ''}
+                    ${order.Note ? `
+                    <div class="col-md-12 mt-3">
+                        <div class="text-secondary small">Ghi chú:</div>
+                        <div class="fw-semibold text-secondary fst-italic">${order.Note}</div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <h6 class="fw-bold mb-2">Danh sách sản phẩm trong combo:</h6>
+                <div class="table-responsive rounded-3 border">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 14px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Loại</th>
+                                <th>Tên sản phẩm</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-secondary">Tổng tiền combo:</span>
+                                <span class="fw-bold">${order.TotalAmount.toLocaleString('vi-VN')} đ</span>
+                            </div>
+                            ${order.PurchaseType === 'Deposit' ? `
+                            <div class="d-flex justify-content-between pt-2 border-top">
+                                <span class="fw-bold text-dark">Số tiền cọc:</span>
+                                <span class="fw-bold text-danger">${order.DepositAmount.toLocaleString('vi-VN')} đ</span>
+                            </div>
+                            ` : ''}
+                            <div class="d-flex justify-content-between pt-2 ${order.PurchaseType === 'Deposit' ? '' : 'border-top'}">
+                                <span class="fw-bold text-dark">Trạng thái thanh toán:</span>
+                                <span class="fw-bold ${order.Status === 'Paid' ? 'text-success' : order.Status === 'Cancelled' ? 'text-danger' : 'text-warning'}">
+                                    ${order.Status === 'Paid' ? 'Đã thanh toán thành công' : order.Status === 'Cancelled' ? 'Đã hủy đơn' : 'Đang chờ duyệt & thanh toán'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${order.Status === 'Pending' ? `
+                <div class="alert alert-info mt-4 mb-0 rounded-3 small">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Hướng dẫn thanh toán:</strong> Vui lòng liên hệ trực tiếp với showroom tại quầy thu ngân hoặc chuyển khoản qua ngân hàng, sau đó cung cấp bằng chứng để nhận mã xác thực thanh toán (Captcha) từ showroom và hoàn thành giao dịch.
+                </div>
+                ` : ''}
+            `;
+
+            document.getElementById('detailsModalBody').innerHTML = html;
+            const myModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            myModal.show();
+        }
+
+        function cancelOrder(orderId) {
+            Swal.fire({
+                title: 'Xác nhận hủy đơn hàng?',
+                text: "Bạn có chắc chắn muốn hủy đơn hàng combo này không? Hành động này không thể hoàn tác.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Đúng, Hủy đơn hàng',
+                cancelButtonText: 'Đóng'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/ComboOrder/CancelOrder',
+                        type: 'POST',
+                        data: { id: orderId },
+                        success: function(res) {
+                            if (res.success) {
+                                Swal.fire('Thành công!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Thất bại', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

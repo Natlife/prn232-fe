@@ -1,124 +1,457 @@
-@model CarSalesManagementSystemClient.Models.BookingViewModel
+@model CarSalesManagementSystemClient.Models.UnifiedCheckoutPostModel
 @{
-    ViewData["Title"] = "Thanh Toán & Đặt Lịch";
-    var cart = ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart;
-    bool hasOnlyParts = cart != null && cart.Items.Any() && cart.Items.All(i => i.ItemType == "Part");
+    ViewData["Title"] = "Thanh Toán & Đặt Lịch Bảo Dưỡng";
+    var cart = ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart ?? new CarSalesManagementSystemClient.Models.UnifiedCart();
 }
 
-<div class="container mt-4">
-    <h2>@(hasOnlyParts ? "Thanh Toán Mua Phụ Tùng" : "Thanh Toán & Đặt Lịch Bảo Dưỡng")</h2>
-    <hr />
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    .step-indicator::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #dee2e6;
+        z-index: 1;
+        transform: translateY(-50%);
+    }
+    .step-indicator-item {
+        position: relative;
+        z-index: 2;
+        background-color: #fff;
+        border: 2px solid #dee2e6;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    .step-indicator-item.active {
+        border-color: #ffc107;
+        background-color: #ffc107;
+        color: #212529;
+        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
+    }
+    .step-indicator-item.completed {
+        border-color: #198754;
+        background-color: #198754;
+        color: #fff;
+    }
+    .step-indicator-label {
+        font-size: 11px;
+        position: absolute;
+        top: 45px;
+        width: 80px;
+        text-align: center;
+        left: 50%;
+        transform: translateX(-50%);
+        font-weight: 600;
+    }
+    .wizard-step {
+        display: none;
+    }
+    .wizard-step.active {
+        display: block;
+    }
+    .btn-gold {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+        transition: all 0.2s ease;
+    }
+    .btn-gold:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+        color: #212529;
+    }
+</style>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Thông Tin Khách Hàng@(hasOnlyParts ? "" : " & Xe")</h5>
+<div class="container py-5" style="min-height: 80vh;">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-md-11">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="bg-dark text-white p-4 text-center">
+                    <h3 class="fw-bold m-0 text-warning"><i class="bi bi-cart-check-fill me-2"></i>Thanh Toán & Đặt Lịch</h3>
+                    <p class="text-secondary mb-0 mt-1">Hoàn tất yêu cầu mua phụ tùng và đặt lịch hẹn bảo dưỡng</p>
                 </div>
-                <div class="card-body">
-                    <form asp-action="Checkout" asp-controller="Cart" method="post">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                        <h5 class="mb-3 text-secondary">Thông Tin Liên Hệ</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label asp-for="CustomerName" class="form-label"></label>
-                                <input asp-for="CustomerName" class="form-control" placeholder="Nhập họ tên" required />
-                                <span asp-validation-for="CustomerName" class="text-danger"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="CustomerPhone" class="form-label"></label>
-                                <input asp-for="CustomerPhone" class="form-control" placeholder="Nhập số điện thoại" required />
-                                <span asp-validation-for="CustomerPhone" class="text-danger"></span>
-                            </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    <!-- Progress Step Indicator -->
+                    <div class="step-indicator px-4 mb-5">
+                        <div class="step-indicator-item active" id="ind-1">
+                            1
+                            <span class="step-indicator-label text-dark">Giỏ hàng</span>
                         </div>
-                        <div class="mb-4">
-                            <label asp-for="CustomerEmail" class="form-label"></label>
-                            <input asp-for="CustomerEmail" type="email" class="form-control" placeholder="Nhập email (không bắt buộc)" />
-                            <span asp-validation-for="CustomerEmail" class="text-danger"></span>
+                        <div class="step-indicator-item" id="ind-2">
+                            2
+                            <span class="step-indicator-label">Dịch vụ</span>
                         </div>
+                        <div class="step-indicator-item" id="ind-3">
+                            3
+                            <span class="step-indicator-label">Thông tin xe</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-4">
+                            4
+                            <span class="step-indicator-label">Lịch hẹn</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-5">
+                            5
+                            <span class="step-indicator-label">Xác nhận</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-6">
+                            ✓
+                            <span class="step-indicator-label">Hoàn tất</span>
+                        </div>
+                    </div>
 
-                        @if (hasOnlyParts)
+                    <div id="checkoutAlert" class="alert alert-danger d-none rounded-3 shadow-sm mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span id="checkoutAlertText"></span>
+                    </div>
+
+                    <!-- STEP 1: GIỎ HÀNG (PHỤ TÙNG MUA RIÊNG HOẶC DÙNG BẢO DƯỠNG) -->
+                    <div class="wizard-step active" id="step-1">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-gear-wide-connected text-warning me-2"></i>BƯỚC 1: Phân loại mục đích sử dụng phụ tùng</h4>
+                        
+                        @{
+                            var partItems = cart.Items.Where(i => i.ItemType == "Part").ToList();
+                        }
+                        
+                        @if (!partItems.Any())
                         {
-                            <h5 class="mb-3 text-secondary">Thông Tin Giao Hàng</h5>
-                            <div class="mb-3">
-                                <label class="form-label">Địa chỉ giao hàng</label>
-                                <input name="shippingAddress" class="form-control" placeholder="Nhập địa chỉ nhận hàng" required />
+                            <div class="alert alert-light border py-4 text-center rounded-3">
+                                <i class="bi bi-info-circle text-secondary fs-4 d-block mb-2"></i>
+                                Không có linh kiện, phụ tùng nào trong giỏ hàng của bạn.
                             </div>
                         }
                         else
                         {
-                            <h5 class="mb-3 text-secondary">Thông Tin Xe & Đặt Lịch</h5>
-                            
-                            <!-- Temporary fields for Car Info since we don't have auth customer car dropdown here yet -->
-                            <input type="hidden" asp-for="CustomerCarId" value="0" />
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label asp-for="CarName" class="form-label">Tên Xe (Mẫu Xe)</label>
-                                    <input asp-for="CarName" class="form-control" placeholder="VD: Toyota Vios" required />
-                                    <span asp-validation-for="CarName" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="LicensePlate" class="form-label">Biển Số</label>
-                                    <input asp-for="LicensePlate" class="form-control" placeholder="VD: 30A-12345" required />
-                                    <span asp-validation-for="LicensePlate" class="text-danger"></span>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label asp-for="AppointmentDate" class="form-label"></label>
-                                    <input asp-for="AppointmentDate" type="date" class="form-control" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" required />
-                                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
-                                </div>
-                                <div class="col-md-6">
-                                    <label asp-for="AppointmentTime" class="form-label"></label>
-                                    <input asp-for="AppointmentTime" type="time" class="form-control" required />
-                                    <span asp-validation-for="AppointmentTime" class="text-danger"></span>
-                                </div>
+                            <div class="table-responsive rounded-3 border mb-4">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-4">Tên phụ tùng</th>
+                                            <th class="py-3 text-center" style="width: 100px;">Số lượng</th>
+                                            <th class="py-3 text-end" style="width: 150px;">Thành tiền</th>
+                                            <th class="py-3 px-4" style="width: 320px;">Mục đích sử dụng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in partItems)
+                                        {
+                                            <tr data-item-id="@item.ItemId">
+                                                <td class="py-3 px-4">
+                                                    <strong>@item.Name</strong>
+                                                    <div class="small text-muted">Đơn giá: @item.Price.ToString("N0") đ</div>
+                                                </td>
+                                                <td class="py-3 text-center">@item.Quantity</td>
+                                                <td class="py-3 text-end fw-bold text-slate-800">@item.SubTotal.ToString("N0") đ</td>
+                                                <td class="py-3 px-4">
+                                                    <div class="d-flex flex-column gap-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input purpose-radio" type="radio" 
+                                                                   name="purpose-@item.ItemId" id="pur-std-@item.ItemId" 
+                                                                   value="Standalone" @(item.Purpose != "Maintenance" ? "checked" : "")
+                                                                   onchange="changePurpose('Part', @item.ItemId, 'Standalone')">
+                                                            <label class="form-check-label small fw-semibold text-secondary" for="pur-std-@item.ItemId">
+                                                                Mua riêng mang về
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input purpose-radio" type="radio" 
+                                                                   name="purpose-@item.ItemId" id="pur-maint-@item.ItemId" 
+                                                                   value="Maintenance" @(item.Purpose == "Maintenance" ? "checked" : "")
+                                                                   onchange="changePurpose('Part', @item.ItemId, 'Maintenance')">
+                                                            <label class="form-check-label small fw-semibold text-secondary" for="pur-maint-@item.ItemId">
+                                                                Sử dụng trong lần bảo dưỡng này
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
                         }
-
-                        <div class="mb-3">
-                            <label asp-for="Note" class="form-label"></label>
-                            <textarea asp-for="Note" class="form-control" rows="3" placeholder="Ghi chú thêm..."></textarea>
-                            <span asp-validation-for="Note" class="text-danger"></span>
+                        
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="/Cart" class="btn btn-outline-secondary rounded-3 px-4">Quay lại Giỏ hàng</a>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(2)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
+                    </div>
 
-                        <div class="d-grid mt-4">
-                            <button class="w-100 btn btn-primary btn-lg" type="submit">Xác nhận đơn hàng</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Tóm Tắt Giỏ Hàng</h5>
-                </div>
-                <div class="card-body p-0">
-                    <ul class="list-group list-group-flush" id="cart-summary-list">
-                        @if (cart != null)
+                    <!-- STEP 2: DỊCH VỤ -->
+                    <div class="wizard-step" id="step-2">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-wrench-adjustable text-warning me-2"></i>BƯỚC 2: Chọn gói bảo dưỡng và dịch vụ lẻ</h4>
+                        
+                        @{
+                            var serviceItems = cart.Items.Where(i => i.ItemType == "Package" || i.ItemType == "Service").ToList();
+                        }
+                        
+                        @if (!serviceItems.Any())
                         {
-                            foreach (var item in cart.Items)
-                            {
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h6 class="my-0">@item.Name</h6>
-                                        <small class="text-muted">SL: @item.Quantity | @item.ItemType</small>
-                                    </div>
-                                    <span class="text-muted">@item.SubTotal.ToString("N0") đ</span>
-                                </li>
-                            }
+                            <div class="alert alert-warning rounded-3 mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Bạn chưa chọn gói bảo dưỡng hay dịch vụ nào. Nếu bạn có phụ tùng đánh dấu <em>"Sử dụng trong lần bảo dưỡng này"</em>, bạn bắt buộc phải chọn ít nhất một dịch vụ bảo dưỡng ở trang chủ để gắn kèm.
+                            </div>
+                            <div class="text-center py-3">
+                                <a href="/" class="btn btn-outline-dark rounded-pill px-4"><i class="bi bi-plus-circle me-1"></i> Chọn dịch vụ bảo dưỡng ngay</a>
+                            </div>
                         }
-                    </ul>
-                </div>
-                <div class="card-footer bg-light text-end">
-                    <h5 class="mb-0 text-danger" id="cart-total-amount">
-                        Tổng: @(cart != null ? cart.TotalAmount.ToString("N0") : "0") đ
-                    </h5>
+                        else
+                        {
+                            <div class="table-responsive rounded-3 border mb-4">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-4">Tên dịch vụ / gói</th>
+                                            <th class="py-3">Phân loại</th>
+                                            <th class="py-3 text-end px-4" style="width: 200px;">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in serviceItems)
+                                        {
+                                            <tr>
+                                                <td class="py-3 px-4 fw-bold text-slate-800">@item.Name</td>
+                                                <td class="py-3">
+                                                    @if (item.ItemType == "Package")
+                                                    {
+                                                        <span class="badge bg-primary">Gói bảo dưỡng định kỳ</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-info text-dark">Dịch vụ sửa chữa lẻ</span>
+                                                    }
+                                                </td>
+                                                <td class="py-3 text-end fw-bold text-dark px-4">@item.Price.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(3)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: THÔNG TIN XE -->
+                    <div class="wizard-step" id="step-3">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-car-front text-warning me-2"></i>BƯỚC 3: Nhập thông tin xe cần bảo dưỡng</h4>
+                        
+                        <div class="p-4 bg-light rounded-4 border mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="CarNameInput" class="form-label fw-semibold text-secondary">Tên xe / Mẫu xe</label>
+                                    <input type="text" class="form-control rounded-3" id="CarNameInput" placeholder="VD: Toyota Vios 2022" value="@Model.CarName">
+                                    <div class="small text-muted mt-1">Hãng xe, mẫu xe và đời xe cụ thể.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="LicensePlateInput" class="form-label fw-semibold text-secondary">Biển số xe</label>
+                                    <input type="text" class="form-control rounded-3" id="LicensePlateInput" placeholder="VD: 30A-123.45" value="@Model.LicensePlate">
+                                    <div class="small text-muted mt-1">Biển số để nhận diện khi đến showroom.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info rounded-3 small mb-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Nếu giỏ hàng của bạn không có gói bảo dưỡng hay linh kiện bảo dưỡng nào, bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua thông tin xe này.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(4)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: LỊCH HẸN -->
+                    <div class="wizard-step" id="step-4">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-calendar-event text-warning me-2"></i>BƯỚC 4: Chọn thời gian đặt lịch bảo dưỡng</h4>
+                        
+                        <div class="p-4 bg-light rounded-4 border mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="AppointmentDateInput" class="form-label fw-semibold text-secondary">Chọn ngày hẹn</label>
+                                    <input type="date" class="form-control rounded-3" id="AppointmentDateInput" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" value="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="AppointmentTimeInput" class="form-label fw-semibold text-secondary">Chọn giờ hẹn</label>
+                                    <input type="time" class="form-control rounded-3" id="AppointmentTimeInput" value="09:00">
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label for="NoteInput" class="form-label fw-semibold text-secondary">Ghi chú yêu cầu thêm cho showroom</label>
+                                    <textarea class="form-control rounded-3" id="NoteInput" rows="3" placeholder="VD: Tôi muốn kiểm tra thêm hệ thống phanh xe..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(5)">Xem trước & Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: XÁC NHẬN -->
+                    <div class="wizard-step" id="step-5">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i>BƯỚC 5: Xác nhận chi phí và thông tin đơn hàng</h4>
+                        
+                        <div class="row g-4">
+                            <!-- Left columns: Summary list -->
+                            <div class="col-md-7">
+                                <!-- Section A: Standalone Parts -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden" id="summaryStandaloneCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5">
+                                        🛒 PHỤ TÙNG MUA RIÊNG MANG VỀ
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryStandaloneList">
+                                            <!-- Dynamically rendered -->
+                                        </ul>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-secondary small">Hình thức nhận hàng:</label>
+                                            <div class="d-flex gap-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="deliveryMethod" id="del-pickup" value="Pickup" checked>
+                                                    <label class="form-check-label small" for="del-pickup">Nhận tại showroom</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="deliveryMethod" id="del-shipping" value="Shipping">
+                                                    <label class="form-check-label small" for="del-shipping">Giao hàng tận nơi</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2 d-none" id="shippingAddressContainer">
+                                            <label for="ShippingAddressInput" class="form-label fw-bold text-secondary small">Địa chỉ nhận phụ tùng:</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="ShippingAddressInput" placeholder="Nhập địa chỉ nhà của bạn">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section B: Maintenance Appointment -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden" id="summaryMaintenanceCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5">
+                                        🔧 LỊCH HẸN & DỊCH VỤ BẢO DƯỠNG
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryMaintenanceList">
+                                            <!-- Dynamically rendered -->
+                                        </ul>
+                                        <div class="p-3 bg-light border-top">
+                                            <div class="row g-2 text-secondary small">
+                                                <div class="col-6">Thông tin xe:</div>
+                                                <div class="col-6 fw-bold text-dark text-end" id="summaryCarText"></div>
+                                                
+                                                <div class="col-6">Thời gian hẹn:</div>
+                                                <div class="col-6 fw-bold text-dark text-end" id="summaryTimeText"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right column: Customer and Total cost -->
+                            <div class="col-md-5">
+                                <div class="card border rounded-3 bg-light shadow-sm mb-3">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-circle"></i> Thông tin liên hệ nhận đơn</h6>
+                                        <div class="mb-3">
+                                            <label for="CustomerNameInput" class="form-label small text-muted mb-1">Họ và tên</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="CustomerNameInput" value="@Model.CustomerName" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="CustomerPhoneInput" class="form-label small text-muted mb-1">Số điện thoại</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="CustomerPhoneInput" value="@Model.CustomerPhone" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="CustomerEmailInput" class="form-label small text-muted mb-1">Email</label>
+                                            <input type="email" class="form-control form-control-sm rounded-2" id="CustomerEmailInput" value="@Model.CustomerEmail">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border rounded-3 bg-dark text-white shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-warning border-bottom border-secondary pb-2 mb-3">TỔNG CHI PHÍ TẠM TÍNH</h6>
+                                        
+                                        <div class="d-flex justify-content-between mb-2 small">
+                                            <span>Phụ tùng mua riêng:</span>
+                                            <span class="fw-bold" id="totalStandaloneDisplay">0 đ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2 small border-bottom border-secondary pb-2">
+                                            <span>Chi phí bảo dưỡng dự kiến:</span>
+                                            <span class="fw-bold text-warning" id="totalMaintenanceDisplay">0 đ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between pt-1">
+                                            <span class="fw-bold fs-6">Tổng cộng:</span>
+                                            <span class="fw-bold fs-5 text-danger" id="totalOrderDisplay">0 đ</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info mt-3 rounded-3 small" style="font-size: 11px; line-height: 1.5;">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    <strong>Thông báo bắt buộc:</strong> Chi phí bảo dưỡng trên là chi phí dự kiến. Chi phí cuối cùng có thể thay đổi nếu phát sinh phụ tùng hoặc dịch vụ bổ sung và chỉ được tính sau khi khách hàng xác nhận.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(4)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-dark text-warning fw-bold rounded-3 px-5" id="btnSubmitOrder" onclick="submitCheckout()"><i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn</button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 6: HOÀN TẤT -->
+                    <div class="wizard-step text-center py-4" id="step-6">
+                        <div class="mb-4">
+                            <span class="display-3 text-success"><i class="bi bi-check-circle-fill"></i></span>
+                        </div>
+                        <h3 class="fw-bold text-dark">Đặt yêu cầu thành công</h3>
+                        <p class="text-secondary mb-4">Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi. Yêu cầu của bạn đã được gửi đến hệ thống.</p>
+                        
+                        <div class="row justify-content-center mb-5">
+                            <div class="col-md-8">
+                                <div class="p-4 bg-light border rounded-4 text-start">
+                                    <div class="d-none mb-3" id="resPartOrder">
+                                        <div class="fw-bold text-dark">Đơn phụ tùng mua riêng <span class="text-primary font-monospace" id="lblPartOrderId"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Đang chờ showroom xác nhận đơn hàng.</div>
+                                    </div>
+                                    <div class="d-none" id="resMaintenance">
+                                        <div class="fw-bold text-dark">Lịch bảo dưỡng <span class="text-primary font-monospace" id="lblAppointmentId"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Đang chờ duyệt lịch hẹn sửa chữa.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-inline-block rounded-3 small mx-auto" style="max-width: 550px;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Showroom sẽ xác nhận đơn hàng và lịch hẹn của bạn sớm nhất qua số điện thoại. Chi phí bảo dưỡng cuối cùng được thanh toán sau khi hoàn thành dịch vụ tại quầy.
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="/Maintenance/History" class="btn btn-gold rounded-pill px-4 me-2"><i class="bi bi-clock-history"></i> Lịch sử đặt lịch</a>
+                            <a href="/" class="btn btn-outline-secondary rounded-pill px-4">Về Trang chủ</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,5 +459,266 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const cartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cart));
+        let activeStep = 1;
+
+        $(document).ready(function() {
+            // Setup delivery address toggle
+            $('input[name="deliveryMethod"]').change(function() {
+                if ($(this).val() === 'Shipping') {
+                    $('#shippingAddressContainer').removeClass('d-none');
+                } else {
+                    $('#shippingAddressContainer').addClass('d-none');
+                }
+            });
+
+            // Initialize total price calculations
+            recalculateSummary();
+        });
+
+        function changePurpose(itemType, itemId, purpose) {
+            $.ajax({
+                url: '/Cart/UpdatePurpose',
+                type: 'POST',
+                data: { itemType: itemType, itemId: itemId, purpose: purpose },
+                success: function(res) {
+                    if (res.success) {
+                        // Update local array
+                        const item = cartData.Items.find(i => i.ItemType === itemType && i.ItemId === itemId);
+                        if (item) {
+                            item.Purpose = purpose;
+                        }
+                        recalculateSummary();
+                    }
+                }
+            });
+        }
+
+        function recalculateSummary() {
+            let totalStandalone = 0;
+            let totalMaintenance = 0;
+
+            cartData.Items.forEach(item => {
+                if (item.ItemType === 'Part') {
+                    if (item.Purpose === 'Maintenance') {
+                        totalMaintenance += item.Price * item.Quantity;
+                    } else {
+                        totalStandalone += item.Price * item.Quantity;
+                    }
+                } else if (item.ItemType === 'Package' || item.ItemType === 'Service') {
+                    totalMaintenance += item.Price * item.Quantity;
+                }
+            });
+
+            $('#totalStandaloneDisplay').text(totalStandalone.toLocaleString('vi-VN') + ' đ');
+            $('#totalMaintenanceDisplay').text(totalMaintenance.toLocaleString('vi-VN') + ' đ');
+            $('#totalOrderDisplay').text((totalStandalone + totalMaintenance).toLocaleString('vi-VN') + ' đ');
+        }
+
+        function goToStep(step) {
+            // Validation check before proceeding
+            $('#checkoutAlert').addClass('d-none');
+
+            const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
+            const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
+
+            if (step === 3 && activeStep === 2) {
+                // If they have maintenance items, they must provide Car info
+                if (hasMaintenance) {
+                    const packages = cartData.Items.filter(i => i.ItemType === 'Package' || i.ItemType === 'Service');
+                    if (packages.length === 0) {
+                        showError("Đặt lịch hẹn bảo dưỡng yêu cầu ít nhất một gói bảo dưỡng hoặc một dịch vụ lẻ được chọn.");
+                        return;
+                    }
+                } else {
+                    // Skip step 3 & 4 if there are no maintenance items at all
+                    step = 5;
+                }
+            }
+
+            if (step === 4 && activeStep === 3) {
+                const carName = $('#CarNameInput').val().trim();
+                const licensePlate = $('#LicensePlateInput').val().trim();
+                if (hasMaintenance) {
+                    if (!carName || !licensePlate) {
+                        showError("Vui lòng điền thông tin tên xe và biển số xe để đặt lịch bảo dưỡng.");
+                        return;
+                    }
+                }
+            }
+
+            if (step === 5) {
+                // Validate Step 4 if coming from step 4
+                if (hasMaintenance && activeStep === 4) {
+                    const date = $('#AppointmentDateInput').val();
+                    const time = $('#AppointmentTimeInput').val();
+                    if (!date || !time) {
+                        showError("Vui lòng chọn đầy đủ ngày hẹn và giờ hẹn bảo dưỡng.");
+                        return;
+                    }
+                    const selectedDateTime = new Date(date + 'T' + time);
+                    if (selectedDateTime <= new Date()) {
+                        showError("Ngày giờ hẹn bảo dưỡng phải thuộc về tương lai.");
+                        return;
+                    }
+                }
+
+                // Populate Step 5 display labels
+                renderStep5Summary(hasStandalone, hasMaintenance);
+            }
+
+            // Perform step switch
+            $(`#step-${activeStep}`).removeClass('active');
+            $(`#step-${step}`).addClass('active');
+            
+            // Update Indicators
+            for(let i=1; i<=6; i++) {
+                if (i < step) {
+                    $(`#ind-${i}`).addClass('completed').removeClass('active');
+                } else if (i === step) {
+                    $(`#ind-${i}`).addClass('active').removeClass('completed');
+                } else {
+                    $(`#ind-${i}`).removeClass('active completed');
+                }
+            }
+
+            activeStep = step;
+        }
+
+        function showError(msg) {
+            $('#checkoutAlertText').text(msg);
+            $('#checkoutAlert').removeClass('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderStep5Summary(hasStandalone, hasMaintenance) {
+            // A. Standalone Parts list
+            if (hasStandalone) {
+                $('#summaryStandaloneCard').removeClass('d-none');
+                let html = "";
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Part' && i.Purpose !== 'Maintenance') {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-semibold">${i.Name}</span>
+                                    <div class="text-muted" style="font-size: 11px;">Số lượng: ${i.Quantity}</div>
+                                </div>
+                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                            </li>
+                        `;
+                    }
+                });
+                $('#summaryStandaloneList').html(html);
+            } else {
+                $('#summaryStandaloneCard').addClass('d-none');
+            }
+
+            // B. Maintenance Appointment
+            if (hasMaintenance) {
+                $('#summaryMaintenanceCard').removeClass('d-none');
+                let html = "";
+                
+                // Show packages & services
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Package' || i.ItemType === 'Service') {
+                        let badge = i.ItemType === 'Package' ? '<span class="badge bg-primary me-1">Gói</span>' : '<span class="badge bg-info text-dark me-1">Dịch vụ</span>';
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>${badge} <span class="fw-semibold">${i.Name}</span></div>
+                                <span class="fw-bold">${i.Price.toLocaleString('vi-VN')} đ</span>
+                            </li>
+                        `;
+                    }
+                });
+
+                // Show parts for maintenance
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Part' && i.Purpose === 'Maintenance') {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                <div><span class="badge bg-warning text-dark me-1">Linh kiện</span> ${i.Name} <small class="text-muted">(SL: ${i.Quantity})</small></div>
+                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                            </li>
+                        `;
+                    }
+                });
+
+                $('#summaryMaintenanceList').html(html);
+                
+                // Details text
+                $('#summaryCarText').text($('#CarNameInput').val() + ' (' + $('#LicensePlateInput').val() + ')');
+                $('#summaryTimeText').text($('#AppointmentTimeInput').val() + ', ngày ' + $('#AppointmentDateInput').val());
+            } else {
+                $('#summaryMaintenanceCard').addClass('d-none');
+            }
+        }
+
+        function submitCheckout() {
+            $('#checkoutAlert').addClass('d-none');
+            
+            const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
+            const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
+
+            const name = $('#CustomerNameInput').val().trim();
+            const phone = $('#CustomerPhoneInput').val().trim();
+            const email = $('#CustomerEmailInput').val().trim();
+
+            if (!name || !phone) {
+                showError("Vui lòng cung cấp Họ tên và Số điện thoại liên hệ nhận đơn hàng.");
+                return;
+            }
+
+            const payload = {
+                CustomerName: name,
+                CustomerPhone: phone,
+                CustomerEmail: email,
+                DeliveryMethod: $('input[name="deliveryMethod"]:checked').val(),
+                ShippingAddress: $('#ShippingAddressInput').val().trim(),
+                CarName: hasMaintenance ? $('#CarNameInput').val().trim() : null,
+                LicensePlate: hasMaintenance ? $('#LicensePlateInput').val().trim() : null,
+                AppointmentDate: hasMaintenance ? $('#AppointmentDateInput').val() : null,
+                AppointmentTime: hasMaintenance ? $('#AppointmentTimeInput').val() : null,
+                Note: hasMaintenance ? $('#NoteInput').val().trim() : null
+            };
+
+            // Toggle spinner on submit button
+            $('#btnSubmitOrder').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...');
+
+            $.ajax({
+                url: '/Cart/Checkout',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    if (res.success) {
+                        // Render step 6
+                        if (res.partOrderId) {
+                            $('#resPartOrder').removeClass('d-none');
+                            $('#lblPartOrderId').text(res.partOrderId);
+                        } else {
+                            $('#resPartOrder').addClass('d-none');
+                        }
+
+                        if (res.appointmentId) {
+                            $('#resMaintenance').removeClass('d-none');
+                            $('#lblAppointmentId').text(res.appointmentId);
+                        } else {
+                            $('#resMaintenance').addClass('d-none');
+                        }
+
+                        goToStep(6);
+                    } else {
+                        showError(res.message);
+                        $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn');
+                    }
+                },
+                error: function() {
+                    showError("Lỗi hệ thống khi gửi yêu cầu. Vui lòng kiểm tra lại kết nối.");
+                    $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-cart-check me-1"></i> Đặt hàng và gửi lịch hẹn');
+                }
+            });
+        }
+    </script>
 }

@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using CarSalesManagementSystemClient.Models;
 using System.Text;
 using System.Linq;
+using System;
+using System.Net.Http.Json;
 
 namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 {
@@ -32,95 +34,274 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
             }
         }
 
-        private class ApiResponse<T>
-        {
-            public bool Success { get; set; }
-            public string? Message { get; set; }
-            public T? Data { get; set; }
-        }
-
         // GET: Admin/Orders
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(string type = "All", string status = "All", int page = 1)
         {
             int pageSize = 10;
             AppendAuthorizationHeader();
-            var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenanceAppointments");
+
+            var response = await _httpClient.GetAsync($"{_apiUrl}/admin/orders");
+            var ordersList = new List<AdminOrderListItemViewModel>();
+
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var apiResult = JsonSerializer.Deserialize<ApiResponse<List<AppointmentHistoryViewModel>>>(content, 
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (apiResult != null && apiResult.Success && apiResult.Data != null)
+                ordersList = JsonSerializer.Deserialize<List<AdminOrderListItemViewModel>>(content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<AdminOrderListItemViewModel>();
+            }
+
+            // 1. Filter by Order Type
+            if (type != "All")
+            {
+                ordersList = ordersList.Where(o => o.OrderType.Equals(type, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            // 2. Filter by Status (Unified filter)
+            if (status != "All")
+            {
+                if (status.Equals("Pending", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Sort descending by date
-                    var sortedData = apiResult.Data.OrderByDescending(a => a.CreatedAt).ToList();
-
-                    int totalItems = sortedData.Count;
-                    int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
-                    if (totalPages == 0) totalPages = 1;
-                    if (page < 1) page = 1;
-                    if (page > totalPages) page = totalPages;
-
-                    ViewBag.CurrentPage = page;
-                    ViewBag.TotalPages = totalPages;
-
-                    var paginatedData = sortedData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-                    return View(paginatedData);
+                    // Chờ xử lý: Đơn phụ tùng ở trạng thái Pending
+                    ordersList = ordersList.Where(o => o.OrderType == "Part" && o.ProcessingStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                else if (status.Equals("InProgress", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Đang thực hiện: Bảo dưỡng ở trạng thái InProgress, Phụ tùng lẻ ở trạng thái Confirmed hoặc Shipping
+                    ordersList = ordersList.Where(o => 
+                        (o.OrderType == "Maintenance" && o.ProcessingStatus.Equals("InProgress", StringComparison.OrdinalIgnoreCase)) ||
+                        (o.OrderType == "Part" && (o.ProcessingStatus.Equals("Confirmed", StringComparison.OrdinalIgnoreCase) || o.ProcessingStatus.Equals("Shipping", StringComparison.OrdinalIgnoreCase)))
+                    ).ToList();
+                }
+                else if (status.Equals("Unpaid", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Chờ thanh toán: Đơn bất kỳ có PaymentStatus == "Unpaid"
+                    ordersList = ordersList.Where(o => o.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                else if (status.Equals("Completed", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Hoàn thành: Có PaymentStatus == "Paid"
+                    ordersList = ordersList.Where(o => o.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+                else if (status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Đã hủy: ProcessingStatus == "Cancelled"
+                    ordersList = ordersList.Where(o => o.ProcessingStatus.Equals("Cancelled", StringComparison.OrdinalIgnoreCase)).ToList();
                 }
             }
 
-            ViewBag.CurrentPage = 1;
-            ViewBag.TotalPages = 1;
-            return View(new List<AppointmentHistoryViewModel>());
+            int totalItems = ordersList.Count;
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            var paginatedData = ordersList.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SelectedType = type;
+            ViewBag.SelectedStatus = status;
+
+            return View(paginatedData);
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> MarkAsPaid(int id)
+
+        // GET: Admin/Orders/GetMaintenanceDetail/{id}
+        [HttpGet]
+        public async Task<IActionResult> GetMaintenanceDetail(int id)
         {
             AppendAuthorizationHeader();
-
-            var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/pay", null);
-
+            var response = await _httpClient.GetAsync($"{_apiUrl}/MaintenanceAppointments/{id}");
             if (response.IsSuccessStatusCode)
             {
-                return Json(new { success = true, message = "Thanh toán thành công!" });
+                var content = await response.Content.ReadAsStringAsync();
+                return Content(content, "application/json");
             }
-
-            return Json(new { success = false, message = "Có lỗi xảy ra khi xác nhận thanh toán." });
+            return NotFound(new { message = "Không tìm thấy lịch bảo dưỡng." });
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> SaveExtraFee(int id, decimal fee)
+
+        // GET: Admin/Orders/GetPartDetail/{id}
+        [HttpGet]
+        public async Task<IActionResult> GetPartDetail(int id)
         {
             AppendAuthorizationHeader();
-            
-            var reqObj = new { ExtraFee = fee };
-            var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/extrafee",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
+            var response = await _httpClient.GetAsync($"{_apiUrl}/PartOrders/{id}");
             if (response.IsSuccessStatusCode)
             {
-                return Json(new { success = true, message = "Lưu phí phát sinh thành công!" });
+                var content = await response.Content.ReadAsStringAsync();
+                return Content(content, "application/json");
             }
-            return Json(new { success = false, message = "Không thể lưu phí phát sinh." });
+            return NotFound(new { message = "Không tìm thấy đơn phụ tùng." });
         }
-        
-        [HttpPost]
-        public async Task<IActionResult> ConfirmOrder(int id)
+
+        // GET: Admin/Orders/GetAllParts
+        [HttpGet]
+        public async Task<IActionResult> GetAllParts()
         {
             AppendAuthorizationHeader();
-
-            var reqObj = new { Status = "Confirmed" };
-
-            var response = await _httpClient.PutAsync($"{_apiUrl}/MaintenanceAppointments/{id}/status",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
+            var response = await _httpClient.GetAsync($"{_apiUrl}/Parts");
             if (response.IsSuccessStatusCode)
             {
-                return Json(new { success = true, message = "Xác nhận đơn hàng thành công!" });
+                var content = await response.Content.ReadAsStringAsync();
+                return Content(content, "application/json");
             }
+            return BadRequest(new { message = "Không thể tải danh sách phụ tùng." });
+        }
 
-            return Json(new { success = false, message = "Có lỗi xảy ra khi xác nhận đơn." });
+        // POST: Admin/Orders/ConfirmMaintenance/{id}
+        [HttpPost]
+        public async Task<IActionResult> ConfirmMaintenance(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/maintenance/{id}/confirm", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Xác nhận lịch bảo dưỡng thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/StartMaintenance/{id}
+        [HttpPost]
+        public async Task<IActionResult> StartMaintenance(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/maintenance/{id}/start", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Đã tiếp nhận xe và bắt đầu bảo dưỡng!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/AddConsumedPart/{id}
+        [HttpPost]
+        public async Task<IActionResult> AddConsumedPart(int id, int partId, int quantity, decimal? unitPrice)
+        {
+            AppendAuthorizationHeader();
+            var payload = new { PartId = partId, Quantity = quantity, UnitPrice = unitPrice };
+            var response = await _httpClient.PostAsJsonAsync($"{_apiUrl}/admin/orders/maintenance/{id}/consumed-parts", payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Thêm phụ tùng phát sinh thành công!" });
+            }
+            var error = await response.Content.ReadFromJsonAsync<JsonElement>();
+            string msg = error.TryGetProperty("message", out var p) ? p.GetString() ?? "Lỗi" : "Có lỗi xảy ra.";
+            return Json(new { success = false, message = msg });
+        }
+
+        // POST: Admin/Orders/CompleteMaintenance/{id}
+        [HttpPost]
+        public async Task<IActionResult> CompleteMaintenance(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/maintenance/{id}/complete", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Hoàn thành bảo dưỡng dịch vụ thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/ConfirmPaymentMaintenance/{id}
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPaymentMaintenance(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/maintenance/{id}/confirm-payment", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Xác nhận thanh toán dịch vụ thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/CancelMaintenance/{id}
+        [HttpPost]
+        public async Task<IActionResult> CancelMaintenance(int id, string reason)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/admin/orders/maintenance/{id}/cancel", new { Reason = reason });
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Hủy lịch bảo dưỡng thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/ConfirmPartOrder/{id}
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPartOrder(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/part/{id}/confirm", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Xác nhận đơn phụ tùng thành công!" });
+            }
+            var error = await response.Content.ReadFromJsonAsync<JsonElement>();
+            string msg = error.TryGetProperty("message", out var p) ? p.GetString() ?? "Lỗi" : "Có lỗi xảy ra.";
+            return Json(new { success = false, message = msg });
+        }
+
+        // POST: Admin/Orders/ShippingPartOrder/{id}
+        [HttpPost]
+        public async Task<IActionResult> ShippingPartOrder(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/part/{id}/shipping", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Đang tiến hành giao hàng!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/CompletePartOrder/{id}
+        [HttpPost]
+        public async Task<IActionResult> CompletePartOrder(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/part/{id}/complete", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Hoàn thành đơn hàng phụ tùng!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/ConfirmPaymentPartOrder/{id}
+        [HttpPost]
+        public async Task<IActionResult> ConfirmPaymentPartOrder(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/part/{id}/confirm-payment", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Xác nhận thanh toán đơn phụ tùng thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
+        }
+
+        // POST: Admin/Orders/CancelPartOrder/{id}
+        [HttpPost]
+        public async Task<IActionResult> CancelPartOrder(int id)
+        {
+            AppendAuthorizationHeader();
+            var response = await _httpClient.PutAsync($"{_apiUrl}/admin/orders/part/{id}/cancel", null);
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { success = true, message = "Hủy đơn hàng phụ tùng thành công!" });
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return Json(new { success = false, message = error });
         }
     }
 }

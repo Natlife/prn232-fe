@@ -1,0 +1,329 @@
+@model CarSalesManagementSystemClient.Models.MaintenanceOrderDetailsWrapper
+@{
+    ViewData["Title"] = "Chi tiết đơn dịch vụ bảo dưỡng";
+    var app = Model.Appointment;
+    var inv = Model.Invoice;
+    
+    decimal detailsTotal = app.Details?.Sum(d => d.UnitPrice * d.Quantity) ?? 0;
+    decimal partsTotal = app.ConsumedParts?.Where(p => p.ApprovedByCustomer).Sum(p => p.UnitPrice * p.Quantity) ?? 0;
+    
+    decimal extraFee = 0;
+    if (!string.IsNullOrEmpty(app.Note))
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(app.Note, @"\[PhiPhatSinh:\s*(\d+)\]");
+        if (match.Success)
+        {
+            decimal.TryParse(match.Groups[1].Value, out extraFee);
+        }
+    }
+    
+    decimal totalAmount = inv != null ? inv.TotalAmount : (detailsTotal + partsTotal + extraFee);
+    bool isEstimated = inv == null;
+}
+
+<div class="py-4 mb-4 bg-white border-bottom shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold m-0 text-dark">Chi tiết đơn dịch vụ bảo dưỡng</h4>
+            <span class="text-muted small">Đơn hàng #SV-@app.AppointmentId.ToString("D4")</span>
+        </div>
+        <a href="/Orders/Index?type=Maintenance" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i>Danh sách đơn
+        </a>
+    </div>
+</div>
+
+<div class="container mb-5 pb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Main details -->
+        <div class="col-lg-8">
+            <!-- Progress Stepper -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Tiến trình thực hiện</h5>
+                    
+                    @if (app.Status == "Cancelled")
+                    {
+                        <div class="alert alert-secondary d-flex align-items-center mb-0">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-2"></i>
+                            <div>
+                                <div class="fw-bold text-danger">Đơn dịch vụ đã bị hủy</div>
+                                <div class="small text-muted">Lịch hẹn này đã bị hủy bỏ. Vui lòng liên hệ showroom để được hỗ trợ lại.</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap justify-content-between position-relative py-2">
+                            <!-- Line backdrop -->
+                            <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-secondary bg-opacity-25" style="height: 4px; z-index: 1;"></div>
+                            
+                            <!-- Step 1: Confirmed -->
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 20%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-check2"></i>
+                                </div>
+                                <span class="small text-center fw-bold mt-2 text-dark">Đã xác nhận lịch</span>
+                            </div>
+
+                            <!-- Step 2: Checked In -->
+                            @{
+                                bool step2Active = app.Status == "InProgress" || app.Status == "Completed";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 20%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step2Active ? "bg-primary text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step2Active) { <i class="bi bi-check2"></i> } else { <span>2</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step2Active ? "fw-bold text-dark" : "text-secondary")">Đã tiếp nhận xe</span>
+                            </div>
+
+                            <!-- Step 3: In Progress -->
+                            @{
+                                bool step3Active = app.Status == "InProgress";
+                                bool step3Completed = app.Status == "Completed";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 20%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step3Completed ? "bg-primary text-white" : (step3Active ? "bg-warning text-dark" : "bg-light border border-secondary text-secondary"))" style="width: 35px; height: 35px;">
+                                    @if (step3Completed) { <i class="bi bi-check2"></i> } else if (step3Active) { <i class="bi bi-gear-fill spin"></i> } else { <span>3</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step3Active || step3Completed ? "fw-bold text-dark" : "text-secondary")">Đang bảo dưỡng</span>
+                            </div>
+
+                            <!-- Step 4: Completed -->
+                            @{
+                                bool step4Active = app.Status == "Completed";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 20%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step4Active ? "bg-primary text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step4Active) { <i class="bi bi-check2"></i> } else { <span>4</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step4Active ? "fw-bold text-dark" : "text-secondary")">Hoàn thành</span>
+                            </div>
+
+                            <!-- Step 5: Paid -->
+                            @{
+                                bool step5Active = inv != null && inv.PaymentStatus == "Paid";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 20%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step5Active ? "bg-success text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step5Active) { <i class="bi bi-check2"></i> } else { <span>5</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step5Active ? "fw-bold text-success" : "text-secondary")">Thanh toán</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Items and Incurred Parts -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Danh mục dịch vụ & Phụ tùng</h5>
+
+                    <!-- Selected Packages/Services -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-wrench-adjustable me-2"></i>Dịch vụ đăng ký</h6>
+                        <ul class="list-group list-group-flush border-bottom">
+                            @if (app.Details != null && app.Details.Any())
+                            {
+                                foreach (var d in app.Details)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-top bg-transparent">
+                                        <div>
+                                            <div class="fw-bold text-dark">@(d.PackageId.HasValue ? d.PackageName : d.ServiceName)</div>
+                                            <div class="text-secondary small">@(d.PackageId.HasValue ? "Gói dịch vụ" : "Dịch vụ lẻ")</div>
+                                        </div>
+                                        <span class="fw-bold text-dark">@d.UnitPrice.ToString("N0")đ</span>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="list-group-item text-muted border-0 border-top py-3 bg-transparent">Chưa chọn dịch vụ</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- Selected Parts from booking -->
+                    @{
+                        var initialParts = app.ConsumedParts?.Where(p => !p.IsIncurred).ToList();
+                    }
+                    @if (initialParts != null && initialParts.Any())
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-box-seam me-2"></i>Phụ tùng đi kèm</h6>
+                            <ul class="list-group list-group-flush border-bottom">
+                                @foreach (var p in initialParts)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-top bg-transparent">
+                                        <div>
+                                            <div class="fw-bold text-dark">@p.PartName</div>
+                                            <div class="text-secondary small">Số lượng: @p.Quantity</div>
+                                        </div>
+                                        <span class="fw-bold text-dark">@((p.UnitPrice * p.Quantity).ToString("N0"))đ</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <!-- Incurred Parts -->
+                    @{
+                        var incurredParts = app.ConsumedParts?.Where(p => p.IsIncurred).ToList();
+                    }
+                    @if (incurredParts != null && incurredParts.Any())
+                    {
+                        <div>
+                            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-octagon me-2"></i>Phụ tùng phát sinh (Trong quá trình bảo dưỡng)</h6>
+                            <ul class="list-group list-group-flush border-bottom">
+                                @foreach (var p in incurredParts)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-top bg-transparent">
+                                        <div>
+                                            <div class="fw-bold text-dark">@p.PartName</div>
+                                            <div class="text-secondary small mb-1">Số lượng: @p.Quantity x @p.UnitPrice.ToString("N0")đ</div>
+                                            <div>
+                                                @if (p.ApprovedByCustomer)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Đã xác nhận sử dụng</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">Chờ showroom liên hệ xác nhận</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <span class="fw-bold text-dark">@((p.UnitPrice * p.Quantity).ToString("N0"))đ</span>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-lg-4">
+            <!-- General Info Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold border-bottom pb-3 mb-3"><i class="bi bi-info-circle me-2"></i>Thông tin đơn</h5>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Mã đơn hàng</label>
+                        <span class="fw-bold text-dark">#SV-@app.AppointmentId.ToString("D4")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Ngày đặt lịch</label>
+                        <span class="fw-bold text-dark">@app.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Thời gian hẹn bảo dưỡng</label>
+                        <span class="fw-bold text-danger">@app.AppointmentDate.ToString("dd/MM/yyyy") – @app.AppointmentTime.ToString("HH:mm")</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Xe đăng ký</label>
+                        <span class="fw-bold text-dark">@app.CustomerCar?.Model</span>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="text-muted small d-block">Biển số xe</label>
+                        <span class="fw-bold text-dark">@app.CustomerCar?.LicensePlate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost and payment Card -->
+            <div class="card border-0 shadow-sm rounded-3 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold border-bottom pb-3 mb-3"><i class="bi bi-cash-stack me-2"></i>Chi phí & Thanh toán</h5>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Tiền dịch vụ:</span>
+                        <span class="fw-bold text-dark">@detailsTotal.ToString("N0")đ</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Tiền phụ tùng:</span>
+                        <span class="fw-bold text-dark">@partsTotal.ToString("N0")đ</span>
+                    </div>
+
+                    @if (extraFee > 0)
+                    {
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Chi phí phát sinh thêm:</span>
+                            <span class="fw-bold text-dark">@extraFee.ToString("N0")đ</span>
+                        </div>
+                    }
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-bold text-dark">@(isEstimated ? "Tạm tính (Dự kiến)" : "Tổng thanh toán")</span>
+                            @if (isEstimated)
+                            {
+                                <small class="text-muted d-block" style="font-size: 10px;">(Chi phí thực tế có thể thay đổi)</small>
+                            }
+                        </div>
+                        <span class="fw-extrabold text-danger fs-4">@totalAmount.ToString("N0")đ</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-muted small d-block">Trạng thái thanh toán</label>
+                        @if (isEstimated)
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2 fw-bold mt-1">Chưa có hóa đơn</span>
+                        }
+                        else if (inv?.PaymentStatus == "Paid")
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold mt-1">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold mt-1">Chưa thanh toán</span>
+                        }
+                    </div>
+
+                    @if (inv != null && inv.PaymentStatus == "Unpaid")
+                    {
+                        <form asp-action="Pay" asp-route-type="Maintenance" asp-route-id="@app.AppointmentId" method="post">
+                            <button type="submit" class="btn btn-warning w-100 rounded-pill py-2 fw-bold text-dark shadow-sm">
+                                <i class="bi bi-wallet2 me-1"></i>Thanh toán trực tuyến
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .spin {
+        animation: spin-animation 2s linear infinite;
+    }
+    @@keyframes spin-animation {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>

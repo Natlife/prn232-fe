@@ -288,21 +288,9 @@ namespace CarSalesManagementSystemClient.Controllers
 
         // GET: PartOrders/MyOrders
         [Authorize]
-        public async Task<IActionResult> MyOrders()
+        public IActionResult MyOrders()
         {
-            try
-            {
-                AppendAuthorizationHeader();
-                var requestUri = $"{_ordersApiUrl}?$expand=PartOrderDetails($expand=Part)&$orderby=CreatedAt desc";
-                var response = await _httpClient.GetFromJsonAsync<List<PartOrderViewModel>>(requestUri);
-
-                return View(response ?? new List<PartOrderViewModel>());
-            }
-            catch (Exception ex)
-            {
-                ViewBag.ErrorMessage = "Không thể tải lịch sử đơn hàng: " + ex.Message;
-                return View(new List<PartOrderViewModel>());
-            }
+            return RedirectToAction("Index", "Orders");
         }
 
         // GET: PartOrders/Manage (Admin only)

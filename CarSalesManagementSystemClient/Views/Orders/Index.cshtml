@@ -1,0 +1,233 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.CustomerOrderViewModel>
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    var currentType = ViewBag.CurrentType as string ?? "All";
+}
+
+<div class="py-4 mb-4 text-center bg-white border-bottom shadow-sm">
+    <h3 class="fw-bold m-0 text-secondary" style="letter-spacing: 1px;">ĐƠN HÀNG CỦA TÔI</h3>
+</div>
+
+<div class="container mb-5 pb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabs Navigation -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="btn-group shadow-sm bg-white rounded-pill p-1" role="group">
+            <a href="/Orders/Index?type=All" class="btn rounded-pill px-4 py-2 fw-bold @(currentType == "All" ? "btn-warning text-dark" : "btn-light text-secondary border-0")">
+                Tất cả
+            </a>
+            <a href="/Orders/Index?type=Maintenance" class="btn rounded-pill px-4 py-2 fw-bold @(currentType == "Maintenance" ? "btn-warning text-dark" : "btn-light text-secondary border-0")">
+                Dịch vụ bảo dưỡng
+            </a>
+            <a href="/Orders/Index?type=Part" class="btn rounded-pill px-4 py-2 fw-bold @(currentType == "Part" ? "btn-warning text-dark" : "btn-light text-secondary border-0")">
+                Phụ tùng lẻ
+            </a>
+        </div>
+    </div>
+
+    <!-- Orders Cards -->
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-md-10">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var order in Model)
+                {
+                    <div class="card mb-4 border-0 shadow-sm rounded-3 overflow-hidden position-relative">
+                        <!-- Left border accent according to type -->
+                        <div class="position-absolute top-0 bottom-0 start-0 @(order.OrderType == "Maintenance" ? "bg-primary" : "bg-success")" style="width: 5px;"></div>
+                        
+                        <div class="card-body p-4 ms-2">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                <div>
+                                    <span class="fw-bold text-dark fs-5">#@order.OrderCode</span>
+                                    <span class="badge ms-2 @(order.OrderType == "Maintenance" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-success-subtle text-success border border-success-subtle")">
+                                        @(order.OrderType == "Maintenance" ? "Dịch vụ bảo dưỡng" : "Phụ tùng lẻ")
+                                    </span>
+                                </div>
+                                <div class="text-secondary small">
+                                    <i class="bi bi-clock me-1"></i>
+                                    @if (order.OrderType == "Maintenance" && order.AppointmentDateTime.HasValue)
+                                    {
+                                        <span>Hẹn lúc: @order.AppointmentDateTime.Value.ToString("dd/MM/yyyy – HH:mm")</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Đặt ngày: @order.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <p class="text-secondary mb-3 small fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i>@order.Summary
+                            </p>
+
+                            <hr class="text-muted opacity-25">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-end mt-3">
+                                <!-- Status info columns -->
+                                <div class="d-flex flex-column gap-1">
+                                    <div>
+                                        <span class="text-muted small">Xử lý:</span>
+                                        <span class="fw-bold ms-1">
+                                            @if (order.OrderType == "Maintenance")
+                                            {
+                                                @if (order.ProcessingStatus == "Confirmed")
+                                                {
+                                                    <span class="text-info">Đã xác nhận – Chờ tiếp nhận xe</span>
+                                                }
+                                                else if (order.ProcessingStatus == "InProgress")
+                                                {
+                                                    <span class="text-warning">Đang bảo dưỡng</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Completed" && order.PaymentStatus != "Paid")
+                                                {
+                                                    <span class="text-danger fw-bold">Hoàn thành – Chờ thanh toán</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Completed" && order.PaymentStatus == "Paid")
+                                                {
+                                                    <span class="text-success">Hoàn tất</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Cancelled")
+                                                {
+                                                    <span class="text-secondary">Đã hủy</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-secondary">@order.ProcessingStatus</span>
+                                                }
+                                            }
+                                            else // Part Order
+                                            {
+                                                @if (order.ProcessingStatus == "Pending")
+                                                {
+                                                    <span class="text-warning">Chờ xác nhận</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Confirmed")
+                                                {
+                                                    @if (order.DeliveryMethod == "Pickup")
+                                                    {
+                                                        <span class="text-info">Đã xác nhận – Nhận tại showroom</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-info">Đã xác nhận</span>
+                                                    }
+                                                }
+                                                else if (order.ProcessingStatus == "Shipping")
+                                                {
+                                                    <span class="text-primary">Đang giao hàng</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Delivered")
+                                                {
+                                                    <span class="text-info fw-bold">Đã nhận hàng (Chờ showroom hoàn tất)</span>
+                                                }
+                                                else if (order.ProcessingStatus == "ReadyForPickup" || (order.ProcessingStatus == "Confirmed" && order.DeliveryMethod == "Pickup"))
+                                                {
+                                                    <span class="text-primary fw-bold">Sẵn sàng nhận hàng</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Completed")
+                                                {
+                                                    <span class="text-success">Hoàn tất</span>
+                                                }
+                                                else if (order.ProcessingStatus == "Cancelled")
+                                                {
+                                                    <span class="text-secondary">Đã hủy</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-secondary">@order.ProcessingStatus</span>
+                                                }
+                                            }
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <span class="text-muted small">Thanh toán:</span>
+                                        <span class="fw-bold ms-1">
+                                            @if (string.IsNullOrEmpty(order.PaymentStatus))
+                                            {
+                                                <span class="text-secondary small">Chưa có hóa đơn</span>
+                                            }
+                                            else if (order.PaymentStatus == "Paid")
+                                            {
+                                                <span class="text-success">Đã thanh toán</span>
+                                            }
+                                            else if (order.PaymentStatus == "Unpaid")
+                                            {
+                                                <span class="text-danger">Chưa thanh toán</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-secondary">@order.PaymentStatus</span>
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Amount and actions -->
+                                <div class="text-end">
+                                    <div class="mb-2">
+                                        @if (order.OrderType == "Maintenance")
+                                        {
+                                            @if (order.IsEstimatedAmount)
+                                            {
+                                                <span class="text-muted small d-block">Chi phí dự kiến</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small d-block">Tổng thanh toán</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small d-block">Tổng tiền</span>
+                                        }
+                                        <span class="fw-extrabold text-danger fs-4">@order.TotalAmount.ToString("N0")đ</span>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <a href="/Orders/Details?type=@order.OrderType&id=@order.SourceId" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            Chi tiết
+                                        </a>
+
+                                        @if (order.PaymentStatus == "Unpaid")
+                                        {
+                                            <form asp-action="Pay" asp-route-type="@order.OrderType" asp-route-id="@order.SourceId" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold text-dark">
+                                                    <i class="bi bi-wallet2 me-1"></i>Thanh toán
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="card shadow-sm border-0 rounded-3 py-5 text-center bg-white">
+                    <div class="card-body">
+                        <i class="bi bi-box2 display-3 text-secondary opacity-50 mb-3 d-block"></i>
+                        <p class="text-muted fs-5 mb-0">Bạn chưa có đơn hàng nào trong mục này.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

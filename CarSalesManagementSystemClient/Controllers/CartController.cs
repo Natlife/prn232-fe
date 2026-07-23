@@ -199,110 +199,254 @@ namespace CarSalesManagementSystemClient.Controllers
             return Json(new { count = cart.Items.Sum(i => i.Quantity) });
         }
         
+        [HttpPost]
+        public IActionResult UpdatePurpose(string itemType, int itemId, string purpose)
+        {
+            var cart = GetCart();
+            var item = cart.Items.FirstOrDefault(i => i.ItemType == itemType && i.ItemId == itemId);
+            if (item != null)
+            {
+                item.Purpose = purpose;
+                SaveCart(cart);
+            }
+            return Json(new { success = true, purpose = item?.Purpose });
+        }
+
         [HttpGet]
         public IActionResult Checkout()
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth", new { returnUrl = "/Cart/Checkout" });
+            }
+
             var cart = GetCart();
             if (cart.Items.Count == 0)
             {
                 return RedirectToAction("Index");
             }
-            
-            // Build initial BookingViewModel
-            var model = new BookingViewModel
+
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var phone = User.FindFirst(System.Security.Claims.ClaimTypes.MobilePhone)?.Value ?? "";
+
+            var model = new UnifiedCheckoutPostModel
             {
-                AppointmentDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
-                AppointmentTime = new TimeOnly(9, 0)
+                CustomerName = User.Identity.Name ?? "",
+                CustomerPhone = phone,
+                CustomerEmail = email,
+                AppointmentDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd"),
+                AppointmentTime = "09:00",
+                DeliveryMethod = "Pickup"
             };
-            
+
             ViewBag.Cart = cart;
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Checkout(BookingViewModel model, string? shippingAddress)
+        public async Task<IActionResult> Checkout([FromBody] UnifiedCheckoutPostModel model)
         {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập để tiếp tục." });
+            }
+
             var cart = GetCart();
             if (cart.Items.Count == 0)
             {
-                return RedirectToAction("Index");
+                return Json(new { success = false, message = "Giỏ hàng của bạn đang trống." });
             }
 
-            bool hasOnlyParts = cart.Items.All(i => i.ItemType == "Part");
-            if (hasOnlyParts)
+            if (model == null)
             {
-                ModelState.Remove("AppointmentDate");
-                ModelState.Remove("AppointmentTime");
-                ModelState.Remove("CarName");
-                ModelState.Remove("LicensePlate");
-
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
-                model.AppointmentDate = DateOnly.FromDateTime(DateTime.Now);
-                model.AppointmentTime = TimeOnly.FromDateTime(DateTime.Now);
-                model.CarName = "N/A - Đơn phụ tùng";
-                model.LicensePlate = "PART-CUST-" + userId;
-                model.Note = (model.Note ?? "") + $"\n[Đơn Phụ Tùng] Địa chỉ giao hàng: {shippingAddress}";
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
             }
 
-            if (!ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(model.CustomerName))
             {
-                ViewBag.Cart = cart;
-                return View(model);
+                return Json(new { success = false, message = "Vui lòng nhập họ và tên." });
             }
 
-            // Populate items from Cart to Model
-            foreach (var item in cart.Items)
+            if (string.IsNullOrWhiteSpace(model.CustomerPhone))
             {
-                if (item.ItemType == "Package")
+                return Json(new { success = false, message = "Vui lòng nhập số điện thoại." });
+            }
+
+            var standaloneParts = cart.Items.Where(i => i.ItemType == "Part" && i.Purpose == "Standalone").ToList();
+            var maintenanceParts = cart.Items.Where(i => i.ItemType == "Part" && i.Purpose == "Maintenance").ToList();
+            var maintenancePackages = cart.Items.Where(i => i.ItemType == "Package").ToList();
+            var maintenanceServices = cart.Items.Where(i => i.ItemType == "Service").ToList();
+
+            bool hasStandalone = standaloneParts.Any();
+            bool hasMaintenance = maintenanceParts.Any() || maintenancePackages.Any() || maintenanceServices.Any();
+
+            if (!hasStandalone && !hasMaintenance)
+            {
+                return Json(new { success = false, message = "Giỏ hàng không có sản phẩm nào hợp lệ." });
+            }
+
+            // Validations for Standalone Parts
+            if (hasStandalone)
+            {
+                if (model.DeliveryMethod == "Shipping" && string.IsNullOrWhiteSpace(model.ShippingAddress))
                 {
-                    model.PackageIds.Add(item.ItemId);
-                }
-                else if (item.ItemType == "Service")
-                {
-                    model.ServiceIds.Add(item.ItemId);
-                }
-                else if (item.ItemType == "Part")
-                {
-                    model.PartItems.Add(new UnifiedPartItemViewModel
-                    {
-                        PartId = item.ItemId,
-                        Quantity = item.Quantity
-                    });
+                    return Json(new { success = false, message = "Vui lòng nhập địa chỉ giao hàng." });
                 }
             }
 
-            // Post to backend
+            // Validations for Maintenance
+            DateOnly? parsedDate = null;
+            TimeOnly? parsedTime = null;
+            if (hasMaintenance)
+            {
+                if (string.IsNullOrWhiteSpace(model.CarName) || string.IsNullOrWhiteSpace(model.LicensePlate))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập tên xe và biển số xe để đặt lịch bảo dưỡng." });
+                }
+
+                if (string.IsNullOrEmpty(model.AppointmentDate))
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ngày bảo dưỡng." });
+                }
+
+                if (string.IsNullOrEmpty(model.AppointmentTime))
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn giờ bảo dưỡng." });
+                }
+
+                if (!DateOnly.TryParse(model.AppointmentDate, out var dateVal))
+                {
+                    return Json(new { success = false, message = "Định dạng ngày bảo dưỡng không hợp lệ." });
+                }
+                parsedDate = dateVal;
+
+                if (!TimeOnly.TryParse(model.AppointmentTime, out var timeVal))
+                {
+                    return Json(new { success = false, message = "Định dạng giờ bảo dưỡng không hợp lệ." });
+                }
+                parsedTime = timeVal;
+
+                var today = DateOnly.FromDateTime(DateTime.Now.Date);
+                var nowTime = TimeOnly.FromDateTime(DateTime.Now);
+
+                if (parsedDate.Value < today)
+                {
+                    return Json(new { success = false, message = "Ngày bảo dưỡng không được ở trong quá khứ." });
+                }
+                else if (parsedDate.Value == today && parsedTime.Value <= nowTime)
+                {
+                    return Json(new { success = false, message = "Giờ đặt lịch bảo dưỡng phải ở trong tương lai." });
+                }
+
+                if (!maintenancePackages.Any() && !maintenanceServices.Any())
+                {
+                    return Json(new { success = false, message = "Đặt lịch bảo dưỡng yêu cầu ít nhất một gói bảo dưỡng hoặc một dịch vụ lẻ." });
+                }
+            }
+
+            // Get API client from factory
             var client = _httpClientFactory.CreateClient("CarShowroomApi");
             client.BaseAddress = new Uri("http://localhost:5084");
-            
-            // Add auth header if user is logged in
+
             var token = User.FindFirst("jwt_token")?.Value;
             if (!string.IsNullOrEmpty(token))
             {
                 client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-                
-                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int customerId))
+            }
+
+            string? partOrderIdStr = null;
+            string? appointmentIdStr = null;
+
+            try
+            {
+                // 1. Submit Standalone Parts order
+                if (hasStandalone)
                 {
-                    model.CustomerId = customerId;
+                    var partOrderPayload = new
+                    {
+                        CustomerName = model.CustomerName,
+                        CustomerPhone = model.CustomerPhone,
+                        CustomerEmail = model.CustomerEmail,
+                        ShippingAddress = model.DeliveryMethod == "Shipping" ? model.ShippingAddress : "Nhận tại showroom",
+                        DeliveryMethod = model.DeliveryMethod == "Shipping" ? "Shipping" : "Pickup",
+                        PaymentMethod = model.DeliveryMethod == "Shipping" ? "COD" : "BankTransfer",
+                        TotalAmount = standaloneParts.Sum(p => p.SubTotal),
+                        PartOrderDetails = standaloneParts.Select(p => new
+                        {
+                            PartId = p.ItemId,
+                            Quantity = p.Quantity,
+                            UnitPrice = p.Price,
+                            SubTotal = p.SubTotal
+                        }).ToList()
+                    };
+
+                    var partResponse = await client.PostAsJsonAsync("/api/PartOrders", partOrderPayload);
+                    if (!partResponse.IsSuccessStatusCode)
+                    {
+                        var errorMsg = await partResponse.Content.ReadAsStringAsync();
+                        return Json(new { success = false, message = $"Lỗi đặt hàng phụ tùng: {errorMsg}" });
+                    }
+
+                    var createdOrder = await partResponse.Content.ReadFromJsonAsync<JsonElement>();
+                    if (createdOrder.TryGetProperty("orderId", out var idProp))
+                    {
+                        partOrderIdStr = "#PO" + idProp.GetInt32().ToString("D4");
+                    }
                 }
-            }
 
-            var response = await client.PostAsJsonAsync("/api/maintenanceappointments/create-with-details", model);
+                // 2. Submit Maintenance booking
+                if (hasMaintenance)
+                {
+                    var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    int? customerId = null;
+                    if (int.TryParse(userIdStr, out int parsedId))
+                    {
+                        customerId = parsedId;
+                    }
 
-            if (response.IsSuccessStatusCode)
-            {
-                // Clear cart
+                    var maintenancePayload = new
+                    {
+                        CustomerId = customerId,
+                        CustomerCarId = 0,
+                        CustomerName = model.CustomerName,
+                        CustomerPhone = model.CustomerPhone,
+                        CustomerEmail = model.CustomerEmail,
+                        CarName = model.CarName,
+                        LicensePlate = model.LicensePlate,
+                        AppointmentDate = parsedDate,
+                        AppointmentTime = parsedTime,
+                        Note = model.Note,
+                        PackageIds = maintenancePackages.Select(p => p.ItemId).ToList(),
+                        ServiceIds = maintenanceServices.Select(s => s.ItemId).ToList(),
+                        PartItems = maintenanceParts.Select(p => new
+                        {
+                            PartId = p.ItemId,
+                            Quantity = p.Quantity
+                        }).ToList()
+                    };
+
+                    var maintResponse = await client.PostAsJsonAsync("/api/maintenanceappointments/create-with-details", maintenancePayload);
+                    if (!maintResponse.IsSuccessStatusCode)
+                    {
+                        var errorMsg = await maintResponse.Content.ReadAsStringAsync();
+                        return Json(new { success = false, message = $"Lỗi đặt lịch bảo dưỡng: {errorMsg}" });
+                    }
+
+                    var createdAppointment = await maintResponse.Content.ReadFromJsonAsync<JsonElement>();
+                    if (createdAppointment.TryGetProperty("data", out var dataProp) && dataProp.TryGetProperty("appointmentId", out var apptIdProp))
+                    {
+                        appointmentIdStr = "#MA" + apptIdProp.GetInt32().ToString("D4");
+                    }
+                }
+
+                // Successfully created all required requests, clear the cart session!
                 SaveCart(new UnifiedCart());
-                TempData["SuccessMessage"] = "Đơn hàng và Đặt lịch của bạn đã được ghi nhận thành công!";
-                return RedirectToAction("Index", "Home"); // Or some success page
+
+                return Json(new { success = true, partOrderId = partOrderIdStr, appointmentId = appointmentIdStr });
             }
-            else
+            catch (Exception ex)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                ModelState.AddModelError("", $"Lỗi từ server: {response.StatusCode} - {error}");
-                ViewBag.Cart = cart;
-                return View(model);
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi kết nối tới máy chủ: " + ex.Message });
             }
         }
     }

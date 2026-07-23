@@ -1,0 +1,275 @@
+@model CarSalesManagementSystemClient.Models.PartOrderDetailsWrapper
+@{
+    ViewData["Title"] = "Chi tiết đơn phụ tùng lẻ";
+    var order = Model.Order;
+    var inv = Model.Invoice;
+    
+    decimal itemsTotal = order.PartOrderDetails?.Sum(od => od.UnitPrice * od.Quantity) ?? 0;
+    decimal shippingFee = order.ShippingFee;
+    decimal totalAmount = order.TotalAmount;
+}
+
+<div class="py-4 mb-4 bg-white border-bottom shadow-sm">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="fw-bold m-0 text-dark">Chi tiết đơn hàng phụ tùng</h4>
+            <span class="text-muted small">Đơn hàng #PT-@order.OrderId.ToString("D4")</span>
+        </div>
+        <a href="/Orders/Index?type=Part" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i>Danh sách đơn
+        </a>
+    </div>
+</div>
+
+<div class="container mb-5 pb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Main details -->
+        <div class="col-lg-8">
+            <!-- Progress Stepper -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Trạng thái đơn hàng</h5>
+                    
+                    @if (order.Status == "Cancelled")
+                    {
+                        <div class="alert alert-secondary d-flex align-items-center mb-0">
+                            <i class="bi bi-x-circle-fill text-danger fs-4 me-2"></i>
+                            <div>
+                                <div class="fw-bold text-danger">Đơn hàng đã bị hủy</div>
+                                <div class="small text-muted">Đơn hàng này đã bị hủy bỏ. Vui lòng liên hệ showroom nếu cần thêm thông tin.</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap justify-content-between position-relative py-2">
+                            <!-- Line backdrop -->
+                            <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-secondary bg-opacity-25" style="height: 4px; z-index: 1;"></div>
+                            
+                            <!-- Step 1: Pending (Placed) -->
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 25%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-check2"></i>
+                                </div>
+                                <span class="small text-center fw-bold mt-2 text-dark">Đặt hàng thành công</span>
+                            </div>
+
+                            <!-- Step 2: Confirmed -->
+                            @{
+                                bool step2Active = order.Status == "Confirmed" || order.Status == "Shipping" || order.Status == "Delivered" || order.Status == "Completed";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 25%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step2Active ? "bg-primary text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step2Active) { <i class="bi bi-check2"></i> } else { <span>2</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step2Active ? "fw-bold text-dark" : "text-secondary")">Showroom xác nhận</span>
+                            </div>
+
+                            <!-- Step 3: Delivery Status -->
+                            @{
+                                bool step3Active = order.Status == "Shipping" || order.Status == "Delivered" || order.Status == "Completed";
+                                string step3Text = order.DeliveryMethod == "Pickup" ? "Sẵn sàng nhận hàng" : (order.Status == "Delivered" ? "Đã nhận hàng" : "Đang giao hàng");
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 25%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step3Active ? "bg-primary text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step3Active) { <i class="bi bi-check2"></i> } else { <span>3</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step3Active ? "fw-bold text-dark" : "text-secondary")">@step3Text</span>
+                            </div>
+
+                            <!-- Step 4: Completed -->
+                            @{
+                                bool step4Active = order.Status == "Completed";
+                            }
+                            <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2; width: 25%;">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center @(step4Active ? "bg-success text-white" : "bg-light border border-secondary text-secondary")" style="width: 35px; height: 35px;">
+                                    @if (step4Active) { <i class="bi bi-check2"></i> } else { <span>4</span> }
+                                </div>
+                                <span class="small text-center mt-2 @(step4Active ? "fw-bold text-success" : "text-secondary")">Hoàn thành</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Danh sách phụ tùng đặt mua</h5>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr class="text-secondary small border-bottom">
+                                    <th class="py-3">Phụ tùng</th>
+                                    <th class="py-3 text-center">Đơn giá</th>
+                                    <th class="py-3 text-center">Số lượng</th>
+                                    <th class="py-3 text-end">Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (order.PartOrderDetails != null && order.PartOrderDetails.Any())
+                                {
+                                    foreach (var item in order.PartOrderDetails)
+                                    {
+                                        <tr class="border-bottom">
+                                            <td class="py-3">
+                                                <div class="fw-bold text-dark">@(item.Part != null ? item.Part.PartName : "Phụ tùng lẻ")</div>
+                                                <div class="text-secondary small">Mã phụ tùng: #@item.PartId</div>
+                                            </td>
+                                            <td class="py-3 text-center">@item.UnitPrice.ToString("N0")đ</td>
+                                            <td class="py-3 text-center">@item.Quantity</td>
+                                            <td class="py-3 text-end fw-bold text-dark">@((item.UnitPrice * item.Quantity).ToString("N0"))đ</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">Không có chi tiết sản phẩm</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-lg-4">
+            <!-- Delivery Info Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold border-bottom pb-3 mb-3"><i class="bi bi-truck me-2"></i>Giao nhận hàng</h5>
+                    
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">Phương thức nhận hàng</label>
+                        <span class="fw-bold text-dark">
+                            @(order.DeliveryMethod == "Pickup" ? "Nhận tại showroom" : "Giao hàng tận nơi")
+                        </span>
+                    </div>
+
+                    @if (order.DeliveryMethod == "Pickup")
+                    {
+                        <div class="mb-0">
+                            <label class="text-muted small d-block">Địa điểm showroom nhận hàng</label>
+                            <span class="fw-bold text-secondary">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Số 12 Khuất Duy Tiến, Thanh Xuân, Hà Nội
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Người nhận hàng</label>
+                            <span class="fw-bold text-dark">@order.CustomerName</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted small d-block">Số điện thoại</label>
+                            <span class="fw-bold text-dark">@order.CustomerPhone</span>
+                        </div>
+                        <div class="mb-0">
+                            <label class="text-muted small d-block">Địa chỉ giao hàng</label>
+                            <span class="fw-bold text-secondary">
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>@order.ShippingAddress
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Cost and Payment Card -->
+            <div class="card border-0 shadow-sm rounded-3 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold border-bottom pb-3 mb-3"><i class="bi bi-cash-stack me-2"></i>Tổng kết chi phí</h5>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Tiền phụ tùng:</span>
+                        <span class="fw-bold text-dark">@itemsTotal.ToString("N0")đ</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Phí vận chuyển:</span>
+                        <span class="fw-bold text-dark">@shippingFee.ToString("N0")đ</span>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold text-dark">Tổng thanh toán:</span>
+                        <span class="fw-extrabold text-danger fs-4">@totalAmount.ToString("N0")đ</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-muted small d-block">Trạng thái thanh toán</label>
+                        @if (inv?.PaymentStatus == "Paid")
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold mt-1">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold mt-1">Chưa thanh toán</span>
+                        }
+                    </div>
+
+                    <!-- Payment & Cancel actions -->
+                    <div class="d-flex flex-column gap-2">
+                        @if (inv != null && inv.PaymentStatus == "Unpaid" && order.Status != "Cancelled")
+                        {
+                            <form asp-action="Pay" asp-route-type="Part" asp-route-id="@order.OrderId" method="post" class="w-100">
+                                <button type="submit" class="btn btn-warning w-100 rounded-pill py-2 fw-bold text-dark shadow-sm">
+                                    <i class="bi bi-wallet2 me-1"></i>Thanh toán trực tuyến
+                                </button>
+                            </form>
+                        }
+
+                        @if (order.Status == "Pending")
+                        {
+                            <form asp-action="CancelPartOrder" asp-route-id="@order.OrderId" method="post" class="w-100" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
+                                <button type="submit" class="btn btn-outline-danger w-100 rounded-pill py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-x-circle me-1"></i>Hủy đơn hàng
+                                </button>
+                            </form>
+                        }
+                        else if (order.Status == "Shipping")
+                        {
+                            <form asp-action="ReceivePartOrder" asp-route-id="@order.OrderId" method="post" class="w-100">
+                                <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-bold text-white shadow-sm">
+                                    <i class="bi bi-check-circle me-1"></i>Đã nhận được hàng
+                                </button>
+                            </form>
+                        }
+                        else if (order.Status == "Delivered")
+                        {
+                            <small class="text-success text-center d-block fw-bold mb-2">
+                                <i class="bi bi-check-circle-fill me-1"></i>Bạn đã xác nhận nhận hàng. Đơn hàng đang được showroom hoàn tất.
+                            </small>
+                        }
+                        else if (order.Status != "Cancelled" && order.Status != "Pending")
+                        {
+                            <small class="text-muted text-center d-block">
+                                <i class="bi bi-info-circle-fill me-1"></i>Đơn hàng đã xác nhận kho, liên hệ showroom nếu cần hỗ trợ thay đổi.
+                            </small>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

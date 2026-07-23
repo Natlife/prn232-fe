@@ -3,9 +3,13 @@
     ViewData["Title"] = Model.PartName + " - Chi tiết phụ tùng";
     var relatedParts = ViewBag.RelatedParts as IEnumerable<CarSalesManagementSystemClient.Models.PartViewModel>
                        ?? new List<CarSalesManagementSystemClient.Models.PartViewModel>();
-    var displayImageUrl = string.IsNullOrWhiteSpace(Model.ImageUrl)
-        ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80"
-        : Model.ImageUrl;
+    var rawImg = Model.ImageUrl ?? "";
+    var imagesList = rawImg.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    if (!imagesList.Any())
+    {
+        imagesList.Add("https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80");
+    }
+    var displayImageUrl = imagesList[0];
     var isAvailable = Model.Status == "Available" && Model.Quantity > 0;
 }
 
@@ -46,20 +50,16 @@
                     </span>
                 </div>
 
-                <!-- Thumbnail strip (visual only - click swaps main image) -->
-                <div class="thumb-strip mt-3 d-flex gap-2 justify-content-center">
-                    <div class="thumb active" onclick="setMainImage('@displayImageUrl', this)">
-                        <img src="@displayImageUrl" alt="thumb 1" onerror="this.src='https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80'">
-                    </div>
-                    <div class="thumb" onclick="setMainImage('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=600&q=80', this)">
-                        <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=600&q=80" alt="thumb 2">
-                    </div>
-                    <div class="thumb" onclick="setMainImage('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80', this)">
-                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80" alt="thumb 3">
-                    </div>
-                    <div class="thumb" onclick="setMainImage('https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=600&q=80', this)">
-                        <img src="https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=600&q=80" alt="thumb 4">
-                    </div>
+                <!-- Thumbnail strip -->
+                <div class="thumb-strip mt-3 d-flex gap-2 justify-content-center flex-wrap">
+                    @for (int i = 0; i < imagesList.Count; i++)
+                    {
+                        var imgUrl = imagesList[i];
+                        var activeClass = i == 0 ? "active" : "";
+                        <div class="thumb @activeClass" onclick="setMainImage('@imgUrl', this)">
+                            <img src="@imgUrl" alt="thumb @(i + 1)" onerror="this.src='https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80'">
+                        </div>
+                    }
                 </div>
             </div>
 

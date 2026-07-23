@@ -244,14 +244,27 @@ namespace CarSalesRazorPages.Models
         public int WarrantyMonths { get; set; }
 
         public string? Description { get; set; }
+
+        public string? ImageUrl { get; set; }
+    }
+
+    public class SupplierViewModel
+    {
+        public int SupplierId { get; set; }
+        public string SupplierName { get; set; } = string.Empty;
+        public string? ContactName { get; set; }
+        public string? Phone { get; set; }
+        public string? Email { get; set; }
+        public string? Address { get; set; }
+        public string Status { get; set; } = "Active";
+        public DateTime CreatedAt { get; set; }
     }
 
     public class InventoryReceiptItemViewModel
     {
         public bool IsNewPart { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn nhà cung cấp cho mỗi dòng")]
-        public int SupplierId { get; set; }
+        public int? SupplierId { get; set; }
 
         public int? PartId { get; set; }
 

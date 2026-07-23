@@ -1,0 +1,160 @@
+@model CarSalesManagementSystemClient.Models.ComboOrderConfirmViewModel
+@{
+    ViewData["Title"] = "Xác nhận Đơn hàng Combo";
+    var suggestedItems = ViewBag.SuggestedItems as List<CarSalesManagementSystemClient.Models.ComboOrderItemViewModel> ?? new List<CarSalesManagementSystemClient.Models.ComboOrderItemViewModel>();
+    var totalAmount = (decimal)(ViewBag.TotalAmount ?? 0m);
+    var depositAmount = Math.Round(totalAmount * 0.05m, 0);
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-4">
+                <div class="bg-dark text-white p-4 text-center">
+                    <h2 class="fw-bold m-0 text-warning"><i class="bi bi-box-seam me-2"></i>Xác Nhận Đơn Hàng Combo</h2>
+                    <p class="text-secondary mb-0 mt-1">Đơn hàng được gợi ý tối ưu từ trợ lý ảo AI chatbot</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>Có lỗi xảy ra:</strong> Vui lòng kiểm tra lại thông tin nhập liệu dưới đây.
+                            <div asp-validation-summary="ModelOnly" class="text-danger small mt-2"></div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <h4 class="fw-bold text-dark mb-3"><i class="bi bi-list-check text-warning me-2"></i>Chi tiết các sản phẩm trong Combo</h4>
+                    <div class="table-responsive mb-4 rounded-3 border">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 px-4">Loại sản phẩm</th>
+                                    <th class="py-3">Tên sản phẩm / Dịch vụ</th>
+                                    <th class="py-3 text-end" style="width: 150px;">Đơn giá</th>
+                                    <th class="py-3 text-center" style="width: 100px;">Số lượng</th>
+                                    <th class="py-3 text-end px-4" style="width: 180px;">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in suggestedItems)
+                                {
+                                    <tr>
+                                        <td class="py-3 px-4">
+                                            @if (item.ItemType.Equals("Car", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 rounded-pill"><i class="bi bi-car-front me-1"></i>Ô tô</span>
+                                            }
+                                            else if (item.ItemType.Equals("Package", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill"><i class="bi bi-box-seam-fill me-1"></i>Gói bảo dưỡng</span>
+                                            }
+                                            else if (item.ItemType.Equals("Service", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-info-subtle text-info border border-info px-3 py-1 rounded-pill"><i class="bi bi-wrench me-1"></i>Dịch vụ lẻ</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning border border-warning px-3 py-1 rounded-pill"><i class="bi bi-nut me-1"></i>Phụ tùng</span>
+                                            }
+                                        </td>
+                                        <td class="py-3 fw-bold text-slate-800">@item.ItemName</td>
+                                        <td class="py-3 text-end text-secondary">@item.UnitPrice.ToString("N0") đ</td>
+                                        <td class="py-3 text-center">@item.Quantity</td>
+                                        <td class="py-3 text-end fw-bold text-dark px-4">@item.SubTotal.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="row justify-content-end mb-5">
+                        <div class="col-md-5">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-secondary">Tổng cộng combo:</span>
+                                    <span class="fw-bold">@totalAmount.ToString("N0") đ</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                    <span class="fw-bold text-dark">Tiền cọc yêu cầu (5%):</span>
+                                    <span class="fw-bold text-danger fs-5" id="depositDisplay">@depositAmount.ToString("N0") đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-3 border-top pt-4"><i class="bi bi-person-fill-check text-warning me-2"></i>Thông tin nhận hàng & Thanh toán</h4>
+                    <form asp-action="Confirm" method="post">
+                        <input type="hidden" asp-for="Draft" />
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="CustomerName" class="form-label fw-semibold text-secondary"></label>
+                                <input asp-for="CustomerName" class="form-control rounded-3" placeholder="Nhập họ tên của bạn" />
+                                <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="CustomerPhone" class="form-label fw-semibold text-secondary"></label>
+                                <input asp-for="CustomerPhone" class="form-control rounded-3" placeholder="Nhập số điện thoại liên hệ" />
+                                <span asp-validation-for="CustomerPhone" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="CustomerEmail" class="form-label fw-semibold text-secondary"></label>
+                                <input asp-for="CustomerEmail" class="form-control rounded-3" type="email" placeholder="VD: mail@example.com" />
+                                <span asp-validation-for="CustomerEmail" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PurchaseType" class="form-label fw-semibold text-secondary"></label>
+                                <select asp-for="PurchaseType" class="form-select rounded-3" id="purchaseTypeSelect">
+                                    <option value="Buyout">Mua đứt toàn bộ combo (Thanh toán 100%)</option>
+                                    <option value="Deposit">Đặt cọc giữ xe / Combo (Thanh toán cọc 5%)</option>
+                                </select>
+                                <span asp-validation-for="PurchaseType" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4" id="addressContainer">
+                            <label asp-for="ShippingAddress" class="form-label fw-semibold text-secondary"></label>
+                            <input asp-for="ShippingAddress" class="form-control rounded-3" placeholder="Địa chỉ giao phụ tùng tận nhà (nếu có)" />
+                            <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Note" class="form-label fw-semibold text-secondary"></label>
+                            <textarea asp-for="Note" class="form-control rounded-3" rows="3" placeholder="Ghi chú thêm cho showroom..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                            <a href="/" class="btn btn-outline-secondary px-5 py-2.5 rounded-3 fw-bold me-md-2">Quay lại</a>
+                            <button type="submit" class="btn btn-dark px-5 py-2.5 rounded-3 fw-bold text-warning"><i class="bi bi-cart-check-fill me-2"></i>Xác nhận đặt hàng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function togglePriceMode() {
+                var type = $('#purchaseTypeSelect').val();
+                if (type === 'Deposit') {
+                    $('#depositDisplay').parent().show();
+                } else {
+                    $('#depositDisplay').parent().hide();
+                }
+            }
+
+            $('#purchaseTypeSelect').change(togglePriceMode);
+            togglePriceMode(); // Init
+        });
+    </script>
+}

@@ -22,6 +22,7 @@ public class ManageModel : PageModel
 
     public List<PartViewModel> Parts { get; set; } = new();
     public IEnumerable<PartCategoryViewModel> Categories { get; set; } = new List<PartCategoryViewModel>();
+    public IEnumerable<SupplierViewModel> Suppliers { get; set; } = new List<SupplierViewModel>();
     public string? ErrorMessage { get; set; }
 
     private void AppendAuthorizationHeader()
@@ -38,12 +39,78 @@ public class ManageModel : PageModel
             var categories = await _httpClient.GetFromJsonAsync<IEnumerable<PartCategoryViewModel>>(CategoriesApiUrl);
             Categories = categories ?? new List<PartCategoryViewModel>();
 
+            try
+            {
+                var suppliers = await _httpClient.GetFromJsonAsync<IEnumerable<SupplierViewModel>>("http://localhost:5084/api/Suppliers");
+                Suppliers = suppliers ?? new List<SupplierViewModel>();
+            }
+            catch
+            {
+                Suppliers = new List<SupplierViewModel>();
+            }
+
             var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>($"{PartsOdataUrl}?$expand=Category&$orderby=CreatedAt desc");
             Parts = odataResponse?.Value ?? new List<PartViewModel>();
         }
         catch (Exception ex)
         {
             ErrorMessage = "Lỗi khi tải trang quản trị phụ tùng: " + ex.Message;
+        }
+    }
+
+    public async Task<IActionResult> OnPostUploadImageAsync(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return new JsonResult(new { success = false, message = "Vui lòng chọn tập tin ảnh." });
+
+        try
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "parts");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+            return new JsonResult(new { success = true, imageUrl = "/uploads/parts/" + fileName });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { success = false, message = "Lỗi khi tải ảnh: " + ex.Message });
+        }
+    }
+
+    public async Task<IActionResult> OnPostUploadMultipleImagesAsync(List<IFormFile> files)
+    {
+        if (files == null || !files.Any())
+            return new JsonResult(new { success = false, message = "Vui lòng chọn tập tin ảnh." });
+
+        try
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "parts");
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+            var imageUrls = new List<string>();
+            foreach (var file in files)
+            {
+                if (file.Length > 0)
+                {
+                    var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                    imageUrls.Add("/uploads/parts/" + fileName);
+                }
+            }
+            return new JsonResult(new { success = true, imageUrls = imageUrls });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { success = false, message = "Lỗi khi tải các tập tin ảnh: " + ex.Message });
         }
     }
 

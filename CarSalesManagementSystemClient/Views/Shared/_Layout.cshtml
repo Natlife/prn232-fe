@@ -41,7 +41,7 @@
                     {
                         @if (!User.IsInRole("Admin"))
                         {
-                            <a class="text-white text-decoration-none me-3" asp-controller="PartOrders" asp-action="MyOrders"><i class="bi bi-clock-history me-1"></i>Lịch sử mua</a>
+                            <a class="text-white text-decoration-none me-3" asp-controller="Orders" asp-action="Index"><i class="bi bi-clock-history me-1"></i>Đơn hàng của tôi</a>
                         }
                         <span class="me-3">Xin chào, <b>@User.Identity?.Name</b>!</span>
                         @if (User.IsInRole("Admin"))

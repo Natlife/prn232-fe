@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using CarSalesManagementSystemClient.Models;
 using System.Text;
 using System.Linq;
+using System;
 
 namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 {
@@ -52,11 +53,14 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (apiResult != null && apiResult.Success && apiResult.Data != null)
                 {
-                    // Sort descending by date
-                    var sortedData = apiResult.Data.OrderByDescending(a => a.CreatedAt).ToList();
+                    // Lọc: Chỉ lấy lịch hẹn có trạng thái Pending, Confirmed, Cancelled
+                    var filtered = apiResult.Data
+                        .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Cancelled")
+                        .OrderByDescending(a => a.CreatedAt)
+                        .ToList();
 
-                    int totalItems = sortedData.Count;
-                    int totalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize);
+                    int totalItems = filtered.Count;
+                    int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
                     if (totalPages == 0) totalPages = 1;
                     if (page < 1) page = 1;
                     if (page > totalPages) page = totalPages;
@@ -64,7 +68,7 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                     ViewBag.CurrentPage = page;
                     ViewBag.TotalPages = totalPages;
 
-                    var paginatedData = sortedData.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                    var paginatedData = filtered.Skip((page - 1) * pageSize).Take(pageSize).ToList();
                     return View(paginatedData);
                 }
             }
@@ -76,7 +80,7 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 
         // POST: Admin/MaintenanceAppointments/UpdateStatus
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(int id, string status, string reason = null)
+        public async Task<IActionResult> UpdateStatus(int id, string status, string? reason = null)
         {
             AppendAuthorizationHeader();
 
@@ -87,76 +91,10 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
+                return Json(new { success = true, message = "Cập nhật trạng thái lịch hẹn thành công!" });
             }
 
-            return Json(new { success = false, message = "Cập nhật thất bại." });
-        }
-
-        // POST: Admin/MaintenanceAppointments/ReportIncurredPart
-        [HttpPost]
-        public async Task<IActionResult> ReportIncurredPart(int appointmentId, int partId, int quantity, string notes)
-        {
-            AppendAuthorizationHeader();
-
-            var reqObj = new { 
-                AppointmentId = appointmentId, 
-                PartId = partId, 
-                Quantity = quantity, 
-                Notes = notes 
-            };
-
-            var response = await _httpClient.PostAsync($"{_apiUrl}/AppointmentConsumedParts/report-incurred",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Báo cáo phụ tùng thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Báo cáo thất bại: {content}" });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddPart(int appointmentId, int partId, int quantity, string notes)
-        {
-            AppendAuthorizationHeader();
-
-            var reqObj = new { 
-                AppointmentId = appointmentId, 
-                PartId = partId, 
-                Quantity = quantity, 
-                Notes = notes 
-            };
-
-            var response = await _httpClient.PostAsync($"{_apiUrl}/AppointmentConsumedParts/add-part",
-                new StringContent(JsonSerializer.Serialize(reqObj), Encoding.UTF8, "application/json"));
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Thêm phụ tùng thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Thêm thất bại: {content}" });
-        }
-
-        // POST: Admin/MaintenanceAppointments/RemoveIncurredPart
-        [HttpPost]
-        public async Task<IActionResult> RemoveIncurredPart(int consumedPartId)
-        {
-            AppendAuthorizationHeader();
-
-            var response = await _httpClient.DeleteAsync($"{_apiUrl}/AppointmentConsumedParts/remove/{consumedPartId}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                return Json(new { success = true, message = "Đã hủy phụ tùng phát sinh thành công!" });
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            return Json(new { success = false, message = $"Hủy thất bại: {content}" });
+            return Json(new { success = false, message = "Cập nhật lịch hẹn thất bại." });
         }
     }
 }

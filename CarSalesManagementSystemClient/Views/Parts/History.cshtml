@@ -327,7 +327,7 @@
                             <i class="bi bi-search"></i>
                             <input id="transactionSearch"
                                    type="search"
-                                   placeholder="Tìm theo người thực hiện, mã tham chiếu hoặc ghi chú..."
+                                   placeholder="Tìm theo người thực hiện hoặc ghi chú..."
                                    autocomplete="off"
                                    oninput="filterTransactions()" />
                         </label>
@@ -367,7 +367,6 @@
                                         <th>Loại giao dịch</th>
                                         <th class="text-center">Số lượng</th>
                                         <th>Người thực hiện</th>
-                                        <th>Tham chiếu</th>
                                         <th>Ghi chú</th>
                                     </tr>
                                 </thead>
@@ -382,8 +381,6 @@
                                         var searchableText = string.Join(" ",
                                             tx.TransactionType,
                                             tx.StaffName,
-                                            tx.ReferenceType,
-                                            tx.ReferenceId,
                                             tx.Notes
                                         ).ToLowerInvariant();
 
@@ -440,18 +437,6 @@
                                                     </span>
                                                     <span>@(string.IsNullOrWhiteSpace(tx.StaffName) ? "Không xác định" : tx.StaffName)</span>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                @if (tx.ReferenceId.HasValue)
-                                                {
-                                                    <span class="reference-chip">
-                                                        @tx.ReferenceType #@tx.ReferenceId
-                                                    </span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="muted-value">Không có</span>
-                                                }
                                             </td>
                                             <td>
                                                 <div class="note-cell">
@@ -1365,7 +1350,7 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
-
+ccvv
     @@media (max-width: 991.98px) {
         .page-heading {
             align-items: flex-start;

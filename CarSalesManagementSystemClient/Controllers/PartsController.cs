@@ -155,6 +155,17 @@ namespace CarSalesManagementSystemClient.Controllers
                 var categories = await _httpClient.GetFromJsonAsync<IEnumerable<PartCategoryViewModel>>(_categoriesApiUrl);
                 ViewBag.Categories = categories ?? new List<PartCategoryViewModel>();
 
+                // Fetch Suppliers for tab 3 & dropdowns
+                try
+                {
+                    var suppliers = await _httpClient.GetFromJsonAsync<IEnumerable<SupplierViewModel>>("http://localhost:5084/api/Suppliers");
+                    ViewBag.Suppliers = suppliers ?? new List<SupplierViewModel>();
+                }
+                catch
+                {
+                    ViewBag.Suppliers = new List<SupplierViewModel>();
+                }
+
                 // Get all parts for Admin list (OData expandable)
                 var requestUri = "http://localhost:5084/odata/Parts?$expand=Category&$orderby=CreatedAt desc";
                 var odataResponse = await _httpClient.GetFromJsonAsync<ODataResponse<PartViewModel>>(requestUri);
@@ -165,7 +176,83 @@ namespace CarSalesManagementSystemClient.Controllers
             {
                 ViewBag.ErrorMessage = "Lỗi khi tải trang quản trị phụ tùng: " + ex.Message;
                 ViewBag.Categories = new List<PartCategoryViewModel>();
+                ViewBag.Suppliers = new List<SupplierViewModel>();
                 return View(new List<PartViewModel>());
+            }
+        }
+
+        // POST: Parts/UploadImage (Single image file upload from laptop)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, message = "Vui lòng chọn một tập tin ảnh hợp lệ." });
+
+            try
+            {
+                var uploadsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "parts");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var fileName = Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(file.FileName);
+                var filePath = System.IO.Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var imageUrl = "/uploads/parts/" + fileName;
+                return Json(new { success = true, imageUrl = imageUrl });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi tải ảnh lên: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/UploadMultipleImages (Multiple image files upload from laptop)
+        [HttpPost]
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> UploadMultipleImages(List<IFormFile> files)
+        {
+            if (files == null || !files.Any())
+                return Json(new { success = false, message = "Vui lòng chọn ít nhất 1 tập tin ảnh." });
+
+            try
+            {
+                var uploadsFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "parts");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var imageUrls = new List<string>();
+
+                foreach (var file in files)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid().ToString("N") + System.IO.Path.GetExtension(file.FileName);
+                        var filePath = System.IO.Path.Combine(uploadsFolder, fileName);
+
+                        using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        imageUrls.Add("/uploads/parts/" + fileName);
+                    }
+                }
+
+                return Json(new { success = true, imageUrls = imageUrls, joinedUrl = string.Join(",", imageUrls) });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi tải các tập tin ảnh lên: " + ex.Message });
             }
         }
 
@@ -589,6 +676,52 @@ namespace CarSalesManagementSystemClient.Controllers
                     return Json(new { success = true, data = result });
                 }
                 var errMsg = await ExtractErrorMessageAsync(response, "Thêm nhà cung cấp thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/UpdateCategory/5 (AJAX POST wrapper around PUT API)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] object payload)
+        {
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PutAsJsonAsync($"http://localhost:5084/api/PartCategories/{id}", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(new { success = true, data = result });
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Cập nhật danh mục thất bại.");
+                return BadRequest(new { message = errMsg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi kết nối: " + ex.Message });
+            }
+        }
+
+        // POST: Parts/UpdateSupplier/5 (AJAX POST wrapper around PUT API)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateSupplier(int id, [FromBody] object payload)
+        {
+            try
+            {
+                AppendAuthorizationHeader();
+                var response = await _httpClient.PutAsJsonAsync($"http://localhost:5084/api/Suppliers/{id}", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<object>();
+                    return Json(new { success = true, data = result });
+                }
+                var errMsg = await ExtractErrorMessageAsync(response, "Cập nhật nhà cung cấp thất bại.");
                 return BadRequest(new { message = errMsg });
             }
             catch (Exception ex)

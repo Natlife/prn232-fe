@@ -13,6 +13,7 @@ namespace CarSalesManagementSystemClient.Models
         public decimal SubTotal => Price * Quantity;
         // Optionally store an image URL if available
         public string? ImageUrl { get; set; }
+        public string Purpose { get; set; } = "Standalone"; // "Standalone" (Mua riêng) or "Maintenance" (Bảo dưỡng)
     }
 
     public class UnifiedCart
@@ -84,5 +85,21 @@ namespace CarSalesManagementSystemClient.Models
                 }
             }
         }
+    }
+
+    public class UnifiedCheckoutPostModel
+    {
+        public string CustomerName { get; set; } = null!;
+        public string CustomerPhone { get; set; } = null!;
+        public string? CustomerEmail { get; set; }
+
+        public string DeliveryMethod { get; set; } = "Pickup"; // "Pickup" or "Shipping"
+        public string? ShippingAddress { get; set; }
+
+        public string? CarName { get; set; }
+        public string? LicensePlate { get; set; }
+        public string? AppointmentDate { get; set; }
+        public string? AppointmentTime { get; set; }
+        public string? Note { get; set; }
     }
 }
