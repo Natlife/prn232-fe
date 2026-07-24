@@ -1060,19 +1060,28 @@
                             </div>
                         </div>
 
-                        <div class="admin-captcha-code admin-captcha-code-deposit">
-                            <span>
+                        <div class="admin-captcha-code admin-captcha-code-deposit justify-content-between">
+                            <span class="font-monospace">
                                 @(string.IsNullOrEmpty(Model.DepositCaptchaCode)
                                     ? "—"
                                     : Model.DepositCaptchaCode)
                             </span>
 
-                            @if (Model.IsDepositCaptchaUsed)
-                            {
-                                <span class="admin-captcha-used ms-2">
-                                    Đã dùng
-                                </span>
-                            }
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(Model.DepositCaptchaCode))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-dark btn-copy-captcha border py-1 px-2 fw-bold" data-code="@Model.DepositCaptchaCode" title="Sao chép mã cọc">
+                                        <i class="bi bi-clipboard me-1"></i> Copy
+                                    </button>
+                                }
+
+                                @if (Model.IsDepositCaptchaUsed)
+                                {
+                                    <span class="admin-captcha-used">
+                                        Đã dùng
+                                    </span>
+                                }
+                            </div>
                         </div>
 
                         @if (Model.IsDeposit
@@ -1107,19 +1116,28 @@
                             </div>
                         </div>
 
-                        <div class="admin-captcha-code admin-captcha-code-final">
-                            <span>
+                        <div class="admin-captcha-code admin-captcha-code-final justify-content-between">
+                            <span class="font-monospace">
                                 @(string.IsNullOrEmpty(Model.FinalCaptchaCode)
                                     ? "—"
                                     : Model.FinalCaptchaCode)
                             </span>
 
-                            @if (Model.IsFinalCaptchaUsed)
-                            {
-                                <span class="admin-captcha-used ms-2">
-                                    Đã dùng
-                                </span>
-                            }
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrEmpty(Model.FinalCaptchaCode))
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-dark btn-copy-captcha border py-1 px-2 fw-bold" data-code="@Model.FinalCaptchaCode" title="Sao chép mã tất toán">
+                                        <i class="bi bi-clipboard me-1"></i> Copy
+                                    </button>
+                                }
+
+                                @if (Model.IsFinalCaptchaUsed)
+                                {
+                                    <span class="admin-captcha-used">
+                                        Đã dùng
+                                    </span>
+                                }
+                            </div>
                         </div>
 
                         @if (!Model.IsFinalCaptchaUsed
@@ -1164,3 +1182,37 @@
 
     </div>
 </main>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-copy-captcha').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const code = btn.getAttribute('data-code');
+                if (!code) return;
+
+                navigator.clipboard.writeText(code).then(function () {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'bi bi-check-lg text-success me-1';
+                    }
+                    if (window.Swal) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Đã chép mã: ' + code
+                        });
+                    }
+                }).catch(function () {
+                    alert('Đã chép mã: ' + code);
+                });
+            });
+        });
+    </script>
+}

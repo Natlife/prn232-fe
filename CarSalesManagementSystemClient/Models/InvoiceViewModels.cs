@@ -32,6 +32,8 @@ namespace CarSalesManagementSystemClient.Models
         public decimal? DepositAmount { get; set; }
         public decimal? DepositPaidAmount { get; set; }
         public DateTime? DepositExpiresAt { get; set; }
+        public DateTime? ExpiredAt { get; set; }
+        public int RemainingSeconds { get; set; }
         public bool IsDepositCaptchaUsed { get; set; }
         public bool IsFinalCaptchaUsed { get; set; }
 

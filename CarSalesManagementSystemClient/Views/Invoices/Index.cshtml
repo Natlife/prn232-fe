@@ -29,8 +29,8 @@
         --invoice-list-danger: #dc3545;
         --invoice-list-success: #198754;
         --invoice-list-info: #0ea5e9;
-        --invoice-list-radius-lg: 24px;
-        --invoice-list-radius-md: 14px;
+        --invoice-list-radius-lg: 12px;
+        --invoice-list-radius-md: 8px;
         --invoice-list-shadow: 0 18px 46px rgba(17, 19, 24, 0.08);
     }
 
@@ -152,7 +152,7 @@
         color: #ffffff;
         background-color: rgba(255, 255, 255, 0.07);
         border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 12px;
+        border-radius: 8px;
         font-size: 0.73rem;
         font-weight: 900;
         text-decoration: none;
@@ -183,7 +183,7 @@
         color: #991b1b;
         background-color: #fef2f2;
         border: 1px solid #fecaca;
-        border-radius: 14px;
+        border-radius: 8px;
         font-size: 0.8rem;
         line-height: 1.6;
         box-shadow: 0 8px 24px rgba(17, 19, 24, 0.04);
@@ -203,7 +203,7 @@
         color: #6f5200;
         background-color: #fff9df;
         border: 1px solid #fde68a;
-        border-radius: 15px;
+        border-radius: 8px;
         box-shadow: 0 9px 26px rgba(17, 19, 24, 0.045);
         font-size: 0.8rem;
         line-height: 1.65;
@@ -218,7 +218,7 @@
         justify-content: center;
         color: #8c6900;
         background-color: rgba(245, 184, 0, 0.15);
-        border-radius: 11px;
+        border-radius: 6px;
         font-size: 1rem;
     }
 
@@ -243,7 +243,7 @@
         color: #927000;
         background-color: rgba(245, 184, 0, 0.11);
         border: 1px solid rgba(245, 184, 0, 0.21);
-        border-radius: 27px;
+        border-radius: 12px;
         font-size: 2.15rem;
     }
 
@@ -328,7 +328,7 @@
         color: #52525b;
         background-color: #f1f2f4;
         border: 1px solid #dedfe3;
-        border-radius: 999px;
+        border-radius: 6px;
         font-size: 0.63rem;
         font-weight: 900;
     }
@@ -375,7 +375,7 @@
         gap: 6px;
         padding: 8px 11px;
         border: 1px solid transparent;
-        border-radius: 999px;
+        border-radius: 6px;
         font-size: 0.66rem;
         font-weight: 900;
         white-space: nowrap;
@@ -443,7 +443,7 @@
         margin: 0 0 18px;
         padding: 0;
         border: 1px solid var(--invoice-list-border);
-        border-radius: 14px;
+        border-radius: 8px;
         list-style: none;
     }
 
@@ -473,7 +473,7 @@
         display: inline-flex;
         padding: 6px 8px;
         border: 1px solid transparent;
-        border-radius: 999px;
+        border-radius: 6px;
         font-size: 0.61rem;
         font-weight: 900;
         white-space: nowrap;
@@ -530,7 +530,7 @@
         color: #5d626b;
         background-color: #f8f9fa;
         border: 1px solid var(--invoice-list-border);
-        border-radius: 11px;
+        border-radius: 6px;
         font-size: 0.69rem;
     }
 
@@ -558,7 +558,7 @@
         gap: 9px;
         padding: 14px 15px;
         border: 1px solid transparent;
-        border-radius: 13px;
+        border-radius: 8px;
         font-size: 0.75rem;
         font-weight: 700;
         line-height: 1.6;
@@ -587,7 +587,7 @@
         overflow: hidden;
         background-color: #f8f9fa;
         border: 1px solid var(--invoice-list-border);
-        border-radius: 15px;
+        border-radius: 8px;
     }
 
     .invoice-verification-heading {
@@ -628,7 +628,7 @@
         color: #725400;
         background-color: #fff9df;
         border: 1px solid #fde68a;
-        border-radius: 11px;
+        border-radius: 6px;
         font-size: 0.72rem;
         line-height: 1.55;
     }
@@ -680,7 +680,7 @@
         color: var(--invoice-list-primary);
         background-color: #ffffff;
         border: 1px solid var(--invoice-list-border);
-        border-radius: 12px;
+        border-radius: 8px;
         outline: none;
         font-family: monospace;
         font-size: 0.87rem;
@@ -712,7 +712,7 @@
         color: var(--invoice-list-primary);
         background-color: var(--invoice-list-accent);
         border: 1px solid var(--invoice-list-accent);
-        border-radius: 12px;
+        border-radius: 8px;
         font-size: 0.71rem;
         font-weight: 900;
         white-space: nowrap;
@@ -1017,9 +1017,15 @@
                                     }
                                     else
                                     {
-                                        <span class="invoice-status invoice-status-pending">
-                                            Chờ xác thực
-                                        </span>
+                                        <div class="d-flex flex-column align-items-end gap-1">
+                                            <span class="invoice-status invoice-status-pending">
+                                                Chờ xác thực
+                                            </span>
+                                            <span class="invoice-timer-badge text-warning small font-monospace fw-bold bg-dark px-2 py-0.5 rounded-pill border border-warning border-opacity-25"
+                                                  data-seconds="@inv.RemainingSeconds" style="font-size: 0.72rem;">
+                                                <i class="bi bi-clock-history me-1"></i><span class="countdown-val">--:--</span>
+                                            </span>
+                                        </div>
                                     }
                                 </div>
 
@@ -1359,5 +1365,28 @@
                 }
             });
         });
+
+        // Live countdown timer for pending invoices - dựa trên Backend RemainingSeconds
+        (function () {
+            document.querySelectorAll('.invoice-timer-badge').forEach(function (el) {
+                let remainingSeconds = parseInt(el.getAttribute('data-seconds') || '0', 10);
+
+                function update() {
+                    const span = el.querySelector('.countdown-val');
+                    if (remainingSeconds <= 0) {
+                        if (span) span.innerText = '00:00';
+                        el.classList.remove('text-warning');
+                        el.classList.add('text-danger');
+                        return;
+                    }
+                    const m = Math.floor(remainingSeconds / 60);
+                    const s = remainingSeconds % 60;
+                    if (span) span.innerText = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                    remainingSeconds--;
+                }
+                update();
+                setInterval(update, 1000);
+            });
+        })();
     </script>
 }

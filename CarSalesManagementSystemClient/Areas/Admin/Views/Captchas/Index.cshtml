@@ -474,29 +474,62 @@
     /* Existing captcha codes */
 
     .captcha-code-list {
-        display: grid;
+        display: flex;
+        flex-direction: column;
         gap: 6px;
-        min-width: 170px;
+        min-width: 220px;
     }
 
     .captcha-code-line {
         display: flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 5px;
+        gap: 6px;
         color: #737982;
-        font-size: 0.61rem;
+        font-size: 0.65rem;
+    }
+
+    .captcha-code-label {
+        width: 52px;
+        flex-shrink: 0;
+        text-align: right;
+        color: #888d96;
+        font-weight: 800;
+        font-size: 0.65rem;
     }
 
     .captcha-code-value {
         display: inline-flex;
-        padding: 5px 7px;
+        align-items: center;
+        justify-content: center;
+        min-width: 76px;
+        padding: 4px 8px;
         border: 1px dashed;
         border-radius: 8px;
         font-family: monospace;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         font-weight: 950;
         letter-spacing: 0.08em;
+    }
+
+    .btn-copy-captcha {
+        border: 1px solid #dcdfe4;
+        background: #f8f9fa;
+        color: #495057;
+        padding: 3px 6px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .btn-copy-captcha:hover {
+        color: #17191e;
+        background-color: #f5b800;
+        border-color: #f5b800;
+        transform: scale(1.08);
     }
 
     .captcha-code-deposit {
@@ -513,7 +546,7 @@
 
     .captcha-code-used {
         display: inline-flex;
-        padding: 4px 7px;
+        padding: 3px 6px;
         color: #626871;
         background-color: #f1f2f4;
         border: 1px solid #dfe1e5;
@@ -857,11 +890,15 @@
                                             @if (!string.IsNullOrEmpty(inv.DepositCaptchaCode))
                                             {
                                                 <div class="captcha-code-line">
-                                                    <span>Cọc:</span>
+                                                    <span class="captcha-code-label">Cọc:</span>
 
                                                     <span class="captcha-code-value captcha-code-deposit">
                                                         @inv.DepositCaptchaCode
                                                     </span>
+
+                                                    <button type="button" class="btn-copy-captcha" data-code="@inv.DepositCaptchaCode" title="Sao chép mã cọc">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
 
                                                     @if (inv.IsDepositCaptchaUsed)
                                                     {
@@ -875,11 +912,15 @@
                                             @if (!string.IsNullOrEmpty(inv.FinalCaptchaCode))
                                             {
                                                 <div class="captcha-code-line">
-                                                    <span>Tất toán:</span>
+                                                    <span class="captcha-code-label">Tất toán:</span>
 
                                                     <span class="captcha-code-value captcha-code-final">
                                                         @inv.FinalCaptchaCode
                                                     </span>
+
+                                                    <button type="button" class="btn-copy-captcha" data-code="@inv.FinalCaptchaCode" title="Sao chép mã tất toán/mua đứt">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
 
                                                     @if (inv.IsFinalCaptchaUsed)
                                                     {
@@ -951,3 +992,40 @@
 
     </div>
 </main>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-copy-captcha').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const code = btn.getAttribute('data-code');
+                if (!code) return;
+
+                navigator.clipboard.writeText(code).then(function () {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'bi bi-check-lg text-success';
+                        setTimeout(function () {
+                            icon.className = 'bi bi-clipboard';
+                        }, 1800);
+                    }
+                    if (window.Swal) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Đã chép mã: ' + code
+                        });
+                    }
+                }).catch(function () {
+                    alert('Đã chép mã: ' + code);
+                });
+            });
+        });
+    </script>
+}

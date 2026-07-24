@@ -409,7 +409,7 @@
 
     /* Form cards */
 
-    #carSourceChoice label,
+    #carSourceChoice label:has(input[name="carSource"]),
     .checkout-page label:has(input[name="purchaseType"]) {
         min-height: 92px;
         padding: 16px !important;
@@ -420,7 +420,7 @@
         transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     }
 
-        #carSourceChoice label:hover,
+        #carSourceChoice label:has(input[name="carSource"]):hover,
         .checkout-page label:has(input[name="purchaseType"]):hover {
             background-color: #fffdf5;
             border-color: var(--checkout-accent) !important;
@@ -797,14 +797,14 @@
         .wizard-step,
         .step-indicator-item,
         .checkout-page .btn,
-        #carSourceChoice label,
+        #carSourceChoice label:has(input[name="carSource"]),
         .checkout-page label:has(input[name="purchaseType"]) {
             animation: none;
             transition: none;
         }
 
             .checkout-page .btn:hover,
-            #carSourceChoice label:hover,
+            #carSourceChoice label:has(input[name="carSource"]):hover,
             .checkout-page label:has(input[name="purchaseType"]):hover {
                 transform: none;
             }
@@ -848,7 +848,7 @@
                             3
                             <span class="step-indicator-label">Thông tin xe</span>
                         </div>
-                        <div class="step-indicator-item" id="ind-4">
+                        <div class="step-indicator-item d-none" id="ind-4">
                             4
                             <span class="step-indicator-label">Lịch hẹn</span>
                         </div>
@@ -1003,20 +1003,36 @@
 
                         <!-- Chọn nguồn xe: chỉ hiện khi trong giỏ có mua xe -->
                         <div id="carSourceChoice" class="d-none mb-4">
-                            <label class="form-label fw-semibold text-secondary mb-2">Bạn muốn bảo dưỡng xe nào?</label>
+                            <p class="form-label fw-semibold text-secondary mb-2">Bạn muốn bảo dưỡng xe nào?</p>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0" style="cursor:pointer;">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0 h-100" style="cursor:pointer;">
                                         <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceInCart" value="InCart" checked>
-                                        <span><strong>Xe trong giỏ hàng</strong><br><span class="small text-muted" id="carSourceInCartName">Xe bạn đang mua</span></span>
+                                        <div>
+                                            <strong>Xe trong giỏ hàng</strong><br>
+                                            <span class="small text-muted" id="carSourceInCartSubtext">Xe bạn đang mua</span>
+                                        </div>
                                     </label>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0" style="cursor:pointer;">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0 h-100" style="cursor:pointer;">
                                         <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceOther" value="Other">
-                                        <span><strong>Xe khác</strong><br><span class="small text-muted">Xe bạn đã có sẵn</span></span>
+                                        <div>
+                                            <strong>Xe khác</strong><br>
+                                            <span class="small text-muted">Xe bạn đã có sẵn</span>
+                                        </div>
                                     </label>
                                 </div>
+                            </div>
+
+                            <!-- Dropdown chọn xe cụ thể trong giỏ (chỉ hiện khi giỏ có nhiều hơn 1 xe và đang chọn 'Xe trong giỏ hàng') -->
+                            <div id="multipleCarsSelectContainer" class="mt-3 p-3 bg-light rounded-4 border d-none">
+                                <label for="carInCartSelect" class="form-label fw-semibold text-secondary mb-1 small">
+                                    <i class="bi bi-car-front-fill me-1 text-warning"></i>Chọn chiếc xe trong giỏ hàng bạn muốn đăng ký bảo dưỡng:
+                                </label>
+                                <select class="form-select rounded-3" id="carInCartSelect">
+                                    <!-- Populated by JS -->
+                                </select>
                             </div>
                         </div>
 
@@ -1037,7 +1053,7 @@
 
                         <div id="carInCartHint" class="alert alert-success rounded-3 small mb-0 d-none">
                             <i class="bi bi-check-circle-fill me-2"></i>
-                            Bảo dưỡng cho xe đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).
+                            <span id="carInCartHintText">Bảo dưỡng cho xe đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).</span>
                         </div>
                         <div id="carOtherHint" class="alert alert-info rounded-3 small mb-0">
                             <i class="bi bi-info-circle-fill me-2"></i>
@@ -1046,7 +1062,7 @@
 
                         <div class="d-flex justify-content-between mt-5">
                             <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(4)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(5)">Xem trước &amp; Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
 
@@ -1234,7 +1250,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(4)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
                             <button type="button" class="btn btn-dark text-warning fw-bold rounded-3 px-5" id="btnSubmitOrder" onclick="submitCheckout()"><i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn</button>
                         </div>
                     </div>
@@ -1291,8 +1307,14 @@
         const cartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cart));
         let activeStep = 1;
 
-        // Xe đang có trong giỏ (nếu có) — dùng cho lựa chọn "bảo dưỡng xe trong giỏ".
-        const carInCart = cartData.Items.find(i => i.ItemType === 'Car') || null;
+        // Danh sách xe đang có trong giỏ (nếu có)
+        const carsInCart = cartData.Items.filter(i => i.ItemType === 'Car');
+
+        function getSelectedCarInCartName() {
+            if (!carsInCart || carsInCart.length === 0) return '';
+            if (carsInCart.length === 1) return carsInCart[0].Name;
+            return $('#carInCartSelect').val() || carsInCart[0].Name;
+        }
 
         $(document).ready(function() {
             // Setup delivery address toggle
@@ -1305,9 +1327,21 @@
             });
 
             // Bước 3: nếu giỏ có xe -> hiện 2 lựa chọn nguồn xe.
-            if (carInCart) {
+            if (carsInCart.length > 0) {
                 $('#carSourceChoice').removeClass('d-none');
-                $('#carSourceInCartName').text(carInCart.Name);
+                if (carsInCart.length === 1) {
+                    $('#carSourceInCartSubtext').text(carsInCart[0].Name);
+                } else {
+                    $('#carSourceInCartSubtext').text(`Có ${carsInCart.length} xe trong giỏ hàng`);
+                    let optionsHtml = '';
+                    carsInCart.forEach(c => {
+                        optionsHtml += `<option value="${c.Name}">${c.Name}</option>`;
+                    });
+                    $('#carInCartSelect').html(optionsHtml);
+                    $('#carInCartSelect').change(function() {
+                        applyCarSource();
+                    });
+                }
                 $('input[name="carSource"]').change(applyCarSource);
                 applyCarSource();
             }
@@ -1325,7 +1359,7 @@
 
         // Trả về nguồn xe hiện chọn: 'InCart' | 'Other'. Nếu giỏ không có xe -> luôn 'Other'.
         function getCarSource() {
-            if (!carInCart) return 'Other';
+            if (!carsInCart || carsInCart.length === 0) return 'Other';
             return $('input[name="carSource"]:checked').val() || 'InCart';
         }
 
@@ -1335,10 +1369,22 @@
                 $('#carInfoInputs').addClass('d-none');
                 $('#carInCartHint').removeClass('d-none');
                 $('#carOtherHint').addClass('d-none');
+
+                if (carsInCart.length > 1) {
+                    $('#multipleCarsSelectContainer').removeClass('d-none');
+                } else {
+                    $('#multipleCarsSelectContainer').addClass('d-none');
+                }
+
+                const selectedCarName = getSelectedCarInCartName();
+                if (selectedCarName) {
+                    $('#carInCartHintText').html(`Bảo dưỡng cho xe <strong>${selectedCarName}</strong> đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).`);
+                }
             } else {
                 $('#carInfoInputs').removeClass('d-none');
                 $('#carInCartHint').addClass('d-none');
                 $('#carOtherHint').removeClass('d-none');
+                $('#multipleCarsSelectContainer').addClass('d-none');
             }
         }
 
@@ -1417,34 +1463,18 @@
                 }
             }
 
-            if (step === 4 && activeStep === 3) {
-                // Nếu chọn bảo dưỡng "xe trong giỏ" thì bỏ qua yêu cầu nhập tên xe/biển số.
-                if (hasMaintenance && getCarSource() === 'Other') {
-                    const carName = $('#CarNameInput').val().trim();
-                    const licensePlate = $('#LicensePlateInput').val().trim();
-                    if (!carName || !licensePlate) {
-                        showError("Vui lòng điền thông tin tên xe và biển số xe để đặt lịch bảo dưỡng.");
-                        return;
-                    }
+            // Đã BỎ bước đặt lịch (chỉ đặt dịch vụ). Đi thẳng bước 3 -> 5.
+            // Kiểm tra thông tin xe khi chọn "xe khác".
+            if (step === 5 && activeStep === 3 && hasMaintenance && getCarSource() === 'Other') {
+                const carName = $('#CarNameInput').val().trim();
+                const licensePlate = $('#LicensePlateInput').val().trim();
+                if (!carName || !licensePlate) {
+                    showError("Vui lòng điền tên xe và biển số xe cho dịch vụ.");
+                    return;
                 }
             }
 
             if (step === 5) {
-                // Validate Step 4 if coming from step 4
-                if (hasMaintenance && activeStep === 4) {
-                    const date = $('#AppointmentDateInput').val();
-                    const time = $('#AppointmentTimeInput').val();
-                    if (!date || !time) {
-                        showError("Vui lòng chọn đầy đủ ngày hẹn và giờ hẹn bảo dưỡng.");
-                        return;
-                    }
-                    const selectedDateTime = new Date(date + 'T' + time);
-                    if (selectedDateTime <= new Date()) {
-                        showError("Ngày giờ hẹn bảo dưỡng phải thuộc về tương lai.");
-                        return;
-                    }
-                }
-
                 // Populate Step 5 display labels
                 renderStep5Summary(hasStandalone, hasMaintenance);
             }
@@ -1553,12 +1583,12 @@
                 $('#summaryMaintenanceList').html(html);
 
                 // Details text (tôn trọng lựa chọn nguồn xe)
-                if (getCarSource() === 'InCart' && carInCart) {
-                    $('#summaryCarText').text(carInCart.Name + ' (xe trong giỏ hàng)');
+                if (getCarSource() === 'InCart' && carsInCart.length > 0) {
+                    $('#summaryCarText').text(getSelectedCarInCartName() + ' (xe trong giỏ hàng)');
                 } else {
                     $('#summaryCarText').text($('#CarNameInput').val() + ' (' + $('#LicensePlateInput').val() + ')');
                 }
-                $('#summaryTimeText').text($('#AppointmentTimeInput').val() + ', ngày ' + $('#AppointmentDateInput').val());
+                $('#summaryTimeText').text('Nhân viên sẽ liên hệ sắp xếp');
             } else {
                 $('#summaryMaintenanceCard').addClass('d-none');
             }
@@ -1585,7 +1615,7 @@
                 CustomerEmail: email,
                 DeliveryMethod: $('input[name="deliveryMethod"]:checked').val(),
                 ShippingAddress: $('#ShippingAddressInput').val().trim(),
-                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carInCart ? carInCart.Name : $('#CarNameInput').val().trim()) : null,
+                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carsInCart.length > 0 ? getSelectedCarInCartName() : $('#CarNameInput').val().trim()) : null,
                 LicensePlate: hasMaintenance ? (getCarSource() === 'InCart' ? 'Chưa cấp biển' : $('#LicensePlateInput').val().trim()) : null,
                 AppointmentDate: hasMaintenance ? $('#AppointmentDateInput').val() : null,
                 AppointmentTime: hasMaintenance ? $('#AppointmentTimeInput').val() : null,

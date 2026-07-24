@@ -26,6 +26,27 @@ namespace CarSalesManagementSystemClient.Controllers
             var sessionString = HttpContext.Session.GetString(CartSessionKey);
             if (string.IsNullOrEmpty(sessionString))
             {
+                if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var env = HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment)) as Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
+                        if (env != null)
+                        {
+                            var filePath = CarSalesManagementSystemClient.Helpers.CartHelper.GetCartFilePath(userId, env);
+                            if (System.IO.File.Exists(filePath))
+                            {
+                                var savedCartJson = System.IO.File.ReadAllText(filePath);
+                                if (!string.IsNullOrEmpty(savedCartJson) && savedCartJson != "{\"Items\":[]}")
+                                {
+                                    HttpContext.Session.SetString(CartSessionKey, savedCartJson);
+                                    return JsonSerializer.Deserialize<UnifiedCart>(savedCartJson) ?? new UnifiedCart();
+                                }
+                            }
+                        }
+                    }
+                }
                 return new UnifiedCart();
             }
             return JsonSerializer.Deserialize<UnifiedCart>(sessionString) ?? new UnifiedCart();
@@ -203,6 +224,129 @@ namespace CarSalesManagementSystemClient.Controllers
             SaveCart(cart);
 
             return Json(new { success = true, cartCount = cart.Items.Sum(i => i.Quantity) });
+        }
+
+        // GET: /Cart/QuickOrder?draft=<base64>&type=deposit|buyout
+        // Chatbot tạo link này: điền sẵn giỏ hàng từ token rồi chuyển tới trang xác nhận thanh toán.
+        [HttpGet]
+        public async Task<IActionResult> QuickOrder(string draft, string? type = null)
+        {
+            if (string.IsNullOrWhiteSpace(draft))
+            {
+                return RedirectToAction("Index");
+            }
+
+            List<QuickOrderItem>? items = null;
+            try
+            {
+                var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(draft));
+                items = JsonSerializer.Deserialize<List<QuickOrderItem>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Liên kết đặt hàng không hợp lệ hoặc đã hết hạn.";
+                return RedirectToAction("Index");
+            }
+
+            if (items == null || items.Count == 0)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var client = _httpClientFactory.CreateClient("CarShowroomApi");
+            client.BaseAddress = new Uri("http://localhost:5084");
+
+            var cart = GetCart();
+            foreach (var it in items)
+            {
+                var resolved = await ResolveCartItemAsync(client, it.ItemType, it.ReferenceId, it.Quantity <= 0 ? 1 : it.Quantity);
+                if (resolved != null) cart.AddItem(resolved);
+            }
+            SaveCart(cart);
+
+            if (cart.Items.Count == 0)
+            {
+                TempData["ErrorMessage"] = "Không thêm được sản phẩm nào (có thể đã hết hàng).";
+                return RedirectToAction("Index");
+            }
+
+            // Chuyển thẳng tới trang xác nhận thanh toán.
+            return RedirectToAction("Checkout");
+        }
+
+        /// <summary>Lấy thông tin 1 sản phẩm từ API và tạo UnifiedCartItem. Chatbot "Service" = gói bảo dưỡng (Package).</summary>
+        private async Task<UnifiedCartItem?> ResolveCartItemAsync(HttpClient client, string itemType, int itemId, int quantity)
+        {
+            try
+            {
+                if (string.Equals(itemType, "Part", StringComparison.OrdinalIgnoreCase))
+                {
+                    var resp = await client.GetAsync($"/api/parts/{itemId}");
+                    if (!resp.IsSuccessStatusCode) return null;
+                    var part = await resp.Content.ReadFromJsonAsync<JsonElement>();
+                    return new UnifiedCartItem
+                    {
+                        ItemType = "Part",
+                        ItemId = part.GetProperty("partId").GetInt32(),
+                        Name = part.GetProperty("partName").GetString() ?? "",
+                        Price = part.GetProperty("price").GetDecimal(),
+                        Quantity = quantity,
+                        ImageUrl = part.TryGetProperty("imageUrl", out var img) ? img.GetString() : null
+                    };
+                }
+                if (string.Equals(itemType, "Service", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(itemType, "Package", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Chatbot index MaintenancePackages dưới nhãn "Service" -> thêm vào giỏ dạng Package.
+                    var resp = await client.GetAsync($"/api/maintenancepackages/{itemId}");
+                    if (!resp.IsSuccessStatusCode) return null;
+                    var root = await resp.Content.ReadFromJsonAsync<JsonElement>();
+                    if (!root.TryGetProperty("data", out var pkg)) return null;
+                    return new UnifiedCartItem
+                    {
+                        ItemType = "Package",
+                        ItemId = pkg.GetProperty("packageId").GetInt32(),
+                        Name = pkg.GetProperty("packageName").GetString() ?? "",
+                        Price = pkg.GetProperty("packagePrice").GetDecimal(),
+                        Quantity = 1
+                    };
+                }
+                if (string.Equals(itemType, "Car", StringComparison.OrdinalIgnoreCase))
+                {
+                    var resp = await client.GetAsync($"/odata/Cars({itemId})");
+                    if (!resp.IsSuccessStatusCode) return null;
+                    var car = await resp.Content.ReadFromJsonAsync<JsonElement>();
+                    JsonElement? Prop(string name)
+                    {
+                        foreach (var p in car.EnumerateObject())
+                            if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)) return p.Value;
+                        return null;
+                    }
+                    var status = Prop("Status")?.GetString() ?? "Available";
+                    if (status == "Sold" || status == "Inactive") return null;
+                    var idProp = Prop("CarId");
+                    if (idProp == null) return null;
+                    return new UnifiedCartItem
+                    {
+                        ItemType = "Car",
+                        ItemId = idProp.Value.GetInt32(),
+                        Name = Prop("CarName")?.GetString() ?? "",
+                        Price = Prop("Price")?.GetDecimal() ?? 0m,
+                        Quantity = 1,
+                        ImageUrl = Prop("ImageUrl")?.GetString()
+                    };
+                }
+            }
+            catch { /* bỏ qua món lỗi */ }
+            return null;
+        }
+
+        public class QuickOrderItem
+        {
+            public string ItemType { get; set; } = "";
+            public int ReferenceId { get; set; }
+            public int Quantity { get; set; } = 1;
         }
 
         [HttpPost]
