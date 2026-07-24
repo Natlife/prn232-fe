@@ -1,131 +1,852 @@
 @model IEnumerable<CarSalesManagementSystemClient.Models.CarViewModel>
+
 @{
     ViewData["Title"] = "Quản lý Xe ô tô";
 }
 
-<div class="container py-5" style="min-height: 80vh;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark m-0">Quản lý Xe ô tô</h2>
-            <p class="text-muted mb-0">Thêm, chỉnh sửa và xóa danh sách xe trong showroom</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a asp-area="Admin" asp-controller="Captchas" asp-action="Index" class="btn btn-outline-dark rounded-3 fw-bold">
-                <i class="bi bi-key-fill me-1"></i>Captchas
-            </a>
-            <a asp-action="Create" class="btn btn-dark rounded-3 fw-bold">
-                <i class="bi bi-plus-circle-fill me-1"></i>Thêm xe mới
-            </a>
-        </div>
-    </div>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+<style>
+    :root {
+        --cars-admin-primary: #17191e;
+        --cars-admin-secondary: #292c33;
+        --cars-admin-accent: #f5b800;
+        --cars-admin-accent-hover: #ffca28;
+        --cars-admin-bg: #f3f4f6;
+        --cars-admin-surface: #ffffff;
+        --cars-admin-border: #e5e7eb;
+        --cars-admin-text: #181a1f;
+        --cars-admin-muted: #747983;
+        --cars-admin-danger: #dc3545;
+        --cars-admin-success: #198754;
+        --cars-admin-radius-xl: 24px;
+        --cars-admin-radius-lg: 17px;
+        --cars-admin-radius-md: 12px;
+        --cars-admin-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --cars-admin-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
     }
 
-    <div class="card border-0 shadow rounded-4 overflow-hidden">
-        <div class="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-            <h5 class="m-0 fw-bold"><i class="bi bi-table me-2"></i>Danh sách xe</h5>
-            <span class="badge bg-secondary rounded-pill">@Model.Count() xe</span>
-        </div>
-        @if (!Model.Any())
+    .cars-admin-page {
+        min-height: 100vh;
+        padding: 32px 0 72px;
+        color: var(--cars-admin-text);
+        background: radial-gradient( circle at 96% 2%, rgba(245, 184, 0, 0.11), transparent 31rem ), radial-gradient( circle at 3% 88%, rgba(17, 19, 24, 0.035), transparent 30rem ), var(--cars-admin-bg);
+    }
+
+    .cars-admin-container {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    /* Hero */
+
+    .cars-admin-hero {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 20px;
+        padding: 30px 32px;
+        color: #ffffff;
+        background: radial-gradient( circle at 89% 10%, rgba(245, 184, 0, 0.2), transparent 32% ), linear-gradient( 135deg, var(--cars-admin-primary), var(--cars-admin-secondary) );
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: var(--cars-admin-radius-xl);
+        box-shadow: 0 22px 54px rgba(17, 19, 24, 0.17);
+        overflow: hidden;
+    }
+
+        .cars-admin-hero::after {
+            content: "CARS";
+            position: absolute;
+            top: -38px;
+            right: 22px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: clamp(5rem, 11vw, 8.5rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .cars-admin-hero-content,
+    .cars-admin-actions {
+        position: relative;
+        z-index: 2;
+    }
+
+    .cars-admin-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 9px;
+        color: var(--cars-admin-accent);
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+        .cars-admin-eyebrow::before {
+            content: "";
+            width: 29px;
+            height: 2px;
+            background-color: var(--cars-admin-accent);
+        }
+
+    .cars-admin-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin: 0 0 8px;
+        color: #ffffff;
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 950;
+        line-height: 1.13;
+        letter-spacing: -0.045em;
+    }
+
+        .cars-admin-title i {
+            color: var(--cars-admin-accent);
+        }
+
+    .cars-admin-description {
+        max-width: 720px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        line-height: 1.68;
+    }
+
+    .cars-admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 9px;
+    }
+
+    .cars-admin-action {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 15px;
+        border-radius: 11px;
+        font-size: 0.67rem;
+        font-weight: 900;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .cars-admin-action:hover {
+            transform: translateY(-2px);
+        }
+
+    .cars-admin-action-secondary {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        backdrop-filter: blur(8px);
+    }
+
+        .cars-admin-action-secondary:hover {
+            color: var(--cars-admin-primary);
+            background-color: #ffffff;
+            border-color: #ffffff;
+        }
+
+    .cars-admin-action-primary {
+        color: var(--cars-admin-primary);
+        background-color: var(--cars-admin-accent);
+        border: 1px solid var(--cars-admin-accent);
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.2);
+    }
+
+        .cars-admin-action-primary:hover {
+            color: var(--cars-admin-primary);
+            background-color: var(--cars-admin-accent-hover);
+            border-color: var(--cars-admin-accent-hover);
+            box-shadow: 0 15px 31px rgba(245, 184, 0, 0.27);
+        }
+
+    /* Alerts */
+
+    .cars-admin-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        box-shadow: var(--cars-admin-shadow-soft);
+        font-size: 0.76rem;
+        line-height: 1.6;
+    }
+
+        .cars-admin-alert i {
+            flex: 0 0 auto;
+            margin-top: 2px;
+        }
+
+    .cars-admin-alert-success {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .cars-admin-alert-danger {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    /* Table card */
+
+    .cars-admin-card {
+        overflow: hidden;
+        background-color: var(--cars-admin-surface);
+        border: 1px solid var(--cars-admin-border);
+        border-radius: var(--cars-admin-radius-xl);
+        box-shadow: var(--cars-admin-shadow);
+    }
+
+    .cars-admin-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 24px;
+        background: linear-gradient( 135deg, #ffffff, #fafafa );
+        border-bottom: 1px solid var(--cars-admin-border);
+    }
+
+        .cars-admin-card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 0 0 4px;
+            color: var(--cars-admin-primary);
+            font-size: 0.98rem;
+            font-weight: 950;
+        }
+
+            .cars-admin-card-header h2 i {
+                color: #8a6800;
+            }
+
+        .cars-admin-card-header p {
+            margin: 0;
+            color: var(--cars-admin-muted);
+            font-size: 0.67rem;
+            line-height: 1.55;
+        }
+
+    .cars-admin-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        font-size: 0.61rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    /* Empty */
+
+    .cars-admin-empty {
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 56px 24px;
+        color: var(--cars-admin-muted);
+        text-align: center;
+    }
+
+    .cars-admin-empty-icon {
+        width: 86px;
+        height: 86px;
+        display: grid;
+        margin-bottom: 19px;
+        place-items: center;
+        color: #8b6800;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 25px;
+        font-size: 2rem;
+    }
+
+    .cars-admin-empty h3 {
+        margin: 0 0 7px;
+        color: var(--cars-admin-primary);
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .cars-admin-empty p {
+        margin: 0 0 18px;
+        font-size: 0.72rem;
+    }
+
+    .cars-admin-empty-button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 9px 14px;
+        color: var(--cars-admin-primary);
+        background-color: var(--cars-admin-accent);
+        border: 1px solid var(--cars-admin-accent);
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+    /* Table */
+
+    .cars-admin-table {
+        min-width: 1050px;
+        margin-bottom: 0;
+    }
+
+        .cars-admin-table thead th {
+            padding: 13px 15px;
+            color: #777d86;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--cars-admin-border);
+            font-size: 0.57rem;
+            font-weight: 900;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .cars-admin-table tbody td {
+            padding: 14px 15px;
+            color: #50565f;
+            background-color: #ffffff;
+            border-bottom: 1px solid #edf0f3;
+            font-size: 0.67rem;
+            vertical-align: middle;
+        }
+
+        .cars-admin-table tbody tr {
+            transition: background-color 0.16s ease;
+        }
+
+            .cars-admin-table tbody tr:hover td {
+                background-color: #fffdf6;
+            }
+
+            .cars-admin-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+    /* Car image */
+
+    .cars-admin-image {
+        width: 78px;
+        height: 54px;
+        display: block;
+        object-fit: cover;
+        background-color: #eceef1;
+        border: 1px solid var(--cars-admin-border);
+        border-radius: 11px;
+        box-shadow: 0 7px 17px rgba(17, 19, 24, 0.07);
+    }
+
+    .cars-admin-image-placeholder {
+        width: 78px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        color: var(--cars-admin-accent);
+        background: linear-gradient( 135deg, var(--cars-admin-primary), var(--cars-admin-secondary) );
+        border-radius: 11px;
+        font-size: 1rem;
+    }
+
+    /* Car information */
+
+    .cars-admin-name {
+        max-width: 260px;
+        margin-bottom: 4px;
+        overflow: hidden;
+        color: var(--cars-admin-primary);
+        font-size: 0.74rem;
+        font-weight: 950;
+        line-height: 1.4;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cars-admin-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        color: #8d929a;
+        font-size: 0.59rem;
+    }
+
+        .cars-admin-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    .cars-admin-brand {
+        color: #555b64;
+        font-weight: 800;
+    }
+
+    .cars-admin-year-color {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        color: #626871;
+    }
+
+        .cars-admin-year-color strong {
+            color: var(--cars-admin-primary);
+            font-size: 0.68rem;
+        }
+
+    .cars-admin-price {
+        color: #b42318;
+        font-size: 0.72rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    /* Status */
+
+    .cars-admin-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.57rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+        .cars-admin-status::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background-color: currentColor;
+            border-radius: 50%;
+        }
+
+    .cars-admin-status-available {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .cars-admin-status-reserved {
+        color: #805f00;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .cars-admin-status-sold {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    .cars-admin-status-other {
+        color: #626871;
+        background-color: #f1f2f4;
+        border-color: #dfe1e5;
+    }
+
+    /* Actions */
+
+    .cars-admin-row-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .cars-admin-row-button {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 9px;
+        font-size: 0.72rem;
+        text-decoration: none;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .cars-admin-row-button:hover {
+            transform: translateY(-2px);
+        }
+
+    .cars-admin-edit-button {
+        color: #805f00;
+        background-color: #fffdf6;
+        border: 1px solid #e8cf7d;
+    }
+
+        .cars-admin-edit-button:hover {
+            color: var(--cars-admin-primary);
+            background-color: var(--cars-admin-accent);
+            border-color: var(--cars-admin-accent);
+            box-shadow: 0 9px 20px rgba(245, 184, 0, 0.17);
+        }
+
+    .cars-admin-delete-button {
+        color: #991b1b;
+        background-color: #fff7f7;
+        border: 1px solid #fecaca;
+    }
+
+        .cars-admin-delete-button:hover {
+            color: #ffffff;
+            background-color: var(--cars-admin-danger);
+            border-color: var(--cars-admin-danger);
+            box-shadow: 0 9px 20px rgba(220, 53, 69, 0.16);
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .cars-admin-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .cars-admin-actions {
+            justify-content: flex-start;
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .cars-admin-page {
+            padding-top: 22px;
+        }
+
+        .cars-admin-container {
+            padding-right: 13px;
+            padding-left: 13px;
+        }
+
+        .cars-admin-hero {
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+            .cars-admin-hero::after {
+                display: none;
+            }
+
+        .cars-admin-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+
+        .cars-admin-action {
+            width: 100%;
+        }
+
+        .cars-admin-card {
+            border-radius: 20px;
+        }
+
+        .cars-admin-card-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .cars-admin-title {
+            font-size: 1.52rem;
+        }
+
+        .cars-admin-description {
+            font-size: 0.74rem;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .cars-admin-action,
+        .cars-admin-table tbody tr,
+        .cars-admin-row-button {
+            transition: none;
+        }
+
+            .cars-admin-action:hover,
+            .cars-admin-row-button:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="cars-admin-page">
+    <div class="cars-admin-container">
+
+        <!-- Hero -->
+        <header class="cars-admin-hero">
+            <div class="cars-admin-hero-content">
+                <div class="cars-admin-eyebrow">
+                    Vehicle management
+                </div>
+
+                <h1 class="cars-admin-title">
+                    <i class="bi bi-car-front-fill"></i>
+                    Quản lý Xe ô tô
+                </h1>
+
+                <p class="cars-admin-description">
+                    Theo dõi, thêm mới, chỉnh sửa và quản lý trạng thái
+                    các xe đang được hiển thị trong showroom.
+                </p>
+            </div>
+
+            <div class="cars-admin-actions">
+                <a asp-area="Admin"
+                   asp-controller="Captchas"
+                   asp-action="Index"
+                   class="cars-admin-action cars-admin-action-secondary">
+                    <i class="bi bi-key-fill"></i>
+                    Captchas
+                </a>
+
+                <a asp-action="Create"
+                   class="cars-admin-action cars-admin-action-primary">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Thêm xe mới
+                </a>
+            </div>
+        </header>
+
+        @if (TempData["SuccessMessage"] != null)
         {
-            <div class="text-center py-5">
-                <span class="display-3">🚘</span>
-                <h5 class="fw-bold mt-3">Chưa có xe nào</h5>
-                <a asp-action="Create" class="btn btn-dark mt-2 rounded-3">+ Thêm xe đầu tiên</a>
+            <div class="cars-admin-alert cars-admin-alert-success alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+
+                <span>@TempData["SuccessMessage"]</span>
+
+                <button type="button"
+                        class="btn-close ms-auto"
+                        data-bs-dismiss="alert"></button>
             </div>
         }
-        else
+
+        @if (TempData["ErrorMessage"] != null)
         {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="py-3 px-3" style="font-size:13px;">Ảnh</th>
-                            <th class="py-3" style="font-size:13px;">Tên xe</th>
-                            <th class="py-3" style="font-size:13px;">Thương hiệu</th>
-                            <th class="py-3" style="font-size:13px;">Năm / Màu</th>
-                            <th class="py-3" style="font-size:13px;">Giá</th>
-                            <th class="py-3" style="font-size:13px;">Trạng thái</th>
-                            <th class="py-3 text-center" style="font-size:13px;">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var car in Model)
-                        {
+            <div class="cars-admin-alert cars-admin-alert-danger alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <span>@TempData["ErrorMessage"]</span>
+
+                <button type="button"
+                        class="btn-close ms-auto"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Car list -->
+        <section class="cars-admin-card">
+            <div class="cars-admin-card-header">
+                <div>
+                    <h2>
+                        <i class="bi bi-table"></i>
+                        Danh sách xe
+                    </h2>
+
+                    <p>
+                        Quản lý thông tin, trạng thái và thao tác đối với từng xe.
+                    </p>
+                </div>
+
+                <span class="cars-admin-count">
+                    <i class="bi bi-car-front"></i>
+                    @Model.Count() xe
+                </span>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="cars-admin-empty">
+                    <div class="cars-admin-empty-icon">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+
+                    <h3>Chưa có xe nào</h3>
+
+                    <p>
+                        Thêm chiếc xe đầu tiên để bắt đầu quản lý showroom.
+                    </p>
+
+                    <a asp-action="Create"
+                       class="cars-admin-empty-button">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        Thêm xe đầu tiên
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table cars-admin-table">
+                        <thead>
                             <tr>
-                                <td class="py-2 px-3">
-                                    @if (!string.IsNullOrEmpty(car.ImageUrl))
-                                    {
-                                        <img src="@car.ImageUrl" alt="@car.CarName" class="rounded-2" style="width:64px;height:44px;object-fit:cover;" onerror="this.onerror=null; this.style.display='none';" />
-                                    }
-                                    else
-                                    {
-                                        <div class="bg-secondary rounded-2 d-flex align-items-center justify-content-center" style="width:64px;height:44px;">
-                                            <i class="bi bi-car-front text-white"></i>
-                                        </div>
-                                    }
-                                </td>
-                                <td class="py-2">
-                                    <div class="fw-bold text-dark">@car.CarName</div>
-                                    <div class="text-muted" style="font-size:12px;">@car.Model | @car.FuelType | @car.Transmission</div>
-                                </td>
-                                <td class="py-2 text-secondary" style="font-size:13px;">@(car.Brand?.BrandName ?? "N/A")</td>
-                                <td class="py-2 text-secondary" style="font-size:13px;">@car.Year / @car.Color</td>
-                                <td class="py-2 fw-bold text-dark" style="font-size:13px;">
-                                    @car.Price.ToString("N0") đ
-                                </td>
-                                <td class="py-2">
-                                    @{
-                                        var badgeClass = car.Status switch
-                                        {
-                                            "Available" => "bg-success",
-                                            "Reserved" => "bg-warning text-dark",
-                                            "Sold" => "bg-danger",
-                                            _ => "bg-secondary"
-                                        };
-                                        var statusLabel = car.Status switch
-                                        {
-                                            "Available" => "Có sẵn",
-                                            "Reserved" => "Đang cọc",
-                                            "Sold" => "Đã bán",
-                                            _ => car.Status
-                                        };
-                                    }
-                                    <span class="badge @badgeClass rounded-pill px-3">@statusLabel</span>
-                                </td>
-                                <td class="py-2 text-center">
-                                    <div class="d-flex gap-1 justify-content-center">
-                                        <a asp-action="Edit" asp-route-id="@car.CarId"
-                                           class="btn btn-sm btn-outline-primary rounded-2 px-2" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </a>
-                                        <form asp-action="Delete" asp-route-id="@car.CarId" method="post"
-                                              onsubmit="return confirm('Bạn có chắc muốn xóa xe này không?')">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-2 px-2" title="Xóa">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
+                                <th class="ps-4">Ảnh</th>
+                                <th>Tên xe</th>
+                                <th>Thương hiệu</th>
+                                <th>Năm / Màu</th>
+                                <th>Giá</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center pe-4">Hành động</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
+                        </thead>
+
+                        <tbody>
+                            @foreach (var car in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        @if (!string.IsNullOrEmpty(car.ImageUrl))
+                                        {
+                                            <img src="@car.ImageUrl"
+                                                 alt="@car.CarName"
+                                                 class="cars-admin-image"
+                                                 onerror="this.onerror=null; this.style.display='none';" />
+                                        }
+                                        else
+                                        {
+                                            <div class="cars-admin-image-placeholder">
+                                                <i class="bi bi-car-front-fill"></i>
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="cars-admin-name">
+                                            @car.CarName
+                                        </div>
+
+                                        <div class="cars-admin-meta">
+                                            <span>
+                                                <i class="bi bi-grid-fill"></i>
+                                                @car.Model
+                                            </span>
+
+                                            <span>•</span>
+
+                                            <span>
+                                                <i class="bi bi-fuel-pump-fill"></i>
+                                                @car.FuelType
+                                            </span>
+
+                                            <span>•</span>
+
+                                            <span>
+                                                <i class="bi bi-gear-wide-connected"></i>
+                                                @car.Transmission
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="cars-admin-brand">
+                                            @(car.Brand?.BrandName ?? "N/A")
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="cars-admin-year-color">
+                                            <strong>@car.Year</strong>
+                                            <span>@car.Color</span>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="cars-admin-price">
+                                            @car.Price.ToString("N0") đ
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @{
+                                            var badgeClass = car.Status switch
+                                            {
+                                                "Available" => "cars-admin-status-available",
+                                                "Reserved" => "cars-admin-status-reserved",
+                                                "Sold" => "cars-admin-status-sold",
+                                                _ => "cars-admin-status-other"
+                                            };
+
+                                            var statusLabel = car.Status switch
+                                            {
+                                                "Available" => "Có sẵn",
+                                                "Reserved" => "Đang cọc",
+                                                "Sold" => "Đã bán",
+                                                _ => car.Status
+                                            };
+                                        }
+
+                                        <span class="cars-admin-status @badgeClass">
+                                            @statusLabel
+                                        </span>
+                                    </td>
+
+                                    <td class="pe-4">
+                                        <div class="cars-admin-row-actions">
+                                            <a asp-action="Edit"
+                                               asp-route-id="@car.CarId"
+                                               class="cars-admin-row-button cars-admin-edit-button"
+                                               title="Chỉnh sửa">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@car.CarId"
+                                                  method="post"
+                                                  onsubmit="return confirm('Bạn có chắc muốn xóa xe này không?')">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="cars-admin-row-button cars-admin-delete-button"
+                                                        title="Xóa">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
     </div>
-</div>
+</main>

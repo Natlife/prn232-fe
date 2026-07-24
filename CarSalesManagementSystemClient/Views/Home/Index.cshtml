@@ -1,250 +1,1092 @@
 @model IEnumerable<CarSalesManagementSystemClient.Models.CarViewModel>
+
 @{
     ViewData["Title"] = "Trang chủ - Group7 ECO DRIVE";
 }
 
 <style>
-    /* Home Styles */
-    .hero-banner-home {
+    :root {
+        --home-dark: #0c0d10;
+        --home-dark-soft: #17191e;
+        --home-surface: #ffffff;
+        --home-background: #f4f5f7;
+        --home-border: #e7e9ed;
+        --home-text: #16181d;
+        --home-muted: #717680;
+        --home-accent: #f4b900;
+        --home-accent-hover: #dca600;
+        --home-danger: #dc3545;
+        --home-success: #198754;
+        --home-radius-xl: 30px;
+        --home-radius-lg: 22px;
+        --home-radius-md: 16px;
+        --home-shadow: 0 24px 60px rgba(12, 13, 16, 0.10);
+    }
+
+    .home-page {
+        overflow: hidden;
+        color: var(--home-text);
+        background-color: var(--home-background);
+    }
+
+    /* =========================
+           HERO
+        ========================== */
+
+    .home-hero {
         position: relative;
-        height: 80vh;
-        min-height: 600px;
-        background: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2000&auto=format&fit=crop') no-repeat center center;
-        background-size: cover;
+        min-height: 720px;
+        display: flex;
+        align-items: center;
+        background: linear-gradient( 90deg, rgba(7, 8, 11, 0.96) 0%, rgba(7, 8, 11, 0.86) 46%, rgba(7, 8, 11, 0.28) 100% ), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2000&auto=format&fit=crop') center center / cover no-repeat;
     }
-    .hero-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: rgba(0, 0, 0, 0.65);
-    }
-    .hero-content {
+
+        .home-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient( circle at 15% 35%, rgba(244, 185, 0, 0.16), transparent 27% );
+            pointer-events: none;
+        }
+
+        .home-hero::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 160px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.48), transparent);
+            pointer-events: none;
+        }
+
+    .home-hero-content {
         position: relative;
         z-index: 2;
+        max-width: 820px;
+        padding-top: 70px;
+        padding-bottom: 90px;
     }
-    .section-title {
-        font-family: 'Arial Black', sans-serif;
-        letter-spacing: -1px;
+
+    .home-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        color: var(--home-accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.23em;
+        text-transform: uppercase;
     }
-    .btn-hero {
-        transition: all 0.3s ease;
+
+        .home-eyebrow::before {
+            content: "";
+            width: 42px;
+            height: 2px;
+            background-color: currentColor;
+        }
+
+    .home-title {
+        max-width: 760px;
+        margin-bottom: 26px;
+        color: #ffffff;
+        font-size: clamp(3.1rem, 7vw, 6.3rem);
+        font-weight: 900;
+        line-height: 0.96;
+        letter-spacing: -0.062em;
+        text-transform: uppercase;
     }
-    .btn-hero:hover {
-        transform: translateY(-5px) scale(1.05);
-        box-shadow: 0 15px 25px rgba(255, 193, 7, 0.4) !important;
-        background-color: #ffca2c;
-        color: #000 !important;
+
+        .home-title span {
+            display: block;
+            color: var(--home-accent);
+        }
+
+    .home-description {
+        max-width: 680px;
+        margin-bottom: 38px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 1.12rem;
+        line-height: 1.85;
     }
-    
-    .feature-icon-home {
-        width: 70px;
-        height: 70px;
-        background-color: #ffc107;
-        color: #fff;
-        border-radius: 50%;
+
+    .home-primary-button {
+        min-height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 28px;
+        color: var(--home-dark);
+        background-color: var(--home-accent);
+        border: 1px solid var(--home-accent);
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        text-transform: uppercase;
+        box-shadow: 0 16px 34px rgba(244, 185, 0, 0.24);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+    }
+
+        .home-primary-button:hover {
+            color: var(--home-dark);
+            background-color: #ffc928;
+            border-color: #ffc928;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 42px rgba(244, 185, 0, 0.34);
+        }
+
+    /* =========================
+           COMMON SECTION HEADER
+        ========================== */
+
+    .home-section {
+        padding: 100px 0;
+    }
+
+    .home-section-heading {
+        margin-bottom: 52px;
+    }
+
+    .home-section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        color: var(--home-danger);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+        .home-section-label::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background-color: currentColor;
+        }
+
+    .home-section-title {
+        margin-bottom: 0;
+        color: var(--home-text);
+        font-size: clamp(2rem, 4vw, 3.4rem);
+        font-weight: 900;
+        line-height: 1.08;
+        letter-spacing: -0.048em;
+        text-transform: uppercase;
+    }
+
+    .home-section-subtitle {
+        max-width: 630px;
+        margin: 18px auto 0;
+        color: var(--home-muted);
+        line-height: 1.75;
+    }
+
+    /* =========================
+           FEATURES
+        ========================== */
+
+    .home-features {
+        position: relative;
+        z-index: 5;
+        margin-top: -62px;
+        padding-bottom: 88px;
+    }
+
+    .feature-panel {
+        padding: 16px;
+        background-color: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: var(--home-radius-xl);
+        box-shadow: var(--home-shadow);
+        backdrop-filter: blur(15px);
+    }
+
+    .feature-card {
+        position: relative;
+        height: 100%;
+        min-height: 292px;
+        padding: 36px 30px;
+        background-color: var(--home-surface);
+        border: 1px solid transparent;
+        border-radius: var(--home-radius-lg);
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .feature-card::after {
+            content: "";
+            position: absolute;
+            left: 30px;
+            right: 30px;
+            bottom: 0;
+            height: 3px;
+            background-color: var(--home-accent);
+            border-radius: 10px 10px 0 0;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            z-index: 2;
+            transform: translateY(-8px);
+            border-color: var(--home-border);
+            box-shadow: 0 22px 44px rgba(12, 13, 16, 0.11);
+        }
+
+            .feature-card:hover::after {
+                transform: scaleX(1);
+            }
+
+    .feature-number {
+        position: absolute;
+        top: 22px;
+        right: 26px;
+        color: #f0f1f3;
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.08em;
+        transition: color 0.3s ease;
+    }
+
+    .feature-card:hover .feature-number {
+        color: rgba(244, 185, 0, 0.14);
+    }
+
+    .feature-icon {
+        position: relative;
+        z-index: 2;
+        width: 66px;
+        height: 66px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
-        margin: 0 auto 20px;
-        transition: all 0.3s ease;
-    }
-    .feature-box:hover .feature-icon-home {
-        transform: translateY(-10px);
-        box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+        margin-bottom: 30px;
+        color: var(--home-dark);
+        background-color: var(--home-accent);
+        border-radius: 18px;
+        font-size: 1.55rem;
+        box-shadow: 0 12px 26px rgba(244, 185, 0, 0.23);
+        transition: transform 0.3s ease, border-radius 0.3s ease;
     }
 
-    /* Car Card styling reused from Cars/Index */
+    .feature-card.feature-card-danger .feature-icon {
+        color: #ffffff;
+        background-color: var(--home-danger);
+        box-shadow: 0 12px 26px rgba(220, 53, 69, 0.20);
+    }
+
+    .feature-card.feature-card-success .feature-icon {
+        color: #ffffff;
+        background-color: var(--home-success);
+        box-shadow: 0 12px 26px rgba(25, 135, 84, 0.20);
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: rotate(-5deg) scale(1.05);
+        border-radius: 50%;
+    }
+
+    .feature-title {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 12px;
+        color: var(--home-text);
+        font-size: 1.22rem;
+        font-weight: 800;
+    }
+
+    .feature-description {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0;
+        color: var(--home-muted);
+        font-size: 0.95rem;
+        line-height: 1.75;
+    }
+
+    /* =========================
+           FEATURED CARS
+        ========================== */
+
+    .featured-cars-section {
+        padding: 100px 0;
+        background-color: var(--home-background);
+    }
+
+    .featured-heading-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+        margin-bottom: 48px;
+    }
+
+    .view-all-button {
+        min-height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 0 20px;
+        color: var(--home-text);
+        background-color: transparent;
+        border: 1px solid #cfd2d8;
+        border-radius: 13px;
+        font-size: 0.88rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+
+        .view-all-button:hover {
+            color: #ffffff;
+            background-color: var(--home-dark);
+            border-color: var(--home-dark);
+            transform: translateY(-3px);
+        }
+
+    .empty-cars {
+        padding: 72px 28px;
+        text-align: center;
+        background-color: var(--home-surface);
+        border: 1px solid var(--home-border);
+        border-radius: var(--home-radius-xl);
+        box-shadow: 0 16px 40px rgba(12, 13, 16, 0.06);
+    }
+
+    .empty-cars-icon {
+        width: 92px;
+        height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        color: var(--home-muted);
+        background-color: var(--home-background);
+        border-radius: 24px;
+        font-size: 2.8rem;
+    }
+
     .car-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        height: 100%;
+        background-color: var(--home-surface);
+        border: 1px solid var(--home-border);
+        border-radius: var(--home-radius-lg);
+        box-shadow: 0 14px 34px rgba(12, 13, 16, 0.06);
+        overflow: hidden;
+        transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
     }
-    .car-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 1rem 3rem rgba(0,0,0,.15)!important;
+
+        .car-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(244, 185, 0, 0.55);
+            box-shadow: 0 26px 55px rgba(12, 13, 16, 0.13);
+        }
+
+    .car-image-wrapper {
+        position: relative;
+        height: 245px;
+        overflow: hidden;
+        background-color: #e9eaed;
     }
+
     .car-image {
-        transition: transform 0.5s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.65s ease;
     }
+
     .car-card:hover .car-image {
-        transform: scale(1.1);
+        transform: scale(1.07);
     }
-    .fs-7 { font-size: 0.85rem; }
+
+    .car-image-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(8, 9, 12, 0.50), transparent 50%);
+        pointer-events: none;
+    }
+
+    .car-status {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        z-index: 2;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 800;
+        line-height: 1;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    }
+
+        .car-status::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .car-status.available {
+            color: #147a4b;
+            background-color: #e7f6ee;
+        }
+
+        .car-status.reserved {
+            color: #806000;
+            background-color: #fff3c4;
+        }
+
+    .car-card-body {
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 245px);
+        padding: 26px;
+    }
+
+    .car-brand {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--home-danger);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+    }
+
+    .car-name {
+        margin-bottom: 12px;
+        color: var(--home-text);
+        font-size: 1.26rem;
+        font-weight: 850;
+        line-height: 1.35;
+    }
+
+    .car-description {
+        display: -webkit-box;
+        height: 45px;
+        margin-bottom: 22px;
+        color: var(--home-muted);
+        font-size: 0.89rem;
+        line-height: 1.6;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .car-spec-grid {
+        margin-top: auto;
+        margin-bottom: 22px;
+    }
+
+    .car-spec {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 12px;
+        background-color: var(--home-background);
+        border: 1px solid #eceef1;
+        border-radius: 12px;
+        color: var(--home-text);
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+        .car-spec i {
+            flex: 0 0 auto;
+            color: var(--home-danger);
+            font-size: 0.92rem;
+        }
+
+    .car-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 20px;
+        border-top: 1px solid var(--home-border);
+    }
+
+    .car-price-label {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--home-muted);
+        font-size: 0.68rem;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .car-price {
+        color: var(--home-danger);
+        font-size: 1.18rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .car-detail-button {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 15px;
+        color: var(--home-dark);
+        background-color: var(--home-accent);
+        border: 1px solid var(--home-accent);
+        border-radius: 11px;
+        font-size: 0.81rem;
+        font-weight: 850;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .car-detail-button:hover {
+            color: var(--home-dark);
+            background-color: #ffc928;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(244, 185, 0, 0.25);
+        }
+
+    /* =========================
+           CTA
+        ========================== */
+
+    .home-cta {
+        position: relative;
+        padding: 120px 0;
+        background: linear-gradient( 90deg, rgba(8, 9, 12, 0.95), rgba(8, 9, 12, 0.76) ), url('https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=1500') center center / cover no-repeat;
+    }
+
+        .home-cta::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient( circle at 82% 30%, rgba(244, 185, 0, 0.16), transparent 26% );
+            pointer-events: none;
+        }
+
+    .home-cta-content {
+        position: relative;
+        z-index: 2;
+        max-width: 760px;
+    }
+
+    .home-cta-title {
+        margin-bottom: 22px;
+        color: #ffffff;
+        font-size: clamp(2.2rem, 5vw, 4.2rem);
+        font-weight: 900;
+        line-height: 1.06;
+        letter-spacing: -0.052em;
+        text-transform: uppercase;
+    }
+
+    .home-cta-description {
+        max-width: 650px;
+        margin-bottom: 34px;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 1.04rem;
+        line-height: 1.8;
+    }
+
+    .home-cta-button {
+        min-height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 26px;
+        color: #ffffff;
+        background-color: var(--home-danger);
+        border: 1px solid var(--home-danger);
+        border-radius: 14px;
+        font-size: 0.88rem;
+        font-weight: 850;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        text-transform: uppercase;
+        box-shadow: 0 16px 34px rgba(220, 53, 69, 0.24);
+        transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .home-cta-button:hover {
+            color: #ffffff;
+            background-color: #c82e3e;
+            border-color: #c82e3e;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 42px rgba(220, 53, 69, 0.32);
+        }
+
+    /* =========================
+           RESPONSIVE
+        ========================== */
+
+    @@media (max-width: 991.98px) {
+        .home-hero {
+            min-height: 650px;
+            background-position: 62% center;
+        }
+
+        .home-hero-content {
+            max-width: 700px;
+        }
+
+        .home-features {
+            margin-top: -45px;
+            padding-bottom: 70px;
+        }
+
+        .feature-panel {
+            padding: 12px;
+        }
+
+        .feature-card {
+            min-height: 265px;
+        }
+
+        .home-section,
+        .featured-cars-section {
+            padding: 80px 0;
+        }
+
+        .car-image-wrapper {
+            height: 230px;
+        }
+
+        .car-card-body {
+            height: calc(100% - 230px);
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .home-hero {
+            min-height: 590px;
+            text-align: center;
+            background: linear-gradient( rgba(7, 8, 11, 0.86), rgba(7, 8, 11, 0.91) ), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2000&auto=format&fit=crop') 67% center / cover no-repeat;
+        }
+
+        .home-hero-content {
+            margin: 0 auto;
+            padding-top: 55px;
+            padding-bottom: 80px;
+        }
+
+        .home-eyebrow {
+            justify-content: center;
+        }
+
+        .home-description {
+            margin-right: auto;
+            margin-left: auto;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .home-features {
+            margin-top: -30px;
+            padding-bottom: 58px;
+        }
+
+        .feature-panel {
+            border-radius: 23px;
+        }
+
+        .feature-card {
+            min-height: auto;
+            padding: 30px 26px;
+        }
+
+        .featured-heading-row {
+            display: block;
+            margin-bottom: 38px;
+            text-align: center;
+        }
+
+            .featured-heading-row .home-section-label {
+                justify-content: center;
+            }
+
+            .featured-heading-row .home-section-subtitle {
+                margin-right: auto;
+                margin-left: auto;
+            }
+
+        .home-section,
+        .featured-cars-section {
+            padding: 70px 0;
+        }
+
+        .home-cta {
+            padding: 90px 0;
+            text-align: center;
+        }
+
+        .home-cta-content,
+        .home-cta-description {
+            margin-right: auto;
+            margin-left: auto;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .home-hero {
+            min-height: 550px;
+        }
+
+        .home-title {
+            font-size: 2.75rem;
+        }
+
+        .home-primary-button,
+        .home-cta-button {
+            width: 100%;
+        }
+
+        .home-section-title {
+            font-size: 2rem;
+        }
+
+        .car-image-wrapper {
+            height: 220px;
+        }
+
+        .car-card-body {
+            height: calc(100% - 220px);
+            padding: 22px;
+        }
+
+        .car-footer {
+            align-items: flex-end;
+        }
+
+        .car-price {
+            font-size: 1.03rem;
+        }
+
+        .car-detail-button {
+            padding: 0 12px;
+        }
+
+        .home-cta-title {
+            font-size: 2.25rem;
+        }
+    }
 </style>
 
-<!-- Hero Banner -->
-<div class="hero-banner-home d-flex align-items-center justify-content-center text-center text-white">
-    <div class="hero-overlay"></div>
-    <div class="hero-content container">
-        <h6 class="text-warning fw-bold text-uppercase mb-3" style="letter-spacing: 3px;">Kỷ nguyên di chuyển mới</h6>
-        <h1 class="display-3 fw-bold text-uppercase mb-4 section-title">GROUP7 <span class="text-warning">ECO DRIVE</span></h1>
-        <p class="fs-4 mb-5 text-light fw-light mx-auto" style="max-width: 800px;">
-            Hệ thống phân phối xe ô tô đẳng cấp, mang đến trải nghiệm lái xe hoàn hảo cùng dịch vụ hậu mãi chuẩn quốc tế.
-        </p>
-        <div class="d-flex gap-3 justify-content-center flex-wrap">
-            <a asp-controller="Cars" asp-action="Index" class="btn btn-hero btn-warning btn-lg px-5 py-3 rounded-pill fw-bold text-dark text-uppercase shadow-lg mb-2" style="letter-spacing: 1px;">
-                <i class="bi bi-car-front me-2"></i> Mua Xe Ngay
-            </a>
-        </div>
-    </div>
-</div>
+<div class="home-page">
 
-<!-- Dịch vụ nổi bật -->
-<div class="py-5" style="background-color: #ffffff;">
-    <div class="container my-5">
-        <div class="text-center mb-5 pb-2">
-            <h6 class="text-danger fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">Tại sao chọn chúng tôi</h6>
-            <h2 class="display-6 fw-bold section-title text-dark">DỊCH VỤ VƯỢT TRỘI</h2>
-            <div style="width: 80px; height: 4px; background-color: #dc3545; margin: 15px auto 0;"></div>
-        </div>
-        
-        <div class="row text-center pt-3">
-            <div class="col-md-4 mb-4">
-                <div class="feature-box px-3">
-                    <div class="feature-icon-home shadow-sm">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3 fs-5">Bảo Hành Chính Hãng</h4>
-                    <p class="text-secondary small">Cam kết bảo hành lên đến 5 năm hoặc 150.000km, mang lại sự an tâm tuyệt đối.</p>
+    <!-- Hero Banner -->
+    <section class="home-hero">
+        <div class="container">
+            <div class="home-hero-content">
+                <div class="home-eyebrow">
+                    Kỷ nguyên di chuyển mới
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-box px-3">
-                    <div class="feature-icon-home shadow-sm" style="background-color: #dc3545;">
-                        <i class="bi bi-tools"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3 fs-5">Bảo Dưỡng Chuyên Nghiệp</h4>
-                    <p class="text-secondary small">Hệ thống xưởng dịch vụ hiện đại, kỹ thuật viên được đào tạo chuyên sâu từ hãng.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-box px-3">
-                    <div class="feature-icon-home shadow-sm" style="background-color: #198754;">
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <h4 class="fw-bold mb-3 fs-5">Hệ Thống Rộng Khắp</h4>
-                    <p class="text-secondary small">Giao xe tận nhà và hỗ trợ cứu hộ 24/7 trên toàn quốc một cách nhanh chóng.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Sản phẩm nổi bật (Featured Cars) -->
-<div class="py-5" style="background-color: #eef4f8;">
-    <div class="container my-5">
-        <div class="d-flex justify-content-between align-items-end mb-5 pb-2">
-            <div>
-                <h6 class="text-danger fw-bold text-uppercase mb-2" style="letter-spacing: 2px;">Khám phá ngay</h6>
-                <h2 class="display-6 fw-bold section-title text-dark m-0">SẢN PHẨM NỔI BẬT</h2>
-                <div style="width: 80px; height: 4px; background-color: #ffc107; margin-top: 15px;"></div>
-            </div>
-            <div class="d-none d-md-block">
-                <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-dark rounded-pill px-4 fw-bold">Xem tất cả <i class="bi bi-arrow-right ms-1"></i></a>
+                <h1 class="home-title">
+                    GROUP7
+                    <span>ECO DRIVE</span>
+                </h1>
+
+                <p class="home-description">
+                    Hệ thống phân phối xe ô tô đẳng cấp, mang đến trải nghiệm lái xe
+                    hoàn hảo cùng dịch vụ hậu mãi chuẩn quốc tế.
+                </p>
+
+                <a asp-controller="Cars"
+                   asp-action="Index"
+                   class="home-primary-button">
+                    <i class="bi bi-car-front"></i>
+                    Mua Xe Ngay
+                </a>
             </div>
         </div>
+    </section>
 
-        @if (Model == null || !Model.Any())
-        {
-            <div class="text-center py-5 bg-white shadow-sm rounded-3">
-                <i class="bi bi-car-front text-secondary" style="font-size: 5rem;"></i>
-                <h4 class="mt-3 fw-bold text-dark">Hệ thống đang cập nhật sản phẩm</h4>
-                <p class="text-secondary">Vui lòng quay lại sau để trải nghiệm những mẫu xe mới nhất.</p>
-            </div>
-        }
-        else
-        {
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var car in Model)
-                {
-                    var displayImageUrl = string.IsNullOrWhiteSpace(car.ImageUrl) 
-                        ? "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80" 
-                        : car.ImageUrl;
-                        
-                    <div class="col">
-                        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden car-card">
-                            <!-- Car Image and Status Badge -->
-                            <div class="position-relative overflow-hidden" style="height: 220px;">
-                                <img src="@displayImageUrl" alt="@car.CarName" class="w-100 h-100 object-fit-cover car-image transition-transform duration-300">
-                                
-                                @if (car.Status == "Available")
-                                {
-                                    <span class="position-absolute top-0 start-0 m-3 badge bg-success fs-7 px-3 py-2 shadow-sm">Sẵn sàng bán</span>
-                                }
-                                else if (car.Status == "Reserved")
-                                {
-                                    <span class="position-absolute top-0 start-0 m-3 badge bg-warning fs-7 px-3 py-2 text-dark shadow-sm">Đã đặt cọc</span>
-                                }
+    <!-- Dịch vụ nổi bật -->
+    <section class="home-features">
+        <div class="container">
+            <div class="feature-panel">
+                <div class="row g-3">
+
+                    <div class="col-lg-4">
+                        <article class="feature-card">
+                            <span class="feature-number">01</span>
+
+                            <div class="feature-icon">
+                                <i class="bi bi-shield-check"></i>
                             </div>
 
-                            <!-- Car Info Body -->
-                            <div class="card-body p-4 d-flex flex-column bg-white">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <small class="text-secondary fw-bold text-uppercase" style="letter-spacing: 1px;">@(car.Brand?.BrandName ?? "Khác")</small>
-                                        <h5 class="card-title fw-bold text-dark mb-0 mt-1">@car.CarName</h5>
-                                    </div>
-                                </div>
-                                
-                                <p class="text-muted mb-3" style="font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 40px;">
-                                    @(string.IsNullOrWhiteSpace(car.Description) ? "Mẫu xe đẳng cấp với trang bị hiện đại và khả năng vận hành vượt trội." : car.Description)
-                                </p>
+                            <h2 class="feature-title">
+                                Bảo Hành Chính Hãng
+                            </h2>
 
-                                <!-- Specs Badges -->
-                                <div class="row g-2 mb-4 mt-auto">
-                                    <div class="col-6">
-                                        <div class="bg-light rounded p-2 text-center" style="font-size: 12px;">
-                                            <i class="bi bi-calendar-event text-danger me-1"></i> <span class="fw-bold text-dark">@car.Year</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="bg-light rounded p-2 text-center" style="font-size: 12px;">
-                                            <i class="bi bi-speedometer2 text-danger me-1"></i> <span class="fw-bold text-dark">@car.Mileage.ToString("N0") km</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="bg-light rounded p-2 text-center" style="font-size: 12px;">
-                                            <i class="bi bi-gear-fill text-danger me-1"></i> <span class="fw-bold text-dark">@(car.Transmission == "Automatic" ? "Số tự động" : "Số sàn")</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="bg-light rounded p-2 text-center" style="font-size: 12px;">
-                                            <i class="bi bi-fuel-pump-fill text-danger me-1"></i> <span class="fw-bold text-dark">@car.FuelType</span>
-                                        </div>
-                                    </div>
+                            <p class="feature-description">
+                                Cam kết bảo hành lên đến 5 năm hoặc 150.000km,
+                                mang lại sự an tâm tuyệt đối.
+                            </p>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <article class="feature-card feature-card-danger">
+                            <span class="feature-number">02</span>
+
+                            <div class="feature-icon">
+                                <i class="bi bi-tools"></i>
+                            </div>
+
+                            <h2 class="feature-title">
+                                Bảo Dưỡng Chuyên Nghiệp
+                            </h2>
+
+                            <p class="feature-description">
+                                Hệ thống xưởng dịch vụ hiện đại, kỹ thuật viên
+                                được đào tạo chuyên sâu từ hãng.
+                            </p>
+                        </article>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <article class="feature-card feature-card-success">
+                            <span class="feature-number">03</span>
+
+                            <div class="feature-icon">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+
+                            <h2 class="feature-title">
+                                Hệ Thống Rộng Khắp
+                            </h2>
+
+                            <p class="feature-description">
+                                Giao xe tận nhà và hỗ trợ cứu hộ 24/7 trên toàn quốc
+                                một cách nhanh chóng.
+                            </p>
+                        </article>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sản phẩm nổi bật -->
+    <section class="featured-cars-section">
+        <div class="container">
+
+            <div class="featured-heading-row">
+                <div>
+                    <div class="home-section-label">
+                        Khám phá ngay
+                    </div>
+
+                    <h2 class="home-section-title">
+                        Sản phẩm nổi bật
+                    </h2>
+
+                    <p class="home-section-subtitle">
+                        Khám phá những mẫu xe đang được phân phối tại
+                        Group7 ECO DRIVE.
+                    </p>
+                </div>
+
+                <div class="d-none d-md-block">
+                    <a asp-controller="Cars"
+                       asp-action="Index"
+                       class="view-all-button">
+                        Xem tất cả
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="empty-cars">
+                    <div class="empty-cars-icon">
+                        <i class="bi bi-car-front"></i>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-3">
+                        Hệ thống đang cập nhật sản phẩm
+                    </h3>
+
+                    <p class="text-secondary mb-0">
+                        Vui lòng quay lại sau để trải nghiệm những mẫu xe mới nhất.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+                    @foreach (var car in Model)
+                    {
+                        var displayImageUrl = string.IsNullOrWhiteSpace(car.ImageUrl)
+                            ? "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80"
+                            : car.ImageUrl;
+
+                        <div class="col">
+                            <article class="car-card">
+
+                                <!-- Car Image and Status Badge -->
+                                <div class="car-image-wrapper">
+                                    <img src="@displayImageUrl"
+                                         alt="@car.CarName"
+                                         class="car-image" />
+
+                                    <div class="car-image-overlay"></div>
+
+                                    @if (car.Status == "Available")
+                                    {
+                                        <span class="car-status available">
+                                            Sẵn sàng bán
+                                        </span>
+                                    }
+                                    else if (car.Status == "Reserved")
+                                    {
+                                        <span class="car-status reserved">
+                                            Đã đặt cọc
+                                        </span>
+                                    }
                                 </div>
 
-                                <!-- Price and Actions -->
-                                <div class="border-top pt-3 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <small class="text-secondary d-block" style="font-size: 11px;">GIÁ BÁN</small>
-                                        <span class="fs-5 fw-bold text-danger">@car.Price.ToString("N0") đ</span>
+                                <!-- Car Info Body -->
+                                <div class="car-card-body">
+
+                                    <span class="car-brand">
+                                        @(car.Brand?.BrandName ?? "Khác")
+                                    </span>
+
+                                    <h3 class="car-name">
+                                        @car.CarName
+                                    </h3>
+
+                                    <p class="car-description">
+                                        @(string.IsNullOrWhiteSpace(car.Description)
+                                            ? "Mẫu xe đẳng cấp với trang bị hiện đại và khả năng vận hành vượt trội."
+                                            : car.Description)
+                                    </p>
+
+                                    <!-- Specs -->
+                                    <div class="row g-2 car-spec-grid">
+                                        <div class="col-6">
+                                            <div class="car-spec">
+                                                <i class="bi bi-calendar-event"></i>
+                                                <span>@car.Year</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="car-spec">
+                                                <i class="bi bi-speedometer2"></i>
+                                                <span>@car.Mileage.ToString("N0") km</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="car-spec">
+                                                <i class="bi bi-gear-fill"></i>
+                                                <span>
+                                                    @(car.Transmission == "Automatic"
+                                                        ? "Số tự động"
+                                                        : "Số sàn")
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <div class="car-spec">
+                                                <i class="bi bi-fuel-pump-fill"></i>
+                                                <span>@car.FuelType</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.CarId" class="btn btn-warning btn-sm fw-bold px-3 py-2 border-0 text-dark" style="background-color: #ffc107;">
-                                            Chi tiết <i class="bi bi-arrow-right-short"></i>
+
+                                    <!-- Price and Actions -->
+                                    <div class="car-footer">
+                                        <div>
+                                            <span class="car-price-label">
+                                                Giá bán
+                                            </span>
+
+                                            <span class="car-price">
+                                                @car.Price.ToString("N0") đ
+                                            </span>
+                                        </div>
+
+                                        <a asp-controller="Cars"
+                                           asp-action="Details"
+                                           asp-route-id="@car.CarId"
+                                           class="car-detail-button">
+                                            Chi tiết
+                                            <i class="bi bi-arrow-right-short"></i>
                                         </a>
                                     </div>
                                 </div>
-                            </div>
+                            </article>
                         </div>
-                    </div>
-                }
-            </div>
-            
-            <!-- Mobile View All Button -->
-            <div class="text-center mt-5 d-md-none">
-                <a asp-controller="Cars" asp-action="Index" class="btn btn-outline-dark rounded-pill px-5 fw-bold">Xem tất cả xe <i class="bi bi-arrow-right ms-1"></i></a>
-            </div>
-        }
-    </div>
-</div>
+                    }
 
-<!-- CTA Section -->
-<div class="py-5" style="background-color: #2b2b2c; background-image: url('https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=1500'); background-blend-mode: overlay; background-size: cover; background-position: center;">
-    <div class="container text-center text-white py-5">
-        <h2 class="display-5 fw-bold mb-4 section-title">BẠN ĐÃ SẴN SÀNG TRẢI NGHIỆM?</h2>
-        <p class="fs-5 mb-5 fw-light mx-auto" style="max-width: 600px;">Liên hệ ngay hôm nay để nhận báo giá chi tiết, đăng ký lái thử và được tư vấn trực tiếp từ chuyên gia của chúng tôi.</p>
-        <a asp-controller="Home" asp-action="Contact" class="btn btn-danger btn-lg px-5 py-3 rounded-pill fw-bold text-uppercase shadow-lg" style="letter-spacing: 1px;">
-            <i class="bi bi-telephone-fill me-2"></i> Liên Hệ Nhận Tư Vấn
-        </a>
-    </div>
+                </div>
+
+                <!-- Mobile View All Button -->
+                <div class="text-center mt-5 d-md-none">
+                    <a asp-controller="Cars"
+                       asp-action="Index"
+                       class="view-all-button">
+                        Xem tất cả xe
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            }
+
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="home-cta">
+        <div class="container">
+            <div class="home-cta-content">
+                <div class="home-eyebrow">
+                    Group7 ECO DRIVE
+                </div>
+
+                <h2 class="home-cta-title">
+                    Bạn đã sẵn sàng trải nghiệm?
+                </h2>
+
+                <p class="home-cta-description">
+                    Liên hệ ngay hôm nay để nhận báo giá chi tiết, đăng ký lái thử
+                    và được tư vấn trực tiếp từ chuyên gia của chúng tôi.
+                </p>
+
+                <a asp-controller="Home"
+                   asp-action="Contact"
+                   class="home-cta-button">
+                    <i class="bi bi-telephone-fill"></i>
+                    Liên Hệ Nhận Tư Vấn
+                </a>
+            </div>
+        </div>
+    </section>
+
 </div>

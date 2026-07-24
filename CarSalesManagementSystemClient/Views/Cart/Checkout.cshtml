@@ -1,93 +1,839 @@
 @model CarSalesManagementSystemClient.Models.UnifiedCheckoutPostModel
+
 @{
     ViewData["Title"] = "Thanh Toán & Đặt Lịch Bảo Dưỡng";
-    var cart = ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart ?? new CarSalesManagementSystemClient.Models.UnifiedCart();
+
+    var cart =
+        ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart
+        ?? new CarSalesManagementSystemClient.Models.UnifiedCart();
 }
 
 <style>
-    .step-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 2rem;
+    :root {
+        --checkout-primary: #17191e;
+        --checkout-secondary: #252830;
+        --checkout-accent: #f5b800;
+        --checkout-accent-hover: #ffca28;
+        --checkout-background: #f4f5f7;
+        --checkout-surface: #ffffff;
+        --checkout-border: #e5e7eb;
+        --checkout-text: #1b1d22;
+        --checkout-muted: #747983;
+        --checkout-danger: #dc3545;
+        --checkout-success: #198754;
+        --checkout-info: #0ea5e9;
+        --checkout-radius-lg: 26px;
+        --checkout-radius-md: 15px;
+        --checkout-shadow: 0 24px 65px rgba(17, 19, 24, 0.11);
+    }
+
+    .checkout-page {
+        min-height: 100vh;
+        padding: 38px 0 78px;
+        background: radial-gradient( circle at 93% 5%, rgba(245, 184, 0, 0.12), transparent 26% ), radial-gradient( circle at 6% 82%, rgba(17, 19, 24, 0.04), transparent 28% ), var(--checkout-background);
+    }
+
+    .checkout-container {
+        width: 100%;
+        max-width: 1220px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    .checkout-layout {
+        width: 100%;
+        max-width: 1080px;
+        margin: 0 auto;
+    }
+
+    .checkout-shell {
+        overflow: hidden;
+        background-color: var(--checkout-surface);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: var(--checkout-radius-lg);
+        box-shadow: var(--checkout-shadow);
+    }
+
+    /* Header */
+
+    .checkout-hero {
         position: relative;
+        min-height: 190px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+        padding: 34px 38px;
+        color: #ffffff;
+        background: radial-gradient( circle at 86% 13%, rgba(245, 184, 0, 0.2), transparent 31% ), linear-gradient( 135deg, var(--checkout-primary), var(--checkout-secondary) );
+        overflow: hidden;
     }
-    .step-indicator::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background-color: #dee2e6;
-        z-index: 1;
-        transform: translateY(-50%);
-    }
-    .step-indicator-item {
+
+        .checkout-hero::after {
+            content: "CHECKOUT";
+            position: absolute;
+            top: -33px;
+            right: 28px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .checkout-hero-content,
+    .checkout-hero-icon {
         position: relative;
         z-index: 2;
-        background-color: #fff;
-        border: 2px solid #dee2e6;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+    }
+
+    .checkout-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+        color: var(--checkout-accent);
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+        .checkout-eyebrow::before {
+            content: "";
+            width: 31px;
+            height: 2px;
+            background-color: var(--checkout-accent);
+        }
+
+    .checkout-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 10px;
+        color: #ffffff;
+        font-size: clamp(1.75rem, 3.2vw, 2.55rem);
+        font-weight: 950;
+        line-height: 1.14;
+        letter-spacing: -0.045em;
+    }
+
+        .checkout-title i {
+            color: var(--checkout-accent);
+        }
+
+    .checkout-description {
+        max-width: 680px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.61);
+        font-size: 0.89rem;
+        line-height: 1.65;
+    }
+
+    .checkout-hero-icon {
+        flex: 0 0 auto;
+        width: 70px;
+        height: 70px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: bold;
-        color: #6c757d;
-        transition: all 0.3s ease;
+        color: var(--checkout-primary);
+        background-color: var(--checkout-accent);
+        border-radius: 21px;
+        font-size: 1.75rem;
+        box-shadow: 0 15px 36px rgba(245, 184, 0, 0.22);
+        transform: rotate(-4deg);
     }
-    .step-indicator-item.active {
-        border-color: #ffc107;
-        background-color: #ffc107;
-        color: #212529;
-        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
+
+    .checkout-body {
+        padding: 34px 38px 40px;
     }
-    .step-indicator-item.completed {
-        border-color: #198754;
-        background-color: #198754;
-        color: #fff;
+
+    /* Step indicator */
+
+    .step-indicator {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        min-width: 650px;
+        margin: 0;
+        padding: 0 24px 38px;
     }
+
+        .step-indicator::before {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            top: 22px;
+            right: 43px;
+            left: 43px;
+            height: 3px;
+            background-color: #e7e9ed;
+            border-radius: 999px;
+            transform: none;
+        }
+
+    .step-indicator-item {
+        position: relative;
+        z-index: 2;
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8e939c;
+        background-color: #ffffff;
+        border: 2px solid #dfe2e7;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 900;
+        box-shadow: 0 7px 18px rgba(17, 19, 24, 0.06);
+        transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .step-indicator-item.active {
+            color: var(--checkout-primary);
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+            box-shadow: 0 0 0 5px rgba(245, 184, 0, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .step-indicator-item.completed {
+            color: #ffffff;
+            background-color: var(--checkout-success);
+            border-color: var(--checkout-success);
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.11);
+        }
+
     .step-indicator-label {
-        font-size: 11px;
         position: absolute;
-        top: 45px;
-        width: 80px;
-        text-align: center;
+        top: 54px;
         left: 50%;
+        width: 96px;
+        color: #8c919a;
+        font-size: 0.65rem;
+        font-weight: 800;
+        line-height: 1.25;
+        text-align: center;
         transform: translateX(-50%);
-        font-weight: 600;
     }
+
+    .step-indicator-item.active .step-indicator-label,
+    .step-indicator-item.completed .step-indicator-label {
+        color: var(--checkout-primary) !important;
+        font-weight: 900;
+    }
+
+    .checkout-body > .step-indicator {
+        overflow: visible;
+    }
+
+    /* Wizard */
+
     .wizard-step {
         display: none;
+        animation: checkoutFade 0.28s ease;
     }
-    .wizard-step.active {
-        display: block;
+
+        .wizard-step.active {
+            display: block;
+        }
+
+    @@keyframes checkoutFade {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
+    .wizard-step > h4 {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 24px !important;
+        padding-bottom: 16px;
+        color: var(--checkout-primary) !important;
+        border-bottom: 1px solid var(--checkout-border);
+        font-size: 1.05rem;
+        font-weight: 950 !important;
+        line-height: 1.45;
+    }
+
+        .wizard-step > h4 i {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            color: #8f6b00 !important;
+            background-color: rgba(245, 184, 0, 0.13);
+            border: 1px solid rgba(245, 184, 0, 0.21);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+    /* Alerts */
+
+    #checkoutAlert {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-bottom: 24px !important;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+        font-size: 0.8rem;
+        line-height: 1.55;
+    }
+
+        #checkoutAlert.d-none {
+            display: none !important;
+        }
+
+    .checkout-page .alert-light,
+    .checkout-page .alert-warning,
+    .checkout-page .alert-success,
+    .checkout-page .alert-info {
+        padding: 16px;
+        border-radius: 14px !important;
+        font-size: 0.78rem;
+        line-height: 1.6;
+    }
+
+    .checkout-page .alert-light {
+        color: #5c616a;
+        background-color: #f8f9fa;
+        border: 1px solid var(--checkout-border) !important;
+    }
+
+    .checkout-page .alert-warning {
+        color: #7c5b00;
+        background-color: #fff9df;
+        border: 1px solid #fde68a;
+    }
+
+    .checkout-page .alert-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+    }
+
+    .checkout-page .alert-info {
+        color: #075985;
+        background-color: #f0f9ff;
+        border: 1px solid #bae6fd;
+    }
+
+    /* Tables */
+
+    .checkout-page .table-responsive {
+        overflow: hidden;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 16px !important;
+    }
+
+    .checkout-page .table {
+        margin-bottom: 0;
+    }
+
+        .checkout-page .table thead th {
+            padding: 14px 16px !important;
+            color: #777c85;
+            background-color: #f7f8f9 !important;
+            border-bottom: 1px solid var(--checkout-border);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .checkout-page .table tbody td {
+            padding: 16px !important;
+            color: #575c65;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eff0f2;
+            font-size: 0.78rem;
+            vertical-align: middle;
+        }
+
+        .checkout-page .table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .checkout-page .table tbody tr:hover td {
+            background-color: #fbfbfc;
+        }
+
+        .checkout-page .table strong,
+        .checkout-page .table .fw-bold {
+            color: var(--checkout-primary);
+        }
+
+    /* Purpose radio choices */
+
+    .checkout-page .purpose-radio {
+        margin-top: 0;
+        border-color: #b7bbc2;
+        box-shadow: none;
+    }
+
+        .checkout-page .purpose-radio:checked {
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+        }
+
+    .checkout-page td .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 !important;
+        padding: 10px 11px 10px 34px;
+        background-color: #f8f9fa;
+        border: 1px solid #eceef1;
+        border-radius: 10px;
+    }
+
+    /* Form cards */
+
+    #carSourceChoice label,
+    .checkout-page label:has(input[name="purchaseType"]) {
+        min-height: 92px;
+        padding: 16px !important;
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 15px !important;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+        #carSourceChoice label:hover,
+        .checkout-page label:has(input[name="purchaseType"]):hover {
+            background-color: #fffdf5;
+            border-color: var(--checkout-accent) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(245, 184, 0, 0.1);
+        }
+
+    #carSourceChoice .form-check-input,
+    .checkout-page input[name="purchaseType"] {
+        flex: 0 0 auto;
+        border-color: #b9bdc4;
+        box-shadow: none;
+    }
+
+        #carSourceChoice .form-check-input:checked,
+        .checkout-page input[name="purchaseType"]:checked {
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+        }
+
+    #carInfoInputs,
+    #step-4 > .p-4 {
+        padding: 23px !important;
+        background-color: #f8f9fa !important;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 17px !important;
+    }
+
+    .checkout-page .form-label {
+        margin-bottom: 8px;
+        color: #464a52 !important;
+        font-size: 0.73rem;
+        font-weight: 900 !important;
+    }
+
+    .checkout-page .form-control,
+    .checkout-page .form-select {
+        min-height: 49px;
+        padding: 11px 13px;
+        color: var(--checkout-text);
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border);
+        border-radius: 12px !important;
+        outline: none;
+        font-size: 0.82rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .checkout-page textarea.form-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .checkout-page .form-control:focus,
+    .checkout-page .form-select:focus {
+        background-color: #ffffff;
+        border-color: var(--checkout-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .checkout-page .small.text-muted {
+        color: #9499a1 !important;
+        font-size: 0.68rem !important;
+        line-height: 1.5;
+    }
+
+    /* Summary step */
+
+    #step-5 .card {
+        overflow: hidden;
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 28px rgba(17, 19, 24, 0.055) !important;
+    }
+
+    #step-5 .card-header {
+        padding: 13px 15px !important;
+        color: var(--checkout-accent) !important;
+        background: linear-gradient( 135deg, var(--checkout-primary), var(--checkout-secondary) ) !important;
+        border: 0;
+        font-size: 0.72rem;
+        font-weight: 900 !important;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    #step-5 .list-group-item {
+        padding: 13px 15px;
+        color: #555a63;
+        background-color: #ffffff;
+        border-color: #eff0f2;
+        font-size: 0.75rem;
+    }
+
+    #step-5 .card-footer {
+        padding: 13px 15px;
+        background-color: #f8f9fa !important;
+        border-top: 1px solid var(--checkout-border);
+    }
+
+    #step-5 .col-md-5 > .card:first-child {
+        background-color: #ffffff !important;
+    }
+
+    #step-5 .col-md-5 > .card.bg-dark {
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.14), transparent 34% ), linear-gradient( 145deg, var(--checkout-primary), #0d0f13 ) !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 18px 38px rgba(17, 19, 24, 0.18) !important;
+    }
+
+        #step-5 .col-md-5 > .card.bg-dark .card-body {
+            padding: 20px;
+        }
+
+    #totalOrderDisplay {
+        color: var(--checkout-accent) !important;
+        font-size: 1.3rem !important;
+    }
+
+    #totalCarDisplay,
+    #totalMaintenanceDisplay {
+        color: var(--checkout-accent) !important;
+    }
+
+    /* Payment method card */
+
+    #step-5 > .card.mt-3 {
+        margin-top: 20px !important;
+    }
+
+        #step-5 > .card.mt-3 .card-body {
+            padding: 20px;
+        }
+
+    /* Buttons */
+
+    .checkout-page .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 18px;
+        border-radius: 12px !important;
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-decoration: none;
+        transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .checkout-page .btn:hover {
+            transform: translateY(-2px);
+        }
+
     .btn-gold {
-        background-color: #ffc107;
-        border-color: #ffc107;
-        color: #212529;
-        font-weight: bold;
-        transition: all 0.2s ease;
+        color: var(--checkout-primary);
+        background-color: var(--checkout-accent);
+        border-color: var(--checkout-accent);
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.18);
     }
-    .btn-gold:hover {
-        background-color: #e0a800;
-        border-color: #d39e00;
-        color: #212529;
+
+        .btn-gold:hover {
+            color: var(--checkout-primary);
+            background-color: var(--checkout-accent-hover);
+            border-color: var(--checkout-accent-hover);
+            box-shadow: 0 15px 30px rgba(245, 184, 0, 0.25);
+        }
+
+    .checkout-page .btn-outline-secondary {
+        color: #656a73;
+        background-color: #ffffff;
+        border-color: var(--checkout-border);
+    }
+
+        .checkout-page .btn-outline-secondary:hover {
+            color: var(--checkout-primary);
+            background-color: #f7f8f9;
+            border-color: #cfd2d7;
+        }
+
+    #btnSubmitOrder {
+        color: var(--checkout-primary) !important;
+        background-color: var(--checkout-accent) !important;
+        border-color: var(--checkout-accent) !important;
+        box-shadow: 0 12px 28px rgba(245, 184, 0, 0.2);
+    }
+
+        #btnSubmitOrder:hover {
+            background-color: var(--checkout-accent-hover) !important;
+            border-color: var(--checkout-accent-hover) !important;
+        }
+
+    /* Navigation rows */
+
+    .wizard-step > .d-flex.justify-content-between {
+        gap: 12px;
+        margin-top: 30px !important;
+        padding-top: 22px;
+        border-top: 1px solid var(--checkout-border);
+    }
+
+    /* Success */
+
+    #step-6 {
+        padding: 24px 0 8px !important;
+    }
+
+        #step-6 .display-3 {
+            width: 94px;
+            height: 94px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--checkout-success) !important;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 28px;
+            font-size: 2.5rem;
+            box-shadow: 0 15px 32px rgba(25, 135, 84, 0.1);
+        }
+
+        #step-6 > h3 {
+            margin-bottom: 9px;
+            color: var(--checkout-primary) !important;
+            font-size: 1.55rem;
+            font-weight: 950 !important;
+        }
+
+        #step-6 > p {
+            max-width: 610px;
+            margin-right: auto;
+            margin-left: auto;
+            color: var(--checkout-muted) !important;
+            font-size: 0.83rem;
+            line-height: 1.7;
+        }
+
+        #step-6 .p-4.bg-light {
+            padding: 20px !important;
+            background-color: #f8f9fa !important;
+            border: 1px solid var(--checkout-border) !important;
+            border-radius: 16px !important;
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .checkout-container {
+            padding-right: 18px;
+            padding-left: 18px;
+        }
+
+        .checkout-body {
+            padding: 30px 28px 34px;
+        }
+
+        .checkout-body {
+            overflow-x: hidden;
+        }
+
+        .step-indicator {
+            min-width: 620px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .checkout-page {
+            padding-top: 24px;
+        }
+
+        .checkout-container {
+            padding-right: 12px;
+            padding-left: 12px;
+        }
+
+        .checkout-shell {
+            border-radius: 21px;
+        }
+
+        .checkout-hero {
+            min-height: 165px;
+            padding: 27px 23px;
+        }
+
+            .checkout-hero::after {
+                display: none;
+            }
+
+        .checkout-hero-icon {
+            width: 57px;
+            height: 57px;
+            border-radius: 17px;
+            font-size: 1.4rem;
+        }
+
+        .checkout-body {
+            padding: 26px 19px 30px;
+        }
+
+            .checkout-body > .step-indicator {
+                width: calc(100% + 38px);
+                margin-right: -19px;
+                margin-left: -19px;
+                padding-right: 38px;
+                padding-left: 38px;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+        .checkout-page .table-responsive {
+            overflow-x: auto;
+        }
+
+        .checkout-page .table {
+            min-width: 720px;
+        }
+
+        #step-5 .table {
+            min-width: 0;
+        }
+
+        .wizard-step > .d-flex.justify-content-between {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+            .wizard-step > .d-flex.justify-content-between .btn,
+            .wizard-step > .d-flex.justify-content-between a {
+                width: 100%;
+            }
+    }
+
+    @@media (max-width: 575.98px) {
+        .checkout-hero-icon {
+            display: none;
+        }
+
+        .checkout-title {
+            font-size: 1.55rem;
+        }
+
+        .checkout-description {
+            font-size: 0.8rem;
+        }
+
+        .wizard-step > h4 {
+            align-items: flex-start;
+            font-size: 0.93rem;
+        }
+
+        #carInfoInputs,
+        #step-4 > .p-4 {
+            padding: 18px !important;
+        }
+
+        #step-5 .row.g-4 {
+            --bs-gutter-y: 1rem;
+        }
+
+        #step-6 .mt-4 {
+            display: grid;
+            gap: 9px;
+        }
+
+            #step-6 .mt-4 .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .wizard-step,
+        .step-indicator-item,
+        .checkout-page .btn,
+        #carSourceChoice label,
+        .checkout-page label:has(input[name="purchaseType"]) {
+            animation: none;
+            transition: none;
+        }
+
+            .checkout-page .btn:hover,
+            #carSourceChoice label:hover,
+            .checkout-page label:has(input[name="purchaseType"]):hover {
+                transform: none;
+            }
     }
 </style>
 
-<div class="container py-5" style="min-height: 80vh;">
-    <div class="row justify-content-center">
-        <div class="col-lg-9 col-md-11">
-            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                <div class="bg-dark text-white p-4 text-center">
-                    <h3 class="fw-bold m-0 text-warning"><i class="bi bi-cart-check-fill me-2"></i>Thanh Toán & Đặt Lịch</h3>
-                    <p class="text-secondary mb-0 mt-1">Hoàn tất yêu cầu mua phụ tùng và đặt lịch hẹn bảo dưỡng</p>
-                </div>
-                
-                <div class="card-body p-4 p-md-5">
+<main class="checkout-page">
+    <div class="checkout-container">
+        <div class="checkout-layout">
+            <div class="checkout-shell">
+                <header class="checkout-hero">
+                    <div class="checkout-hero-content">
+                        <span class="checkout-eyebrow">Unified checkout</span>
+                        <h1 class="checkout-title">
+                            <i class="bi bi-cart-check-fill"></i>
+                            Thanh Toán & Đặt Lịch
+                        </h1>
+                        <p class="checkout-description">
+                            Hoàn tất yêu cầu mua phụ tùng và đặt lịch hẹn bảo dưỡng
+                            trong một quy trình thống nhất.
+                        </p>
+                    </div>
+
+                    <div class="checkout-hero-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </header>
+
+                <div class="checkout-body">
                     <!-- Progress Step Indicator -->
                     <div class="step-indicator px-4 mb-5">
                         <div class="step-indicator-item active" id="ind-1">
@@ -124,11 +870,11 @@
                     <!-- STEP 1: GIỎ HÀNG (PHỤ TÙNG MUA RIÊNG HOẶC DÙNG BẢO DƯỠNG) -->
                     <div class="wizard-step active" id="step-1">
                         <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-gear-wide-connected text-warning me-2"></i>BƯỚC 1: Phân loại mục đích sử dụng phụ tùng</h4>
-                        
+
                         @{
                             var partItems = cart.Items.Where(i => i.ItemType == "Part").ToList();
                         }
-                        
+
                         @if (!partItems.Any())
                         {
                             <div class="alert alert-light border py-4 text-center rounded-3">
@@ -161,8 +907,8 @@
                                                 <td class="py-3 px-4">
                                                     <div class="d-flex flex-column gap-2">
                                                         <div class="form-check">
-                                                            <input class="form-check-input purpose-radio" type="radio" 
-                                                                   name="purpose-@item.ItemId" id="pur-std-@item.ItemId" 
+                                                            <input class="form-check-input purpose-radio" type="radio"
+                                                                   name="purpose-@item.ItemId" id="pur-std-@item.ItemId"
                                                                    value="Standalone" @(item.Purpose != "Maintenance" ? "checked" : "")
                                                                    onchange="changePurpose('Part', @item.ItemId, 'Standalone')">
                                                             <label class="form-check-label small fw-semibold text-secondary" for="pur-std-@item.ItemId">
@@ -170,8 +916,8 @@
                                                             </label>
                                                         </div>
                                                         <div class="form-check">
-                                                            <input class="form-check-input purpose-radio" type="radio" 
-                                                                   name="purpose-@item.ItemId" id="pur-maint-@item.ItemId" 
+                                                            <input class="form-check-input purpose-radio" type="radio"
+                                                                   name="purpose-@item.ItemId" id="pur-maint-@item.ItemId"
                                                                    value="Maintenance" @(item.Purpose == "Maintenance" ? "checked" : "")
                                                                    onchange="changePurpose('Part', @item.ItemId, 'Maintenance')">
                                                             <label class="form-check-label small fw-semibold text-secondary" for="pur-maint-@item.ItemId">
@@ -186,7 +932,7 @@
                                 </table>
                             </div>
                         }
-                        
+
                         <div class="d-flex justify-content-between mt-5">
                             <a href="/Cart" class="btn btn-outline-secondary rounded-3 px-4">Quay lại Giỏ hàng</a>
                             <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(2)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
@@ -196,11 +942,11 @@
                     <!-- STEP 2: DỊCH VỤ -->
                     <div class="wizard-step" id="step-2">
                         <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-wrench-adjustable text-warning me-2"></i>BƯỚC 2: Chọn gói bảo dưỡng và dịch vụ lẻ</h4>
-                        
+
                         @{
                             var serviceItems = cart.Items.Where(i => i.ItemType == "Package" || i.ItemType == "Service").ToList();
                         }
-                        
+
                         @if (!serviceItems.Any())
                         {
                             <div class="alert alert-warning rounded-3 mb-4">
@@ -244,7 +990,7 @@
                                 </table>
                             </div>
                         }
-                        
+
                         <div class="d-flex justify-content-between mt-5">
                             <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
                             <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(3)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
@@ -307,7 +1053,7 @@
                     <!-- STEP 4: LỊCH HẸN -->
                     <div class="wizard-step" id="step-4">
                         <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-calendar-event text-warning me-2"></i>BƯỚC 4: Chọn thời gian đặt lịch bảo dưỡng</h4>
-                        
+
                         <div class="p-4 bg-light rounded-4 border mb-4">
                             <div class="row g-3">
                                 <div class="col-md-6">
@@ -324,7 +1070,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="d-flex justify-content-between mt-5">
                             <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
                             <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(5)">Xem trước & Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
@@ -334,7 +1080,7 @@
                     <!-- STEP 5: XÁC NHẬN -->
                     <div class="wizard-step" id="step-5">
                         <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i>BƯỚC 5: Xác nhận chi phí và thông tin đơn hàng</h4>
-                        
+
                         <div class="row g-4">
                             <!-- Left columns: Summary list -->
                             <div class="col-md-7">
@@ -388,7 +1134,7 @@
                                             <div class="row g-2 text-secondary small">
                                                 <div class="col-6">Thông tin xe:</div>
                                                 <div class="col-6 fw-bold text-dark text-end" id="summaryCarText"></div>
-                                                
+
                                                 <div class="col-6">Thời gian hẹn:</div>
                                                 <div class="col-6 fw-bold text-dark text-end" id="summaryTimeText"></div>
                                             </div>
@@ -420,7 +1166,7 @@
                                 <div class="card border rounded-3 bg-dark text-white shadow-sm">
                                     <div class="card-body">
                                         <h6 class="fw-bold text-warning border-bottom border-secondary pb-2 mb-3">TỔNG CHI PHÍ TẠM TÍNH</h6>
-                                        
+
                                         <div class="d-flex justify-content-between mb-2 small">
                                             <span>Ô tô (yêu cầu mua):</span>
                                             <span class="fw-bold text-warning" id="totalCarDisplay">0 đ</span>
@@ -500,7 +1246,7 @@
                         </div>
                         <h3 class="fw-bold text-dark">Đặt yêu cầu thành công</h3>
                         <p class="text-secondary mb-4">Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi. Yêu cầu của bạn đã được gửi đến hệ thống.</p>
-                        
+
                         <div class="row justify-content-center mb-5">
                             <div class="col-md-8">
                                 <div class="p-4 bg-light border rounded-4 text-start">
@@ -538,6 +1284,7 @@
         </div>
     </div>
 </div>
+</main>
 
 @section Scripts {
     <script>
@@ -570,7 +1317,7 @@
 
             // Kích hoạt popover cho các icon dấu "!" giải thích.
             try {
-                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
                     new bootstrap.Popover(el);
                 });
             } catch (e) { /* bootstrap chưa sẵn sàng - bỏ qua */ }
@@ -705,9 +1452,9 @@
             // Perform step switch
             $(`#step-${activeStep}`).removeClass('active');
             $(`#step-${step}`).addClass('active');
-            
+
             // Update Indicators
-            for(let i=1; i<=6; i++) {
+            for (let i = 1; i <= 6; i++) {
                 if (i < step) {
                     $(`#ind-${i}`).addClass('completed').removeClass('active');
                 } else if (i === step) {
@@ -736,14 +1483,14 @@
                 cartData.Items.forEach(i => {
                     if (i.ItemType === 'Car') {
                         carHtml += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="badge bg-warning text-dark me-1">Ô Tô</span>
-                                    <span class="fw-semibold">${i.Name}</span>
-                                </div>
-                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
-                            </li>
-                        `;
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-warning text-dark me-1">Ô Tô</span>
+                                            <span class="fw-semibold">${i.Name}</span>
+                                        </div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
                     }
                 });
                 $('#summaryCarList').html(carHtml);
@@ -758,14 +1505,14 @@
                 cartData.Items.forEach(i => {
                     if (i.ItemType === 'Part' && i.Purpose !== 'Maintenance') {
                         html += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <span class="fw-semibold">${i.Name}</span>
-                                    <div class="text-muted" style="font-size: 11px;">Số lượng: ${i.Quantity}</div>
-                                </div>
-                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
-                            </li>
-                        `;
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-semibold">${i.Name}</span>
+                                            <div class="text-muted" style="font-size: 11px;">Số lượng: ${i.Quantity}</div>
+                                        </div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
                     }
                 });
                 $('#summaryStandaloneList').html(html);
@@ -777,17 +1524,17 @@
             if (hasMaintenance) {
                 $('#summaryMaintenanceCard').removeClass('d-none');
                 let html = "";
-                
+
                 // Show packages & services
                 cartData.Items.forEach(i => {
                     if (i.ItemType === 'Package' || i.ItemType === 'Service') {
                         let badge = i.ItemType === 'Package' ? '<span class="badge bg-primary me-1">Gói</span>' : '<span class="badge bg-info text-dark me-1">Dịch vụ</span>';
                         html += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>${badge} <span class="fw-semibold">${i.Name}</span></div>
-                                <span class="fw-bold">${i.Price.toLocaleString('vi-VN')} đ</span>
-                            </li>
-                        `;
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>${badge} <span class="fw-semibold">${i.Name}</span></div>
+                                        <span class="fw-bold">${i.Price.toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
                     }
                 });
 
@@ -795,16 +1542,16 @@
                 cartData.Items.forEach(i => {
                     if (i.ItemType === 'Part' && i.Purpose === 'Maintenance') {
                         html += `
-                            <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-light">
-                                <div><span class="badge bg-warning text-dark me-1">Linh kiện</span> ${i.Name} <small class="text-muted">(SL: ${i.Quantity})</small></div>
-                                <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
-                            </li>
-                        `;
+                                    <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                        <div><span class="badge bg-warning text-dark me-1">Linh kiện</span> ${i.Name} <small class="text-muted">(SL: ${i.Quantity})</small></div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
                     }
                 });
 
                 $('#summaryMaintenanceList').html(html);
-                
+
                 // Details text (tôn trọng lựa chọn nguồn xe)
                 if (getCarSource() === 'InCart' && carInCart) {
                     $('#summaryCarText').text(carInCart.Name + ' (xe trong giỏ hàng)');
@@ -819,7 +1566,7 @@
 
         function submitCheckout() {
             $('#checkoutAlert').addClass('d-none');
-            
+
             const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
             const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
 

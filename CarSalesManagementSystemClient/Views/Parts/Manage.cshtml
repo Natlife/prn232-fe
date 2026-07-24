@@ -14,20 +14,24 @@
     .parts-admin-page {
         font-family: 'Outfit', sans-serif;
     }
+
     .custom-parts-tabs .nav-link {
         color: #495057;
         background-color: #f8f9fa;
         transition: all 0.2s ease-in-out;
     }
-    .custom-parts-tabs .nav-link:hover {
-        background-color: #e9ecef;
-        color: #212529;
-    }
-    .custom-parts-tabs .nav-link.active {
-        background-color: #212529 !important;
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    }
+
+        .custom-parts-tabs .nav-link:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        .custom-parts-tabs .nav-link.active {
+            background-color: #212529 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+
     .img-preview-box {
         position: relative;
         width: 80px;
@@ -36,32 +40,1201 @@
         overflow: hidden;
         border: 2px solid #dee2e6;
     }
-    .img-preview-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+
+        .img-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-preview-box .btn-remove-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(220, 53, 69, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .img-preview-box .btn-remove-img:hover {
+                background: #dc3545;
+            }
+</style>
+
+<style>
+    :root {
+        --parts-admin-bg: #f3f4f6;
+        --parts-admin-surface: #ffffff;
+        --parts-admin-surface-soft: #f8f9fa;
+        --parts-admin-text: #181a1f;
+        --parts-admin-muted: #747983;
+        --parts-admin-border: #e5e7eb;
+        --parts-admin-primary: #17191e;
+        --parts-admin-secondary: #292c33;
+        --parts-admin-accent: #f5b800;
+        --parts-admin-accent-hover: #ffca28;
+        --parts-admin-success: #198754;
+        --parts-admin-danger: #dc3545;
+        --parts-admin-info: #0f6f9f;
+        --parts-admin-radius-xl: 24px;
+        --parts-admin-radius-lg: 17px;
+        --parts-admin-radius-md: 12px;
+        --parts-admin-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --parts-admin-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
     }
-    .img-preview-box .btn-remove-img {
-        position: absolute;
-        top: 2px;
-        right: 2px;
-        background: rgba(220, 53, 69, 0.85);
-        color: white;
-        border: none;
+
+    .parts-admin-page {
+        min-height: 100vh;
+        color: var(--parts-admin-text);
+        background: radial-gradient( circle at 96% 2%, rgba(245, 184, 0, 0.11), transparent 31rem ), radial-gradient( circle at 3% 88%, rgba(17, 19, 24, 0.035), transparent 30rem ), var(--parts-admin-bg);
+        font-family: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+        .parts-admin-page *,
+        .parts-admin-page *::before,
+        .parts-admin-page *::after {
+            box-sizing: border-box;
+        }
+
+        .parts-admin-page a,
+        .parts-admin-page button,
+        .parts-admin-page input,
+        .parts-admin-page select,
+        .parts-admin-page textarea,
+        #partModal,
+        #inventoryReceiptModal,
+        #categoryModal,
+        #supplierModal {
+            font-family: inherit;
+        }
+
+    /* =========================
+           HERO
+        ========================== */
+
+    .page-hero {
+        margin-bottom: 23px !important;
+    }
+
+    .page-hero__content {
+        position: relative;
+        padding: 31px 33px;
+        color: #ffffff;
+        background: radial-gradient( circle at 88% 9%, rgba(245, 184, 0, 0.21), transparent 32% ), linear-gradient( 135deg, var(--parts-admin-primary), var(--parts-admin-secondary) );
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: var(--parts-admin-radius-xl);
+        box-shadow: 0 22px 54px rgba(17, 19, 24, 0.17);
+        overflow: hidden;
+    }
+
+        .page-hero__content::after {
+            content: "INVENTORY";
+            position: absolute;
+            top: -38px;
+            right: 24px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: clamp(5rem, 10vw, 8.5rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+        .page-hero__content > * {
+            position: relative;
+            z-index: 2;
+        }
+
+    .page-hero__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--parts-admin-accent);
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+    .page-hero__dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--parts-admin-accent);
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 11px;
-        line-height: 1;
-        cursor: pointer;
+        box-shadow: 0 0 0 5px rgba(245, 184, 0, 0.13);
+    }
+
+    .page-hero__title {
+        margin: 0 0 9px;
+        color: #ffffff;
+        font-size: clamp(1.9rem, 3.3vw, 2.7rem);
+        font-weight: 950;
+        line-height: 1.13;
+        letter-spacing: -0.045em;
+    }
+
+    .page-hero__subtitle {
+        max-width: 700px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.83rem;
+        line-height: 1.7;
+    }
+
+    .page-actions {
         display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 9px;
+    }
+
+    .app-btn {
+        min-height: 44px;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 7px;
+        padding: 10px 15px;
+        border-radius: 11px;
+        font-size: 0.69rem;
+        font-weight: 900;
+        white-space: nowrap;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .img-preview-box .btn-remove-img:hover {
-        background: #dc3545;
+
+        .app-btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .app-btn--secondary {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        backdrop-filter: blur(8px);
+    }
+
+        .app-btn--secondary:hover {
+            color: var(--parts-admin-primary);
+            background-color: #ffffff;
+            border-color: #ffffff;
+        }
+
+    .app-btn--primary {
+        color: var(--parts-admin-primary);
+        background-color: var(--parts-admin-accent);
+        border: 1px solid var(--parts-admin-accent);
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.2);
+    }
+
+        .app-btn--primary:hover {
+            color: var(--parts-admin-primary);
+            background-color: var(--parts-admin-accent-hover);
+            border-color: var(--parts-admin-accent-hover);
+            box-shadow: 0 15px 31px rgba(245, 184, 0, 0.27);
+        }
+
+    /* =========================
+           ALERT
+        ========================== */
+
+    .app-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 17px;
+        border: 1px solid transparent;
+        border-radius: var(--parts-admin-radius-lg);
+        font-size: 0.77rem;
+        line-height: 1.6;
+        box-shadow: var(--parts-admin-shadow-soft);
+    }
+
+    .app-alert--danger {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    .app-alert__icon {
+        width: 37px;
+        height: 37px;
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        color: var(--parts-admin-danger);
+        background-color: rgba(220, 53, 69, 0.11);
+        border-radius: 11px;
+    }
+
+    .app-alert strong {
+        display: block;
+        margin-bottom: 2px;
+        font-weight: 900;
+    }
+
+    /* =========================
+           TABS
+        ========================== */
+
+    .custom-parts-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 8px !important;
+        margin-bottom: 22px !important;
+        padding: 7px;
+        overflow-x: auto;
+        background-color: var(--parts-admin-surface);
+        border: 1px solid var(--parts-admin-border) !important;
+        border-radius: 16px;
+        box-shadow: var(--parts-admin-shadow-soft);
+        scrollbar-width: thin;
+    }
+
+        .custom-parts-tabs .nav-item {
+            flex: 0 0 auto;
+        }
+
+        .custom-parts-tabs .nav-link {
+            min-height: 48px;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 8px !important;
+            padding: 10px 16px !important;
+            color: #626871;
+            background-color: transparent;
+            border: 1px solid transparent !important;
+            border-radius: 11px !important;
+            box-shadow: none !important;
+            font-size: 0.68rem;
+            font-weight: 900 !important;
+            white-space: nowrap;
+        }
+
+            .custom-parts-tabs .nav-link i {
+                color: #8d929a !important;
+                font-size: 0.94rem !important;
+            }
+
+            .custom-parts-tabs .nav-link:hover {
+                color: var(--parts-admin-primary);
+                background-color: #f5f6f7;
+            }
+
+            .custom-parts-tabs .nav-link.active {
+                color: var(--parts-admin-accent) !important;
+                background: linear-gradient( 135deg, var(--parts-admin-primary), var(--parts-admin-secondary) ) !important;
+                border-color: var(--parts-admin-primary) !important;
+                box-shadow: 0 10px 24px rgba(17, 19, 24, 0.15) !important;
+            }
+
+                .custom-parts-tabs .nav-link.active i {
+                    color: var(--parts-admin-accent) !important;
+                }
+
+    /* =========================
+           METRIC CARDS
+        ========================== */
+
+    .metric-card {
+        position: relative;
+        min-height: 105px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 19px;
+        background-color: var(--parts-admin-surface);
+        border: 1px solid var(--parts-admin-border);
+        border-radius: var(--parts-admin-radius-lg);
+        box-shadow: var(--parts-admin-shadow-soft);
+        overflow: hidden;
+        transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            right: -29px;
+            bottom: -31px;
+            width: 90px;
+            height: 90px;
+            background-color: rgba(17, 19, 24, 0.018);
+            border-radius: 50%;
+        }
+
+        .metric-card:hover {
+            border-color: rgba(245, 184, 0, 0.42);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 34px rgba(17, 19, 24, 0.09);
+        }
+
+    .metric-card__icon {
+        width: 50px;
+        height: 50px;
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid transparent;
+        border-radius: 15px;
+        font-size: 1.08rem;
+    }
+
+    .metric-card__icon--blue {
+        color: #856300;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .metric-card__icon--green {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .metric-card__icon--amber {
+        color: #7c5b00;
+        background-color: #fff9df;
+        border-color: #fde68a;
+    }
+
+    .metric-card__icon--red {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    .metric-card__body {
+        position: relative;
+        z-index: 2;
+        min-width: 0;
+    }
+
+    .metric-card__label {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--parts-admin-muted);
+        font-size: 0.64rem;
+        font-weight: 800;
+    }
+
+    .metric-card__value {
+        display: block;
+        margin-bottom: 3px;
+        color: var(--parts-admin-text);
+        font-size: 1.5rem;
+        font-weight: 950;
+        line-height: 1.05;
+    }
+
+    .metric-card__meta {
+        display: block;
+        overflow: hidden;
+        color: #9a9fa7;
+        font-size: 0.59rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* =========================
+           CONTENT CARDS
+        ========================== */
+
+    .content-card,
+    #categories-tab-pane > .card,
+    #suppliers-tab-pane > .card {
+        overflow: hidden;
+        background-color: var(--parts-admin-surface);
+        border: 1px solid var(--parts-admin-border) !important;
+        border-radius: var(--parts-admin-radius-xl) !important;
+        box-shadow: var(--parts-admin-shadow) !important;
+    }
+
+    .content-card__body {
+        padding: 19px;
+    }
+
+    .content-card__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px 24px;
+        background: linear-gradient( 135deg, #ffffff, #fafafa );
+        border-bottom: 1px solid var(--parts-admin-border);
+    }
+
+    .content-card__title {
+        margin: 0 0 4px;
+        color: var(--parts-admin-primary);
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .content-card__subtitle {
+        color: var(--parts-admin-muted);
+        font-size: 0.69rem;
+        line-height: 1.55;
+    }
+
+    .result-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 11px;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        font-size: 0.63rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    /* =========================
+           TOOLBAR
+        ========================== */
+
+    .toolbar-grid {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) 240px;
+        gap: 12px;
+    }
+
+    .search-control,
+    .select-control {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+        .search-control > i,
+        .select-control > i {
+            position: absolute;
+            z-index: 2;
+            left: 14px;
+            color: #8f949c;
+            font-size: 0.84rem;
+            pointer-events: none;
+        }
+
+        .search-control input,
+        .select-control select {
+            width: 100%;
+            min-height: 47px;
+            color: var(--parts-admin-text);
+            background-color: #f8f9fa;
+            border: 1px solid var(--parts-admin-border);
+            border-radius: 12px;
+            outline: none;
+            font-size: 0.73rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-control input {
+            padding: 10px 14px 10px 42px;
+        }
+
+        .select-control select {
+            padding: 10px 38px 10px 42px;
+        }
+
+            .search-control input:focus,
+            .select-control select:focus {
+                background-color: #ffffff;
+                border-color: var(--parts-admin-accent);
+                box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+            }
+
+    /* =========================
+           TABLES
+        ========================== */
+
+    .parts-admin-page .table-responsive {
+        scrollbar-width: thin;
+    }
+
+    .parts-admin-page .table {
+        margin-bottom: 0;
+    }
+
+        .parts-admin-page .table thead th,
+        #inventoryReceiptModal .table thead th {
+            padding: 13px 15px;
+            color: #777d86;
+            background-color: #f8f9fa !important;
+            border-bottom: 1px solid var(--parts-admin-border);
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .parts-admin-page .table tbody td {
+            padding: 14px 15px;
+            color: #50565f;
+            background-color: #ffffff;
+            border-bottom: 1px solid #edf0f3;
+            font-size: 0.68rem;
+            vertical-align: middle;
+        }
+
+        .parts-admin-page .table tbody tr {
+            transition: background-color 0.16s ease;
+        }
+
+            .parts-admin-page .table tbody tr:hover td {
+                background-color: #fffdf6;
+            }
+
+            .parts-admin-page .table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+    .parts-table {
+        min-width: 1050px;
+    }
+
+    .part-cell img {
+        width: 58px !important;
+        height: 58px !important;
+        flex: 0 0 auto;
+        background-color: #eceef1;
+        border: 1px solid var(--parts-admin-border) !important;
+        border-radius: 11px !important;
+        box-shadow: 0 7px 17px rgba(17, 19, 24, 0.07);
+    }
+
+    .part-cell__info {
+        min-width: 180px;
+    }
+
+    .part-name-cell {
+        max-width: 250px;
+        overflow: hidden;
+        color: var(--parts-admin-primary) !important;
+        font-size: 0.74rem;
+        font-weight: 900;
+        line-height: 1.45;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .part-cell__info .small {
+        display: block;
+        max-width: 240px;
+        margin-top: 3px;
+        overflow: hidden;
+        color: #9398a0 !important;
+        font-size: 0.6rem !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .part-code-cell {
+        display: inline-flex;
+        padding: 6px 8px;
+        color: #5d626b !important;
+        background-color: #f3f4f6;
+        border: 1px solid #e1e3e7;
+        border-radius: 8px;
+        font-size: 0.62rem;
+    }
+
+    .parts-admin-page .badge {
+        padding: 6px 9px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.57rem;
+        font-weight: 900;
+    }
+
+        .parts-admin-page .badge.bg-success {
+            color: #166534 !important;
+            background-color: #effbf4 !important;
+            border-color: #bbf7d0;
+        }
+
+        .parts-admin-page .badge.bg-warning {
+            color: #7c5b00 !important;
+            background-color: #fff9df !important;
+            border-color: #fde68a;
+        }
+
+        .parts-admin-page .badge.bg-danger {
+            color: #991b1b !important;
+            background-color: #fff2f3 !important;
+            border-color: #fecaca;
+        }
+
+        .parts-admin-page .badge.bg-secondary {
+            color: #626871 !important;
+            background-color: #f1f2f4 !important;
+            border-color: #dfe1e5;
+        }
+
+        .parts-admin-page .badge.bg-light {
+            color: #535860 !important;
+            background-color: #f5f6f7 !important;
+            border-color: #e1e3e6 !important;
+        }
+
+    .parts-admin-page .btn-outline-primary {
+        color: #8a6800;
+        background-color: #fffdf6;
+        border-color: #e8cf7d;
+        border-radius: 9px;
+        font-size: 0.61rem;
+        font-weight: 900 !important;
+    }
+
+        .parts-admin-page .btn-outline-primary:hover {
+            color: var(--parts-admin-primary);
+            background-color: var(--parts-admin-accent);
+            border-color: var(--parts-admin-accent);
+        }
+
+    /* =========================
+           CATEGORY / SUPPLIER PANELS
+        ========================== */
+
+    #categories-tab-pane > .card > .card-header,
+    #suppliers-tab-pane > .card > .card-header {
+        gap: 18px;
+        padding: 22px 24px !important;
+        background: linear-gradient( 135deg, #ffffff, #fafafa ) !important;
+        border-bottom: 1px solid var(--parts-admin-border) !important;
+    }
+
+    #categories-tab-pane .card-header h3,
+    #suppliers-tab-pane .card-header h3 {
+        color: var(--parts-admin-primary) !important;
+        font-size: 0.98rem;
+        font-weight: 950 !important;
+    }
+
+        #categories-tab-pane .card-header h3 i,
+        #suppliers-tab-pane .card-header h3 i {
+            color: #8a6800 !important;
+        }
+
+    #categories-tab-pane .card-header p,
+    #suppliers-tab-pane .card-header p {
+        margin-top: 4px !important;
+        color: var(--parts-admin-muted) !important;
+        font-size: 0.67rem !important;
+    }
+
+    #categories-tab-pane .card-header .btn,
+    #suppliers-tab-pane .card-header .btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 14px !important;
+        color: var(--parts-admin-primary) !important;
+        background-color: var(--parts-admin-accent) !important;
+        border-color: var(--parts-admin-accent) !important;
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 900 !important;
+    }
+
+    #categories-tab-pane table,
+    #suppliers-tab-pane table {
+        min-width: 760px;
+    }
+
+    #suppliers-tab-pane table {
+        min-width: 1080px;
+    }
+
+    /* =========================
+           EMPTY STATE
+        ========================== */
+
+    .empty-state {
+        padding: 55px 24px !important;
+        color: var(--parts-admin-muted);
+        text-align: center;
+    }
+
+    .empty-state__icon {
+        width: 72px;
+        height: 72px;
+        display: grid;
+        margin: 0 auto;
+        place-items: center;
+        color: #8d6900 !important;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 21px;
+        font-size: 1.65rem !important;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 7px;
+        color: var(--parts-admin-primary);
+        font-size: 0.9rem;
+        font-weight: 950;
+    }
+
+    .empty-state p {
+        color: var(--parts-admin-muted) !important;
+        font-size: 0.68rem;
+    }
+
+    /* =========================
+           MODALS
+        ========================== */
+
+    #partModal .modal-content,
+    #inventoryReceiptModal .modal-content,
+    #categoryModal .modal-content,
+    #supplierModal .modal-content {
+        overflow: hidden;
+        background-color: #ffffff;
+        border: 0 !important;
+        border-radius: 21px !important;
+        box-shadow: 0 30px 80px rgba(17, 19, 24, 0.26) !important;
+    }
+
+    #partModal .modal-header,
+    #inventoryReceiptModal .modal-header,
+    #categoryModal .modal-header,
+    #supplierModal .modal-header {
+        padding: 20px 23px !important;
+        color: #ffffff !important;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.18), transparent 34% ), linear-gradient( 135deg, var(--parts-admin-primary), var(--parts-admin-secondary) ) !important;
+        border: 0;
+    }
+
+    #partModal .modal-title,
+    #inventoryReceiptModal .modal-title,
+    #categoryModal .modal-title,
+    #supplierModal .modal-title {
+        color: #ffffff;
+        font-size: 0.92rem;
+        font-weight: 950 !important;
+        letter-spacing: 0.01em;
+    }
+
+        #partModal .modal-title i,
+        #inventoryReceiptModal .modal-title i,
+        #categoryModal .modal-title i,
+        #supplierModal .modal-title i {
+            color: var(--parts-admin-accent);
+        }
+
+    #partModal .modal-header p {
+        margin-top: 3px;
+        color: rgba(255, 255, 255, 0.55) !important;
+        font-size: 0.65rem !important;
+    }
+
+    #partModal .modal-body,
+    #inventoryReceiptModal .modal-body,
+    #categoryModal .modal-body,
+    #supplierModal .modal-body {
+        padding: 24px !important;
+        background-color: #ffffff;
+    }
+
+    #partModal .form-label,
+    #inventoryReceiptModal .form-label,
+    #categoryModal .form-label,
+    #supplierModal .form-label {
+        margin-bottom: 7px;
+        color: #43474f;
+        font-size: 0.68rem;
+        font-weight: 900 !important;
+    }
+
+    #partModal .form-control,
+    #partModal .form-select,
+    #inventoryReceiptModal .form-control,
+    #inventoryReceiptModal .form-select,
+    #categoryModal .form-control,
+    #categoryModal .form-select,
+    #supplierModal .form-control,
+    #supplierModal .form-select {
+        min-height: 45px;
+        color: var(--parts-admin-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--parts-admin-border);
+        border-radius: 11px;
+        outline: none;
+        font-size: 0.72rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #partModal textarea.form-control,
+    #inventoryReceiptModal textarea.form-control,
+    #categoryModal textarea.form-control {
+        min-height: 88px;
+    }
+
+    #partModal .form-control:focus,
+    #partModal .form-select:focus,
+    #inventoryReceiptModal .form-control:focus,
+    #inventoryReceiptModal .form-select:focus,
+    #categoryModal .form-control:focus,
+    #supplierModal .form-control:focus,
+    #supplierModal .form-select:focus {
+        background-color: #ffffff;
+        border-color: var(--parts-admin-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    #partModal h6,
+    #inventoryReceiptModal h6 {
+        color: #8a6800 !important;
+        border-color: #eceef1 !important;
+        font-size: 0.7rem;
+        font-weight: 950 !important;
+        letter-spacing: 0.05em;
+    }
+
+    #partModal .bg-light,
+    #inventoryReceiptModal .bg-light,
+    #categoryModal .bg-light,
+    #supplierModal .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    #partModal .btn,
+    #inventoryReceiptModal .btn,
+    #categoryModal .btn,
+    #supplierModal .btn {
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 900 !important;
+    }
+
+    #partModal .btn-warning,
+    #categoryModal .btn-primary,
+    #supplierModal .btn-success,
+    #inventoryReceiptModal #btnSaveReceipt {
+        color: var(--parts-admin-primary) !important;
+        background-color: var(--parts-admin-accent) !important;
+        border-color: var(--parts-admin-accent) !important;
+    }
+
+    #partModal .btn-secondary,
+    #inventoryReceiptModal .btn-secondary,
+    #categoryModal .btn-secondary,
+    #supplierModal .btn-secondary {
+        color: #5f646d;
+        background-color: #f1f2f4;
+        border-color: #e0e2e6;
+    }
+
+    /* =========================
+           IMAGE UPLOAD
+        ========================== */
+
+    .img-preview-box {
+        position: relative;
+        width: 84px;
+        height: 84px;
+        overflow: hidden;
+        background-color: #eceef1;
+        border: 2px solid #e2e4e8;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(17, 19, 24, 0.07);
+    }
+
+        .img-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-preview-box .btn-remove-img {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 23px;
+            height: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            color: #ffffff;
+            background-color: rgba(220, 53, 69, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            font-size: 0.58rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+    /* =========================
+           INVENTORY RECEIPT
+        ========================== */
+
+    #inventoryReceiptModal .modal-dialog {
+        max-width: min(1380px, calc(100vw - 28px));
+    }
+
+    #inventoryReceiptModal .card {
+        border: 1px solid var(--parts-admin-border) !important;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+    }
+
+    #inventoryReceiptModal .table-responsive {
+        overflow: auto;
+        border: 1px solid var(--parts-admin-border) !important;
+        border-radius: 14px !important;
+    }
+
+    #inventoryReceiptModal #receiptItemsTable {
+        min-width: 1040px;
+        margin-bottom: 0;
+    }
+
+    #inventoryReceiptModal .table tbody td {
+        padding: 13px;
+        color: #50565f;
+        background-color: #ffffff;
+        border-bottom: 1px solid #edf0f3;
+        font-size: 0.67rem;
+        vertical-align: top;
+    }
+
+    #inventoryReceiptModal .receipt-item-row:hover td {
+        background-color: #fffdf6;
+    }
+
+    #inventoryReceiptModal .btn-outline-success,
+    #inventoryReceiptModal .btn-outline-primary {
+        color: #6c5200;
+        background-color: #ffffff;
+        border-color: #d9c16f;
+    }
+
+        #inventoryReceiptModal .btn-outline-success.active,
+        #inventoryReceiptModal .btn-outline-primary.active {
+            color: var(--parts-admin-primary);
+            background-color: var(--parts-admin-accent);
+            border-color: var(--parts-admin-accent);
+        }
+
+    #inventoryReceiptModal .new-part-container {
+        background-color: #f8f9fa !important;
+        border: 1px solid var(--parts-admin-border) !important;
+        border-left: 4px solid var(--parts-admin-accent) !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }
+
+        #inventoryReceiptModal .new-part-container label {
+            color: #50555e !important;
+        }
+
+        #inventoryReceiptModal .new-part-container .text-success,
+        #inventoryReceiptModal .new-part-container .text-primary {
+            color: #8a6800 !important;
+        }
+
+    #inventoryReceiptModal .new-part-image-preview img {
+        width: 68px !important;
+        height: 68px !important;
+        border-radius: 10px !important;
+    }
+
+    #inventoryReceiptModal .btn-link.text-danger {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--parts-admin-danger) !important;
+        background-color: #fff2f3;
+        border: 1px solid #fecaca;
+        border-radius: 9px;
+        text-decoration: none;
+    }
+
+    #inventoryReceiptModal .input-group .btn-outline-secondary {
+        color: #757a83;
+        background-color: #f1f2f4;
+        border-color: var(--parts-admin-border);
+    }
+
+    /* =========================
+           RESPONSIVE
+        ========================== */
+
+    @@media (max-width: 1199.98px) {
+        .page-hero__content {
+            padding: 28px;
+        }
+
+        .page-actions {
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .page-hero__content::after {
+            display: none;
+        }
+
+        .toolbar-grid {
+            grid-template-columns: 1fr 220px;
+        }
+
+        #categories-tab-pane > .card > .card-header,
+        #suppliers-tab-pane > .card > .card-header {
+            align-items: flex-start !important;
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .parts-admin-page > .container-fluid {
+            padding-right: 13px !important;
+            padding-left: 13px !important;
+        }
+
+        .page-hero__content {
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+        .page-hero__title {
+            font-size: 1.72rem;
+        }
+
+        .page-hero__subtitle {
+            font-size: 0.76rem;
+        }
+
+        .page-actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%;
+        }
+
+        .app-btn {
+            width: 100%;
+        }
+
+        .custom-parts-tabs {
+            border-radius: 14px;
+        }
+
+        .toolbar-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .content-card,
+        #categories-tab-pane > .card,
+        #suppliers-tab-pane > .card {
+            border-radius: 20px !important;
+        }
+
+        .content-card__header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .content-card__body {
+            padding: 16px;
+        }
+
+        #partModal .modal-body,
+        #inventoryReceiptModal .modal-body,
+        #categoryModal .modal-body,
+        #supplierModal .modal-body {
+            padding: 19px !important;
+        }
+
+        #categories-tab-pane > .card > .card-header,
+        #suppliers-tab-pane > .card > .card-header {
+            padding: 19px !important;
+        }
+
+        #categories-tab-pane .card-header .btn,
+        #suppliers-tab-pane .card-header .btn {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .metric-card {
+            min-height: 92px;
+        }
+
+        .metric-card__value {
+            font-size: 1.32rem;
+        }
+
+        .custom-parts-tabs .nav-link {
+            padding-right: 13px !important;
+            padding-left: 13px !important;
+        }
+
+        .part-name-cell {
+            max-width: 190px;
+        }
+
+        #partModal .modal-dialog,
+        #inventoryReceiptModal .modal-dialog,
+        #categoryModal .modal-dialog,
+        #supplierModal .modal-dialog {
+            margin: 9px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .app-btn,
+        .metric-card,
+        .part-cell img,
+        .parts-admin-page .table tbody tr {
+            transition: none;
+        }
+
+            .app-btn:hover,
+            .metric-card:hover {
+                transform: none;
+            }
+    }
+
+    @@media print {
+        .page-actions,
+        .custom-parts-tabs,
+        .toolbar-grid,
+        .parts-admin-page .btn {
+            display: none !important;
+        }
+
+        .parts-admin-page {
+            background: #ffffff;
+        }
+
+        .page-hero__content,
+        .metric-card,
+        .content-card,
+        #categories-tab-pane > .card,
+        #suppliers-tab-pane > .card {
+            box-shadow: none !important;
+        }
     }
 </style>
+
 
 <div class="parts-admin-page">
     <div class="container-fluid px-3 px-lg-4 py-4 py-xl-5">
@@ -139,7 +1312,7 @@
             <!-- TAB 1: QUẢN LÝ KHO PHỤ TÙNG               -->
             <!-- ========================================== -->
             <div class="tab-pane fade show active" id="inventory-tab-pane" role="tabpanel" aria-labelledby="inventory-tab">
-                
+
                 <!-- Metrics overview -->
                 <section class="row g-3 g-xl-4 mb-4">
                     <div class="col-sm-6 col-xl-3">
@@ -485,13 +1658,13 @@
                 <form id="partForm">
                     <input type="hidden" name="PartId" id="partId" value="0" />
                     <input type="hidden" name="ImageUrl" id="imageUrl" value="" />
-                    
+
                     <!-- THÔNG TIN CƠ BẢN -->
                     <div class="mb-4">
                         <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3">
                             <i class="bi bi-info-circle me-1"></i> THÔNG TIN CƠ BẢN
                         </h6>
-                        
+
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Tên phụ tùng <span class="text-danger">*</span></label>
@@ -761,7 +1934,7 @@
             }
 
             // Save active tab on tab click
-            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
                 const target = $(e.target).attr('data-bs-target');
                 if (target) {
                     localStorage.setItem('partsActiveTab', target);
@@ -840,11 +2013,11 @@
 
             currentPartImages.forEach((url, idx) => {
                 const box = $(`
-                    <div class="img-preview-box">
-                        <img src="${url}" alt="Preview ${idx + 1}" />
-                        <button type="button" class="btn-remove-img" title="Xóa ảnh" onclick="removePartImageAt(${idx})">✕</button>
-                    </div>
-                `);
+                            <div class="img-preview-box">
+                                <img src="${url}" alt="Preview ${idx + 1}" />
+                                <button type="button" class="btn-remove-img" title="Xóa ảnh" onclick="removePartImageAt(${idx})">✕</button>
+                            </div>
+                        `);
                 container.append(box);
             });
 
@@ -946,15 +2119,15 @@
         let categoryFilterOptionsHtml = '<option value="">-- Tất cả danh mục --</option>';
         let categoryOptionsHtml = '<option value="">-- Chọn danh mục * --</option>';
 
-        @foreach (var cat in categories)
-        {
-            <text>categoryOptionsHtml += `<option value="@cat.CategoryId">@cat.CategoryName</option>`;</text>
+                @foreach (var cat in categories)
+            {
+                <text>categoryOptionsHtml += `<option value="@cat.CategoryId">@cat.CategoryName</option>`;</text>
         }
 
-        function clearReceiptDate(btn) {
-            const input = btn.closest('.input-group').querySelector('.receipt-expired');
-            if (input) input.value = '';
-        }
+            function clearReceiptDate(btn) {
+                const input = btn.closest('.input-group').querySelector('.receipt-expired');
+                if (input) input.value = '';
+            }
 
         function openInventoryReceiptModal() {
             const modal = new bootstrap.Modal(document.getElementById('inventoryReceiptModal'));
@@ -967,30 +2140,30 @@
             });
 
             fetch('http://localhost:5084/api/Suppliers')
-            .then(res => res.json())
-            .then(suppliers => {
-                allSuppliersList = suppliers;
-                supplierOptionsHtml = '<option value="">-- Chọn nhà cung cấp * --</option>';
-                allSuppliersList.forEach(s => {
-                    if (s.status === 'Active') {
-                        supplierOptionsHtml += `<option value="${s.supplierId}">${s.supplierName}</option>`;
-                    }
-                });
+                .then(res => res.json())
+                .then(suppliers => {
+                    allSuppliersList = suppliers;
+                    supplierOptionsHtml = '<option value="">-- Chọn nhà cung cấp * --</option>';
+                    allSuppliersList.forEach(s => {
+                        if (s.status === 'Active') {
+                            supplierOptionsHtml += `<option value="${s.supplierId}">${s.supplierName}</option>`;
+                        }
+                    });
 
-                return fetch('http://localhost:5084/api/Parts');
-            })
-            .then(res => res.json())
-            .then(parts => {
-                allPartsCache = parts.value || parts;
-                Swal.close();
-                document.getElementById('receiptNotes').value = '';
-                document.getElementById('receiptItemsTableBody').innerHTML = '';
-                addReceiptItemRow();
-            })
-            .catch(err => {
-                Swal.close();
-                Swal.fire('Lỗi', 'Không thể tải dữ liệu: ' + err.message, 'error');
-            });
+                    return fetch('http://localhost:5084/api/Parts');
+                })
+                .then(res => res.json())
+                .then(parts => {
+                    allPartsCache = parts.value || parts;
+                    Swal.close();
+                    document.getElementById('receiptNotes').value = '';
+                    document.getElementById('receiptItemsTableBody').innerHTML = '';
+                    addReceiptItemRow();
+                })
+                .catch(err => {
+                    Swal.close();
+                    Swal.fire('Lỗi', 'Không thể tải dữ liệu: ' + err.message, 'error');
+                });
         }
 
         function populateSearchDatalist(row) {
@@ -1036,91 +2209,91 @@
             tr.partsCache = allPartsCache;
 
             tr.innerHTML = `
-                <td class="align-top pt-3">
-                    <div class="d-flex flex-column gap-2">
-                        <button type="button" class="btn btn-xs btn-outline-primary fw-bold active btn-existing-mode text-nowrap" onclick="setRowMode(this, false)">
-                            <i class="bi bi-list-check me-1"></i> Chọn sẵn
-                        </button>
-                        <button type="button" class="btn btn-xs btn-outline-success fw-bold btn-new-mode text-nowrap" onclick="setRowMode(this, true)">
-                            <i class="bi bi-plus-circle me-1"></i> Phụ tùng mới
-                        </button>
-                    </div>
-                    <input type="hidden" class="row-is-new-part" value="false" />
-                </td>
-                <td>
-                    <!-- Chọn phụ tùng có sẵn -->
-                    <div class="existing-part-container position-relative">
-                        <label class="fw-bold mb-1" style="font-size: 11px;">Tên hoặc mã phụ tùng *</label>
-                        <input type="text" class="form-control form-control-sm search-part-input" list="clientDatalist_${currentIndex}" placeholder="Gõ tên hoặc mã phụ tùng cần nhập..." oninput="onPartInputFromList(this)" />
-                        <datalist id="clientDatalist_${currentIndex}"></datalist>
-                        <input type="hidden" class="receipt-part-select-val" />
-                    </div>
-
-                    <!-- Tạo phụ tùng mới -->
-                    <div class="new-part-container d-none border rounded p-3 bg-light shadow-xs mt-2" style="font-size: 11px; border-left: 3px solid #198754 !important;">
-                        <div class="row g-2">
-                            <div class="col-md-12">
-                                <label class="fw-bold mb-1 text-success"><i class="bi bi-building me-1"></i> Nhà cung cấp *</label>
-                                <select class="form-select form-select-sm new-part-supplier">
-                                    ${supplierOptionsHtml}
-                                </select>
+                        <td class="align-top pt-3">
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-xs btn-outline-primary fw-bold active btn-existing-mode text-nowrap" onclick="setRowMode(this, false)">
+                                    <i class="bi bi-list-check me-1"></i> Chọn sẵn
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-success fw-bold btn-new-mode text-nowrap" onclick="setRowMode(this, true)">
+                                    <i class="bi bi-plus-circle me-1"></i> Phụ tùng mới
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Tên phụ tùng mới *</label>
-                                <input type="text" class="form-control form-control-sm new-part-name" placeholder="Ví dụ: Lọc dầu Engine Max" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Mã phụ tùng mới *</label>
-                                <input type="text" class="form-control form-control-sm new-part-code" placeholder="Ví dụ: PT-LOCDAU-01" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Danh mục *</label>
-                                <select class="form-select form-select-sm new-part-category">
-                                    ${categoryOptionsHtml}
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Thương hiệu</label>
-                                <input type="text" class="form-control form-control-sm new-part-brand" placeholder="Toyota, Bosch..." />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Giá bán ra (VNĐ) *</label>
-                                <input type="number" class="form-control form-control-sm new-part-price-sell" placeholder="0" min="0" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold mb-1">Đơn vị tính</label>
-                                <input type="text" class="form-control form-control-sm new-part-uom" value="Cái" />
+                            <input type="hidden" class="row-is-new-part" value="false" />
+                        </td>
+                        <td>
+                            <!-- Chọn phụ tùng có sẵn -->
+                            <div class="existing-part-container position-relative">
+                                <label class="fw-bold mb-1" style="font-size: 11px;">Tên hoặc mã phụ tùng *</label>
+                                <input type="text" class="form-control form-control-sm search-part-input" list="clientDatalist_${currentIndex}" placeholder="Gõ tên hoặc mã phụ tùng cần nhập..." oninput="onPartInputFromList(this)" />
+                                <datalist id="clientDatalist_${currentIndex}"></datalist>
+                                <input type="hidden" class="receipt-part-select-val" />
                             </div>
 
-                            <div class="col-md-12 bg-white p-2 border rounded mt-2">
-                                <label class="fw-bold mb-1 text-primary d-flex align-items-center gap-1">
-                                    <i class="bi bi-upload"></i> Tải hình ảnh phụ tùng từ laptop
-                                </label>
-                                <input type="file" class="form-control form-control-sm new-part-image-file" accept="image/*" onchange="uploadRowPartImage(this)" />
-                                <input type="hidden" class="new-part-image-url" />
-                                <div class="new-part-image-preview mt-2 d-none">
-                                    <img src="" class="rounded border object-fit-cover" style="width:60px; height:60px;" />
+                            <!-- Tạo phụ tùng mới -->
+                            <div class="new-part-container d-none border rounded p-3 bg-light shadow-xs mt-2" style="font-size: 11px; border-left: 3px solid #198754 !important;">
+                                <div class="row g-2">
+                                    <div class="col-md-12">
+                                        <label class="fw-bold mb-1 text-success"><i class="bi bi-building me-1"></i> Nhà cung cấp *</label>
+                                        <select class="form-select form-select-sm new-part-supplier">
+                                            ${supplierOptionsHtml}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Tên phụ tùng mới *</label>
+                                        <input type="text" class="form-control form-control-sm new-part-name" placeholder="Ví dụ: Lọc dầu Engine Max" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Mã phụ tùng mới *</label>
+                                        <input type="text" class="form-control form-control-sm new-part-code" placeholder="Ví dụ: PT-LOCDAU-01" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Danh mục *</label>
+                                        <select class="form-select form-select-sm new-part-category">
+                                            ${categoryOptionsHtml}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Thương hiệu</label>
+                                        <input type="text" class="form-control form-control-sm new-part-brand" placeholder="Toyota, Bosch..." />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Giá bán ra (VNĐ) *</label>
+                                        <input type="number" class="form-control form-control-sm new-part-price-sell" placeholder="0" min="0" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="fw-bold mb-1">Đơn vị tính</label>
+                                        <input type="text" class="form-control form-control-sm new-part-uom" value="Cái" />
+                                    </div>
+
+                                    <div class="col-md-12 bg-white p-2 border rounded mt-2">
+                                        <label class="fw-bold mb-1 text-primary d-flex align-items-center gap-1">
+                                            <i class="bi bi-upload"></i> Tải hình ảnh phụ tùng từ laptop
+                                        </label>
+                                        <input type="file" class="form-control form-control-sm new-part-image-file" accept="image/*" onchange="uploadRowPartImage(this)" />
+                                        <input type="hidden" class="new-part-image-url" />
+                                        <div class="new-part-image-preview mt-2 d-none">
+                                            <img src="" class="rounded border object-fit-cover" style="width:60px; height:60px;" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </td>
-                <td class="align-top pt-3">
-                    <input type="number" class="form-control form-control-sm receipt-qty" min="1" value="1" required />
-                </td>
-                <td class="align-top pt-3">
-                    <input type="number" class="form-control form-control-sm receipt-price" min="0" placeholder="0" required />
-                </td>
-                <td class="align-top pt-3">
-                    <div class="input-group input-group-sm">
-                        <input type="date" class="form-control receipt-expired" />
-                        <button type="button" class="btn btn-outline-secondary px-2" title="Xóa ngày" onclick="clearReceiptDate(this)">✕</button>
-                    </div>
-                </td>
-                <td class="text-center align-top pt-3">
-                    <button type="button" class="btn btn-link text-danger p-0" onclick="removeReceiptRow(this)"><i class="bi bi-trash-fill fs-5"></i></button>
-                </td>
-            `;
+                        </td>
+                        <td class="align-top pt-3">
+                            <input type="number" class="form-control form-control-sm receipt-qty" min="1" value="1" required />
+                        </td>
+                        <td class="align-top pt-3">
+                            <input type="number" class="form-control form-control-sm receipt-price" min="0" placeholder="0" required />
+                        </td>
+                        <td class="align-top pt-3">
+                            <div class="input-group input-group-sm">
+                                <input type="date" class="form-control receipt-expired" />
+                                <button type="button" class="btn btn-outline-secondary px-2" title="Xóa ngày" onclick="clearReceiptDate(this)">✕</button>
+                            </div>
+                        </td>
+                        <td class="text-center align-top pt-3">
+                            <button type="button" class="btn btn-link text-danger p-0" onclick="removeReceiptRow(this)"><i class="bi bi-trash-fill fs-5"></i></button>
+                        </td>
+                    `;
 
             tbody.appendChild(tr);
             populateSearchDatalist(tr);

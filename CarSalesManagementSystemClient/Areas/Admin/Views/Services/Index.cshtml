@@ -4,46 +4,711 @@
     ViewData["Title"] = "Quản lý dịch vụ lẻ";
 }
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1"><i class="bi bi-tools text-primary me-2"></i>Quản lý dịch vụ lẻ</h2>
-            <p class="text-muted mb-0">Quản lý danh sách các dịch vụ sửa chữa/bảo dưỡng lẻ</p>
-        </div>
-        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="resetForm()">
-            <i class="bi bi-plus-lg me-1"></i> Thêm dịch vụ mới
-        </button>
-    </div>
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+<style>
+    :root {
+        --service-admin-primary: #17191e;
+        --service-admin-secondary: #292c33;
+        --service-admin-accent: #f5b800;
+        --service-admin-accent-hover: #ffca28;
+        --service-admin-bg: #f3f4f6;
+        --service-admin-surface: #ffffff;
+        --service-admin-border: #e5e7eb;
+        --service-admin-text: #181a1f;
+        --service-admin-muted: #747983;
+        --service-admin-danger: #dc3545;
+        --service-admin-success: #198754;
+        --service-admin-radius-xl: 24px;
+        --service-admin-radius-lg: 17px;
+        --service-admin-radius-md: 12px;
+        --service-admin-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --service-admin-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
     }
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
+    .service-admin-page {
+        min-height: 100vh;
+        padding: 32px 0 72px;
+        color: var(--service-admin-text);
+        background:
+            radial-gradient(
+                circle at 96% 2%,
+                rgba(245, 184, 0, 0.11),
+                transparent 31rem
+            ),
+            radial-gradient(
+                circle at 3% 88%,
+                rgba(17, 19, 24, 0.035),
+                transparent 30rem
+            ),
+            var(--service-admin-bg);
+    }
+
+    .service-admin-container {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    /* Hero */
+
+    .service-admin-hero {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 20px;
+        padding: 30px 32px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 89% 10%,
+                rgba(245, 184, 0, 0.2),
+                transparent 32%
+            ),
+            linear-gradient(
+                135deg,
+                var(--service-admin-primary),
+                var(--service-admin-secondary)
+            );
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: var(--service-admin-radius-xl);
+        box-shadow: 0 22px 54px rgba(17, 19, 24, 0.17);
+        overflow: hidden;
+    }
+
+    .service-admin-hero::after {
+        content: "SERVICES";
+        position: absolute;
+        top: -38px;
+        right: 22px;
+        color: rgba(255, 255, 255, 0.035);
+        font-size: clamp(5rem, 11vw, 8.5rem);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.08em;
+        pointer-events: none;
+    }
+
+    .service-admin-hero-content,
+    .service-admin-add-button {
+        position: relative;
+        z-index: 2;
+    }
+
+    .service-admin-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 9px;
+        color: var(--service-admin-accent);
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+    .service-admin-eyebrow::before {
+        content: "";
+        width: 29px;
+        height: 2px;
+        background-color: var(--service-admin-accent);
+    }
+
+    .service-admin-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin: 0 0 8px;
+        color: #ffffff;
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 950;
+        line-height: 1.13;
+        letter-spacing: -0.045em;
+    }
+
+    .service-admin-title i {
+        color: var(--service-admin-accent);
+    }
+
+    .service-admin-description {
+        max-width: 720px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        line-height: 1.68;
+    }
+
+    .service-admin-add-button {
+        min-height: 45px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        color: var(--service-admin-primary);
+        background-color: var(--service-admin-accent);
+        border: 1px solid var(--service-admin-accent);
+        border-radius: 11px;
+        font-size: 0.67rem;
+        font-weight: 900;
+        white-space: nowrap;
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.2);
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .service-admin-add-button:hover {
+        color: var(--service-admin-primary);
+        background-color: var(--service-admin-accent-hover);
+        border-color: var(--service-admin-accent-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 15px 31px rgba(245, 184, 0, 0.27);
+    }
+
+    /* Alert */
+
+    .service-admin-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fff2f3;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        box-shadow: var(--service-admin-shadow-soft);
+        font-size: 0.76rem;
+        line-height: 1.6;
+    }
+
+    .service-admin-alert i {
+        flex: 0 0 auto;
+        margin-top: 2px;
+    }
+
+    /* Card */
+
+    .service-admin-card {
+        overflow: hidden;
+        background-color: var(--service-admin-surface);
+        border: 1px solid var(--service-admin-border);
+        border-radius: var(--service-admin-radius-xl);
+        box-shadow: var(--service-admin-shadow);
+    }
+
+    .service-admin-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 24px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #fafafa
+            );
+        border-bottom: 1px solid var(--service-admin-border);
+    }
+
+    .service-admin-card-header h2 {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0 0 4px;
+        color: var(--service-admin-primary);
+        font-size: 0.98rem;
+        font-weight: 950;
+    }
+
+    .service-admin-card-header h2 i {
+        color: #8a6800;
+    }
+
+    .service-admin-card-header p {
+        margin: 0;
+        color: var(--service-admin-muted);
+        font-size: 0.67rem;
+        line-height: 1.55;
+    }
+
+    .service-admin-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        font-size: 0.61rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    /* Table */
+
+    .service-admin-table {
+        min-width: 980px;
+        margin-bottom: 0;
+    }
+
+    .service-admin-table thead th {
+        padding: 13px 15px;
+        color: #777d86;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid var(--service-admin-border);
+        font-size: 0.57rem;
+        font-weight: 900;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .service-admin-table tbody td {
+        padding: 15px;
+        color: #50565f;
+        background-color: #ffffff;
+        border-bottom: 1px solid #edf0f3;
+        font-size: 0.67rem;
+        vertical-align: middle;
+    }
+
+    .service-admin-table tbody tr {
+        transition: background-color 0.16s ease;
+    }
+
+    .service-admin-table tbody tr:hover td {
+        background-color: #fffdf6;
+    }
+
+    .service-admin-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .service-id-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 9px;
+        color: #626871;
+        background-color: #f1f2f4;
+        border: 1px solid #dfe1e5;
+        border-radius: 999px;
+        font-family: monospace;
+        font-size: 0.59rem;
+        font-weight: 900;
+    }
+
+    .service-name {
+        max-width: 235px;
+        overflow: hidden;
+        color: var(--service-admin-primary);
+        font-size: 0.73rem;
+        font-weight: 950;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .service-description {
+        max-width: 330px;
+        overflow: hidden;
+        color: var(--service-admin-muted);
+        font-size: 0.63rem;
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .service-price {
+        color: #b42318;
+        font-size: 0.71rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .service-duration {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #626871;
+        white-space: nowrap;
+    }
+
+    .service-duration i {
+        color: #8a6800;
+    }
+
+    /* Empty state */
+
+    .service-admin-empty {
+        padding: 58px 24px !important;
+        color: var(--service-admin-muted);
+        text-align: center;
+    }
+
+    .service-admin-empty-icon {
+        width: 78px;
+        height: 78px;
+        display: grid;
+        margin: 0 auto 16px;
+        place-items: center;
+        color: #8b6800;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 23px;
+        font-size: 1.75rem;
+    }
+
+    .service-admin-empty strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--service-admin-primary);
+        font-size: 0.87rem;
+        font-weight: 950;
+    }
+
+    .service-admin-empty span {
+        font-size: 0.67rem;
+    }
+
+    /* Row actions */
+
+    .service-admin-row-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 7px;
+    }
+
+    .service-admin-row-button {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 7px 10px;
+        border-radius: 9px;
+        font-size: 0.59rem;
+        font-weight: 900;
+        transition:
+            color 0.2s ease,
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .service-admin-row-button:hover {
+        transform: translateY(-2px);
+    }
+
+    .service-admin-edit-button {
+        color: #805f00;
+        background-color: #fffdf6;
+        border: 1px solid #e8cf7d;
+    }
+
+    .service-admin-edit-button:hover {
+        color: var(--service-admin-primary);
+        background-color: var(--service-admin-accent);
+        border-color: var(--service-admin-accent);
+        box-shadow: 0 9px 20px rgba(245, 184, 0, 0.17);
+    }
+
+    .service-admin-delete-button {
+        color: #991b1b;
+        background-color: #fff7f7;
+        border: 1px solid #fecaca;
+    }
+
+    .service-admin-delete-button:hover {
+        color: #ffffff;
+        background-color: var(--service-admin-danger);
+        border-color: var(--service-admin-danger);
+        box-shadow: 0 9px 20px rgba(220, 53, 69, 0.16);
+    }
+
+    /* Modal */
+
+    #serviceModal .modal-content {
+        overflow: hidden;
+        background-color: #ffffff;
+        border: 0 !important;
+        border-radius: 21px;
+        box-shadow: 0 30px 80px rgba(17, 19, 24, 0.26) !important;
+    }
+
+    #serviceModal .modal-header {
+        padding: 20px 23px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 90% 10%,
+                rgba(245, 184, 0, 0.18),
+                transparent 34%
+            ),
+            linear-gradient(
+                135deg,
+                var(--service-admin-primary),
+                var(--service-admin-secondary)
+            );
+        border: 0;
+    }
+
+    #serviceModal .modal-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #ffffff;
+        font-size: 0.9rem;
+        font-weight: 950;
+    }
+
+    #serviceModal .modal-title::before {
+        content: "\F3E7";
+        color: var(--service-admin-accent);
+        font-family: "bootstrap-icons";
+        font-size: 1rem;
+    }
+
+    #serviceModal .btn-close {
+        filter: invert(1) grayscale(1);
+        opacity: 0.78;
+    }
+
+    #serviceModal .modal-body {
+        padding: 23px !important;
+        background-color: #ffffff;
+    }
+
+    #serviceModal .form-label {
+        margin-bottom: 7px;
+        color: #444951 !important;
+        font-size: 0.67rem !important;
+        font-weight: 900 !important;
+    }
+
+    #serviceModal .form-control {
+        min-height: 45px;
+        color: var(--service-admin-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--service-admin-border);
+        border-radius: 11px;
+        outline: none;
+        font-size: 0.72rem;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    #serviceModal textarea.form-control {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    #serviceModal .form-control:focus {
+        background-color: #ffffff;
+        border-color: var(--service-admin-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    #serviceModal #btnSave {
+        min-height: 44px;
+        color: var(--service-admin-primary);
+        background-color: var(--service-admin-accent);
+        border: 1px solid var(--service-admin-accent);
+        border-radius: 10px;
+        font-size: 0.66rem;
+        font-weight: 900;
+        box-shadow: 0 10px 23px rgba(245, 184, 0, 0.17);
+    }
+
+    #serviceModal #btnSave:hover {
+        background-color: var(--service-admin-accent-hover);
+        border-color: var(--service-admin-accent-hover);
+    }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .service-admin-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .service-admin-page {
+            padding-top: 22px;
+        }
+
+        .service-admin-container {
+            padding-right: 13px;
+            padding-left: 13px;
+        }
+
+        .service-admin-hero {
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+        .service-admin-hero::after {
+            display: none;
+        }
+
+        .service-admin-add-button {
+            width: 100%;
+        }
+
+        .service-admin-card {
+            border-radius: 20px;
+        }
+
+        .service-admin-card-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #serviceModal .modal-body {
+            padding: 19px !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .service-admin-title {
+            font-size: 1.52rem;
+        }
+
+        .service-admin-description {
+            font-size: 0.74rem;
+        }
+
+        #serviceModal .modal-dialog {
+            margin: 9px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .service-admin-add-button,
+        .service-admin-table tbody tr,
+        .service-admin-row-button {
+            transition: none;
+        }
+
+        .service-admin-add-button:hover,
+        .service-admin-row-button:hover {
+            transform: none;
+        }
+    }
+</style>
+
+<main class="service-admin-page">
+    <div class="service-admin-container">
+
+        <!-- Hero -->
+        <header class="service-admin-hero">
+            <div class="service-admin-hero-content">
+                <div class="service-admin-eyebrow">
+                    Maintenance service management
+                </div>
+
+                <h1 class="service-admin-title">
+                    <i class="bi bi-tools"></i>
+                    Quản lý dịch vụ lẻ
+                </h1>
+
+                <p class="service-admin-description">
+                    Quản lý danh sách các dịch vụ sửa chữa và bảo dưỡng lẻ,
+                    bao gồm giá cơ bản và thời gian thực hiện dự kiến.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="service-admin-add-button"
+                data-bs-toggle="modal"
+                data-bs-target="#serviceModal"
+                onclick="resetForm()">
+                <i class="bi bi-plus-circle-fill"></i>
+                Thêm dịch vụ mới
+            </button>
+        </header>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div
+                class="service-admin-alert alert-dismissible fade show"
+                role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <span>@TempData["ErrorMessage"]</span>
+
+                <button
+                    type="button"
+                    class="btn-close ms-auto"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Service list -->
+        <section class="service-admin-card">
+            <div class="service-admin-card-header">
+                <div>
+                    <h2>
+                        <i class="bi bi-table"></i>
+                        Danh sách dịch vụ
+                    </h2>
+
+                    <p>
+                        Chỉnh sửa thông tin, giá và thời gian của từng dịch vụ.
+                    </p>
+                </div>
+
+                <span class="service-admin-count">
+                    <i class="bi bi-wrench-adjustable"></i>
+                    @Model.Count() dịch vụ
+                </span>
+            </div>
+
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light text-secondary">
+                <table class="table service-admin-table">
+                    <thead>
                         <tr>
-                            <th class="px-4 py-3">ID</th>
-                            <th class="py-3">Tên dịch vụ</th>
-                            <th class="py-3">Mô tả</th>
-                            <th class="py-3">Giá cơ bản</th>
-                            <th class="py-3">Thời gian (phút)</th>
-                            <th class="text-end px-4 py-3">Thao tác</th>
+                            <th class="ps-4">ID</th>
+                            <th>Tên dịch vụ</th>
+                            <th>Mô tả</th>
+                            <th>Giá cơ bản</th>
+                            <th>Thời gian (phút)</th>
+                            <th class="text-end pe-4">Thao tác</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @if (!Model.Any())
                         {
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-3"></i>
-                                    Chưa có dịch vụ nào
+                                <td
+                                    colspan="5"
+                                    class="service-admin-empty">
+                                    <div class="service-admin-empty-icon">
+                                        <i class="bi bi-inbox-fill"></i>
+                                    </div>
+
+                                    <strong>Chưa có dịch vụ nào</strong>
+
+                                    <span>
+                                        Thêm dịch vụ đầu tiên để bắt đầu quản lý.
+                                    </span>
                                 </td>
                             </tr>
                         }
@@ -52,18 +717,59 @@
                             foreach (var item in Model)
                             {
                                 <tr>
-                                    <td class="px-4"><span class="badge bg-secondary">#@item.ServiceId</span></td>
-                                    <td class="fw-bold">@item.ServiceName</td>
-                                    <td><small class="text-muted">@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</small></td>
-                                    <td class="text-danger fw-bold">@item.BasePrice.ToString("N0") VNĐ</td>
-                                    <td><i class="bi bi-clock me-1 text-muted"></i>@item.EstimatedDurationMinutes phút</td>
-                                    <td class="text-end px-4">
-                                        <button class="btn btn-sm btn-outline-primary me-2" onclick="editService(@item.ServiceId)">
-                                            <i class="bi bi-pencil-square"></i> Sửa
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService(@item.ServiceId, '@item.ServiceName')">
-                                            <i class="bi bi-trash"></i> Xóa
-                                        </button>
+                                    <td class="ps-4">
+                                        <span class="service-id-badge">
+                                            #@item.ServiceId
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div
+                                            class="service-name"
+                                            title="@item.ServiceName">
+                                            @item.ServiceName
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="service-description">
+                                            @(string.IsNullOrEmpty(item.Description)
+                                                ? "-"
+                                                : item.Description)
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="service-price">
+                                            @item.BasePrice.ToString("N0") VNĐ
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="service-duration">
+                                            <i class="bi bi-clock-fill"></i>
+                                            @item.EstimatedDurationMinutes phút
+                                        </span>
+                                    </td>
+
+                                    <td class="pe-4">
+                                        <div class="service-admin-row-actions">
+                                            <button
+                                                type="button"
+                                                class="service-admin-row-button service-admin-edit-button"
+                                                onclick="editService(@item.ServiceId)">
+                                                <i class="bi bi-pencil-square"></i>
+                                                Sửa
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="service-admin-row-button service-admin-delete-button"
+                                                onclick="deleteService(@item.ServiceId, '@item.ServiceName')">
+                                                <i class="bi bi-trash-fill"></i>
+                                                Xóa
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             }
@@ -71,45 +777,102 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
+
     </div>
-</div>
+</main>
 
 <!-- Modal Thêm/Sửa Dịch Vụ -->
-<div class="modal fade" id="serviceModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white border-0">
-                <h5 class="modal-title" id="modalTitle">Thêm dịch vụ mới</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div
+    class="modal fade"
+    id="serviceModal"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5
+                    class="modal-title"
+                    id="modalTitle">
+                    Thêm dịch vụ mới
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4">
+
+            <div class="modal-body">
                 <form id="serviceForm">
-                    <input type="hidden" id="ServiceId" name="ServiceId" value="0" />
-                    
+                    <input
+                        type="hidden"
+                        id="ServiceId"
+                        name="ServiceId"
+                        value="0" />
+
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Tên dịch vụ <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="ServiceName" name="ServiceName" required>
+                        <label class="form-label">
+                            Tên dịch vụ
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="ServiceName"
+                            name="ServiceName"
+                            required />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Mô tả</label>
-                        <textarea class="form-control" id="Description" name="Description" rows="2"></textarea>
+                        <label class="form-label">
+                            Mô tả
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            id="Description"
+                            name="Description"
+                            rows="2"></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-muted">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="BasePrice" name="BasePrice" min="0" required>
+                        <label class="form-label">
+                            Giá cơ bản (VNĐ)
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="BasePrice"
+                            name="BasePrice"
+                            min="0"
+                            required />
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-muted">Thời gian dự kiến (phút) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="EstimatedDurationMinutes" name="EstimatedDurationMinutes" min="1" required>
+                        <label class="form-label">
+                            Thời gian dự kiến (phút)
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="EstimatedDurationMinutes"
+                            name="EstimatedDurationMinutes"
+                            min="1"
+                            required />
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary shadow-sm" id="btnSave">
-                            <i class="bi bi-check2-circle me-1"></i> Lưu thông tin
+                        <button
+                            type="submit"
+                            id="btnSave">
+                            <i class="bi bi-check2-circle me-1"></i>
+                            Lưu thông tin
                         </button>
                     </div>
                 </form>
@@ -132,14 +895,14 @@
             try {
                 const response = await fetch(`/Admin/Services/Get/${id}`);
                 const result = await response.json();
-                
+
                 if (result.success) {
                     document.getElementById('ServiceId').value = result.data.serviceId;
                     document.getElementById('ServiceName').value = result.data.serviceName;
                     document.getElementById('Description').value = result.data.description || '';
                     document.getElementById('BasePrice').value = result.data.basePrice;
                     document.getElementById('EstimatedDurationMinutes').value = result.data.estimatedDurationMinutes;
-                    
+
                     document.getElementById('modalTitle').innerText = "Cập nhật dịch vụ";
                     modal.show();
                 } else {
@@ -154,7 +917,7 @@
             e.preventDefault();
             const form = e.target;
             const btn = document.getElementById('btnSave');
-            
+
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
 
@@ -164,9 +927,9 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     modal.hide();
                     location.reload();
@@ -182,14 +945,17 @@
         });
 
         async function deleteService(id, name) {
-            if (!confirm(`Bạn có chắc chắn muốn xóa dịch vụ "${name}" không?`)) return;
+            if (!confirm(`Bạn có chắc chắn muốn xóa dịch vụ "${name}" không?`)) {
+                return;
+            }
 
             try {
                 const response = await fetch(`/Admin/Services/Delete/${id}`, {
                     method: 'DELETE'
                 });
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     location.reload();
                 } else {

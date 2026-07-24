@@ -1,280 +1,1319 @@
 @model CarSalesManagementSystemClient.Models.PagedResultViewModel<CarSalesManagementSystemClient.Models.PartViewModel>
+
 @{
     ViewData["Title"] = "Cửa hàng Phụ tùng Ô tô";
-    var filter = ViewBag.Filter as CarSalesManagementSystemClient.Models.PartSearchViewModel ?? new CarSalesManagementSystemClient.Models.PartSearchViewModel();
-    var categories = ViewBag.Categories as IEnumerable<CarSalesManagementSystemClient.Models.PartCategoryViewModel> ?? new List<CarSalesManagementSystemClient.Models.PartCategoryViewModel>();
+
+    var filter =
+        ViewBag.Filter as CarSalesManagementSystemClient.Models.PartSearchViewModel
+        ?? new CarSalesManagementSystemClient.Models.PartSearchViewModel();
+
+    var categories =
+        ViewBag.Categories as IEnumerable<CarSalesManagementSystemClient.Models.PartCategoryViewModel>
+        ?? new List<CarSalesManagementSystemClient.Models.PartCategoryViewModel>();
 }
 
-<div class="container py-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-md-6">
-            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
-                CỬA HÀNG PHỤ TÙNG
-            </h1>
-            <p class="text-secondary m-0 ps-3">Phụ tùng chính hãng, chất lượng cao dành cho xế yêu</p>
-        </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <nav aria-label="breadcrumb" class="d-inline-block">
-                <ol class="breadcrumb bg-transparent m-0 p-0">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none text-dark">Trang chủ</a></li>
-                    <li class="breadcrumb-item active text-danger fw-bold" aria-current="page">Phụ tùng</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-
-    @if (ViewBag.ErrorMessage != null)
-    {
-        <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @ViewBag.ErrorMessage
-        </div>
+<style>
+    :root {
+        --parts-primary: #17191e;
+        --parts-secondary: #252830;
+        --parts-accent: #f5b800;
+        --parts-accent-hover: #ffca28;
+        --parts-background: #f4f5f7;
+        --parts-surface: #ffffff;
+        --parts-border: #e5e7eb;
+        --parts-text: #1b1d22;
+        --parts-muted: #747983;
+        --parts-danger: #dc3545;
+        --parts-success: #198754;
+        --parts-radius-lg: 24px;
+        --parts-radius-md: 14px;
+        --parts-shadow: 0 18px 45px rgba(17, 19, 24, 0.08);
     }
 
-    <div class="row">
-        <!-- LEFT COLUMN: Advanced Filters -->
-        <div class="col-lg-3 col-md-4 mb-4">
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="m-0 fw-bold d-flex align-items-center">
-                        <i class="bi bi-funnel-fill me-2 text-warning"></i> BỘ LỌC TÌM KIẾM
-                    </h5>
+    .parts-store-page {
+        min-height: 100vh;
+        padding: 34px 0 74px;
+        background: radial-gradient( circle at 94% 5%, rgba(245, 184, 0, 0.11), transparent 25% ), var(--parts-background);
+    }
+
+    .parts-store-container {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding-right: 28px;
+        padding-left: 28px;
+    }
+
+    /* Header */
+
+    .parts-store-header {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 25px;
+        padding: 31px 35px;
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.19), transparent 31% ), linear-gradient( 135deg, var(--parts-primary), var(--parts-secondary) );
+        border-radius: var(--parts-radius-lg);
+        box-shadow: 0 20px 48px rgba(17, 19, 24, 0.16);
+        overflow: hidden;
+    }
+
+        .parts-store-header::after {
+            content: "PARTS";
+            position: absolute;
+            top: -37px;
+            right: 26px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .parts-store-header-content,
+    .parts-store-breadcrumb {
+        position: relative;
+        z-index: 2;
+    }
+
+    .parts-store-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--parts-accent);
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+        .parts-store-eyebrow::before {
+            content: "";
+            width: 31px;
+            height: 2px;
+            background-color: var(--parts-accent);
+        }
+
+    .parts-store-title {
+        margin: 0 0 9px;
+        font-size: clamp(1.8rem, 3vw, 2.55rem);
+        font-weight: 950;
+        line-height: 1.12;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+    }
+
+    .parts-store-description {
+        max-width: 670px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.9rem;
+        line-height: 1.65;
+    }
+
+    .parts-store-breadcrumb .breadcrumb {
+        justify-content: flex-end;
+        margin: 0;
+        padding: 10px 14px;
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+    }
+
+    .parts-store-breadcrumb .breadcrumb-item {
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.74rem;
+        font-weight: 800;
+    }
+
+        .parts-store-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+    .parts-store-breadcrumb a {
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+    }
+
+        .parts-store-breadcrumb a:hover,
+        .parts-store-breadcrumb .active {
+            color: var(--parts-accent);
+        }
+
+    /* Alert */
+
+    .parts-store-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 21px;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        box-shadow: 0 8px 24px rgba(17, 19, 24, 0.04);
+    }
+
+        .parts-store-alert i {
+            flex: 0 0 auto;
+            margin-top: 2px;
+        }
+
+    /* Main layout */
+
+    .parts-store-layout {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    /* Filter */
+
+    .parts-filter-panel {
+        position: sticky;
+        top: 92px;
+        overflow: hidden;
+        background-color: var(--parts-surface);
+        border: 1px solid var(--parts-border);
+        border-radius: var(--parts-radius-lg);
+        box-shadow: var(--parts-shadow);
+    }
+
+    .parts-filter-header {
+        padding: 22px 23px;
+        color: #ffffff;
+        background: radial-gradient( circle at 85% 15%, rgba(245, 184, 0, 0.18), transparent 35% ), linear-gradient( 135deg, var(--parts-primary), var(--parts-secondary) );
+    }
+
+    .parts-filter-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 5px;
+        font-size: 0.94rem;
+        font-weight: 950;
+        text-transform: uppercase;
+    }
+
+        .parts-filter-title i {
+            color: var(--parts-accent);
+        }
+
+    .parts-filter-subtitle {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .parts-filter-body {
+        padding: 23px;
+    }
+
+    .parts-filter-group {
+        margin-bottom: 21px;
+    }
+
+    .parts-filter-label {
+        display: block;
+        margin-bottom: 9px;
+        color: #3e424a;
+        font-size: 0.74rem;
+        font-weight: 900;
+    }
+
+    .parts-input-wrapper {
+        position: relative;
+    }
+
+    .parts-input-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 14px;
+        color: #969ba4;
+        font-size: 0.9rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .parts-control,
+    .parts-select {
+        width: 100%;
+        min-height: 48px;
+        color: var(--parts-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--parts-border);
+        border-radius: 13px;
+        outline: none;
+        font-size: 0.81rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .parts-control {
+        padding: 11px 13px 11px 41px;
+    }
+
+    .parts-select {
+        padding: 11px 40px 11px 41px;
+    }
+
+    .parts-control::placeholder {
+        color: #a6aab1;
+    }
+
+    .parts-control:hover,
+    .parts-select:hover {
+        border-color: #cdd0d6;
+    }
+
+    .parts-control:focus,
+    .parts-select:focus {
+        background-color: #ffffff;
+        border-color: var(--parts-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .parts-price-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+    }
+
+        .parts-price-grid .parts-control {
+            padding-left: 13px;
+        }
+
+    .parts-filter-actions {
+        display: grid;
+        gap: 9px;
+        margin-top: 25px;
+    }
+
+    .parts-filter-button {
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 0.71rem;
+        font-weight: 900;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .parts-filter-submit {
+        color: var(--parts-primary);
+        background-color: var(--parts-accent);
+        border: 1px solid var(--parts-accent);
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.18);
+    }
+
+        .parts-filter-submit:hover {
+            color: var(--parts-primary);
+            background-color: var(--parts-accent-hover);
+            border-color: var(--parts-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 31px rgba(245, 184, 0, 0.25);
+        }
+
+    .parts-filter-reset {
+        color: #686d76;
+        background-color: #ffffff;
+        border: 1px solid var(--parts-border);
+    }
+
+        .parts-filter-reset:hover {
+            color: var(--parts-primary);
+            background-color: #f7f8f9;
+            border-color: #cfd2d7;
+            transform: translateY(-2px);
+        }
+
+    /* Results */
+
+    .parts-result-content {
+        min-width: 0;
+    }
+
+    .parts-result-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 21px;
+        padding: 17px 20px;
+        background-color: var(--parts-surface);
+        border: 1px solid var(--parts-border);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(17, 19, 24, 0.055);
+    }
+
+    .parts-result-count {
+        color: var(--parts-muted);
+        font-size: 0.81rem;
+    }
+
+        .parts-result-count strong {
+            color: var(--parts-primary);
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
+    .parts-page-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--parts-muted);
+        font-size: 0.74rem;
+    }
+
+    .parts-page-info-icon {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--parts-primary);
+        background-color: rgba(245, 184, 0, 0.13);
+        border: 1px solid rgba(245, 184, 0, 0.22);
+        border-radius: 10px;
+    }
+
+    /* Empty */
+
+    .parts-empty {
+        padding: 82px 28px;
+        text-align: center;
+        background-color: var(--parts-surface);
+        border: 1px solid var(--parts-border);
+        border-radius: var(--parts-radius-lg);
+        box-shadow: var(--parts-shadow);
+    }
+
+    .parts-empty-icon {
+        width: 92px;
+        height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 22px;
+        color: #927000;
+        background-color: rgba(245, 184, 0, 0.11);
+        border: 1px solid rgba(245, 184, 0, 0.21);
+        border-radius: 27px;
+        font-size: 2.15rem;
+    }
+
+    .parts-empty-title {
+        margin-bottom: 8px;
+        color: var(--parts-primary);
+        font-size: 1.15rem;
+        font-weight: 950;
+    }
+
+    .parts-empty-description {
+        max-width: 520px;
+        margin: 0 auto 22px;
+        color: var(--parts-muted);
+        font-size: 0.84rem;
+        line-height: 1.7;
+    }
+
+    .parts-empty-button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 18px;
+        color: var(--parts-primary);
+        background-color: var(--parts-accent);
+        border: 1px solid var(--parts-accent);
+        border-radius: 12px;
+        font-size: 0.73rem;
+        font-weight: 900;
+        text-decoration: none;
+    }
+
+    /* Grid and cards */
+
+    .parts-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .part-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+        background-color: var(--parts-surface);
+        border: 1px solid var(--parts-border);
+        border-radius: 19px;
+        box-shadow: 0 13px 35px rgba(17, 19, 24, 0.07);
+        transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    }
+
+        .part-card:hover {
+            border-color: rgba(245, 184, 0, 0.5);
+            transform: translateY(-7px);
+            box-shadow: 0 22px 45px rgba(17, 19, 24, 0.13);
+        }
+
+    .part-image-link {
+        position: relative;
+        height: 205px;
+        display: block;
+        overflow: hidden;
+        background-color: #e9ebee;
+    }
+
+        .part-image-link::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient( to top, rgba(17, 19, 24, 0.3), transparent 46% );
+            pointer-events: none;
+        }
+
+    .part-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.42s ease;
+    }
+
+    .part-card:hover .part-image {
+        transform: scale(1.07);
+    }
+
+    .part-category {
+        position: absolute;
+        z-index: 2;
+        top: 14px;
+        left: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 10px;
+        color: var(--parts-accent);
+        background-color: rgba(17, 19, 24, 0.9);
+        border: 1px solid rgba(245, 184, 0, 0.2);
+        border-radius: 999px;
+        font-size: 0.64rem;
+        font-weight: 900;
+        backdrop-filter: blur(7px);
+    }
+
+    .part-card-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .part-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 7px;
+    }
+
+    .part-brand {
+        overflow: hidden;
+        color: #987100;
+        font-size: 0.65rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .part-code {
+        flex: 0 0 auto;
+        color: #8e939c;
+        font-family: monospace;
+        font-size: 0.65rem;
+    }
+
+    .part-name {
+        min-height: 45px;
+        margin: 0 0 9px;
+        overflow: hidden;
+        font-size: 1rem;
+        font-weight: 950;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .part-name-link {
+        color: var(--parts-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+        .part-name-link:hover {
+            color: #987100;
+        }
+
+    .part-description {
+        min-height: 40px;
+        margin-bottom: 16px;
+        overflow: hidden;
+        color: var(--parts-muted);
+        font-size: 0.73rem;
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .part-stock {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: auto;
+        margin-bottom: 17px;
+        padding: 10px 11px;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        font-size: 0.68rem;
+        font-weight: 800;
+    }
+
+    .part-stock-available {
+        color: #166534;
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    .part-stock-empty {
+        color: #991b1b;
+        background-color: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .part-card-footer {
+        padding-top: 16px;
+        border-top: 1px solid var(--parts-border);
+    }
+
+    .part-price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 11px;
+    }
+
+    .part-price-label {
+        display: block;
+        margin-bottom: 2px;
+        color: #969aa2;
+        font-size: 0.59rem;
+        font-weight: 900;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+    }
+
+    .part-price {
+        color: #b42318;
+        font-size: 1.02rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    .part-details-button {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 8px 11px;
+        color: #5e636c;
+        background-color: #ffffff;
+        border: 1px solid var(--parts-border);
+        border-radius: 10px;
+        font-size: 0.67rem;
+        font-weight: 900;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+        .part-details-button:hover {
+            color: var(--parts-primary);
+            background-color: #f8f9fa;
+            border-color: #cfd2d7;
+        }
+
+    .part-cart-button {
+        width: 100%;
+        min-height: 43px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 13px;
+        color: var(--parts-primary);
+        background-color: var(--parts-accent);
+        border: 1px solid var(--parts-accent);
+        border-radius: 11px;
+        font-size: 0.7rem;
+        font-weight: 900;
+        box-shadow: 0 10px 23px rgba(245, 184, 0, 0.17);
+        transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .part-cart-button:hover:not(:disabled) {
+            color: var(--parts-primary);
+            background-color: var(--parts-accent-hover);
+            border-color: var(--parts-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(245, 184, 0, 0.24);
+        }
+
+        .part-cart-button:disabled {
+            color: #ffffff;
+            background-color: #8c919a;
+            border-color: #8c919a;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+    /* Pagination */
+
+    .parts-pagination {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+        margin: 34px 0 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .parts-page-link {
+        width: 41px;
+        height: 41px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #565b64;
+        background-color: #ffffff;
+        border: 1px solid var(--parts-border);
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: 0 8px 20px rgba(17, 19, 24, 0.055);
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+        .parts-page-link:hover {
+            color: var(--parts-primary);
+            background-color: #fff8d6;
+            border-color: #fde68a;
+            transform: translateY(-2px);
+        }
+
+    .parts-page-item.active .parts-page-link {
+        color: var(--parts-primary);
+        background-color: var(--parts-accent);
+        border-color: var(--parts-accent);
+    }
+
+    .parts-page-item.disabled {
+        pointer-events: none;
+        opacity: 0.45;
+    }
+
+    /* Responsive */
+
+    @@media (max-width: 1199.98px) {
+        .parts-store-container {
+            padding-right: 22px;
+            padding-left: 22px;
+        }
+
+        .parts-store-layout {
+            grid-template-columns: 280px minmax(0, 1fr);
+        }
+
+        .parts-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .parts-store-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .parts-store-breadcrumb .breadcrumb {
+            justify-content: flex-start;
+        }
+
+        .parts-store-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .parts-filter-panel {
+            position: static;
+        }
+
+        .parts-filter-body form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .parts-filter-group {
+            margin-bottom: 0;
+        }
+
+        .parts-filter-actions {
+            grid-column: 1 / -1;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 2px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .parts-store-page {
+            padding-top: 24px;
+        }
+
+        .parts-store-container {
+            padding-right: 13px;
+            padding-left: 13px;
+        }
+
+        .parts-store-header {
+            padding: 25px 22px;
+            border-radius: 20px;
+        }
+
+            .parts-store-header::after {
+                display: none;
+            }
+
+        .parts-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .part-image-link {
+            height: 235px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .parts-store-title {
+            font-size: 1.53rem;
+        }
+
+        .parts-store-description {
+            font-size: 0.8rem;
+        }
+
+        .parts-filter-body form {
+            grid-template-columns: 1fr;
+        }
+
+        .parts-filter-actions {
+            grid-column: auto;
+            grid-template-columns: 1fr;
+        }
+
+        .parts-result-bar {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .part-image-link {
+            height: 210px;
+        }
+
+        .parts-pagination {
+            gap: 5px;
+        }
+
+        .parts-page-link {
+            width: 37px;
+            height: 37px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .part-card,
+        .part-image,
+        .part-cart-button,
+        .parts-filter-button,
+        .parts-page-link {
+            transition: none;
+        }
+
+            .part-card:hover,
+            .part-cart-button:hover,
+            .parts-filter-button:hover,
+            .parts-page-link:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="parts-store-page">
+    <div class="parts-store-container">
+
+        <!-- Header -->
+        <header class="parts-store-header">
+            <div class="parts-store-header-content">
+                <div class="parts-store-eyebrow">
+                    Group7 ECO DRIVE
                 </div>
-                <div class="card-body p-4">
-                    <form method="get" asp-controller="Parts" asp-action="Index" id="filterForm">
-                        <input type="hidden" name="PageNumber" value="1" />
-                        <input type="hidden" name="PageSize" value="@filter.PageSize" />
 
-                        <!-- Search keyword -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Từ khóa tìm kiếm</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0"><i class="bi bi-search text-secondary"></i></span>
-                                <input type="text" name="SearchTerm" class="form-control bg-light border-0 py-2" placeholder="Tên, mã phụ tùng..." value="@filter.SearchTerm" />
+                <h1 class="parts-store-title">
+                    Cửa hàng phụ tùng
+                </h1>
+
+                <p class="parts-store-description">
+                    Phụ tùng chính hãng, chất lượng cao và sẵn sàng phục vụ
+                    nhu cầu chăm sóc chiếc xe của bạn.
+                </p>
+            </div>
+
+            <nav aria-label="breadcrumb"
+                 class="parts-store-breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-controller="Home" asp-action="Index">
+                            Trang chủ
+                        </a>
+                    </li>
+
+                    <li class="breadcrumb-item active"
+                        aria-current="page">
+                        Phụ tùng
+                    </li>
+                </ol>
+            </nav>
+        </header>
+
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="parts-store-alert"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>@ViewBag.ErrorMessage</span>
+            </div>
+        }
+
+        <div class="parts-store-layout">
+
+            <!-- Filters -->
+            <aside class="parts-filter-panel">
+                <div class="parts-filter-header">
+                    <h2 class="parts-filter-title">
+                        <i class="bi bi-funnel-fill"></i>
+                        Bộ lọc tìm kiếm
+                    </h2>
+
+                    <p class="parts-filter-subtitle">
+                        Lọc phụ tùng theo tên, danh mục và khoảng giá
+                    </p>
+                </div>
+
+                <div class="parts-filter-body">
+                    <form method="get"
+                          asp-controller="Parts"
+                          asp-action="Index"
+                          id="filterForm">
+
+                        <input type="hidden"
+                               name="PageNumber"
+                               value="1" />
+
+                        <input type="hidden"
+                               name="PageSize"
+                               value="@filter.PageSize" />
+
+                        <div class="parts-filter-group">
+                            <label for="partsSearchTerm"
+                                   class="parts-filter-label">
+                                Từ khóa tìm kiếm
+                            </label>
+
+                            <div class="parts-input-wrapper">
+                                <i class="bi bi-search parts-input-icon"></i>
+
+                                <input id="partsSearchTerm"
+                                       type="text"
+                                       name="SearchTerm"
+                                       class="parts-control"
+                                       placeholder="Tên, mã phụ tùng..."
+                                       value="@filter.SearchTerm" />
                             </div>
                         </div>
 
-                        <!-- Category filter -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Loại phụ tùng</label>
-                            <select name="CategoryId" class="form-select bg-light border-0 py-2">
-                                <option value="">Tất cả danh mục</option>
-                                @foreach (var cat in categories)
-                                {
-                                    if (filter.CategoryId == cat.CategoryId)
-                                    {
-                                        <option value="@cat.CategoryId" selected>@cat.CategoryName</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@cat.CategoryId">@cat.CategoryName</option>
-                                    }
-                                }
-                            </select>
-                        </div>
+                        <div class="parts-filter-group">
+                            <label for="partsCategory"
+                                   class="parts-filter-label">
+                                Loại phụ tùng
+                            </label>
 
-                        <!-- Price filter -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Khoảng giá (VND)</label>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <input type="number" name="MinPrice" class="form-control bg-light border-0 py-2" placeholder="Tối thiểu" value="@(filter.MinPrice.HasValue ? filter.MinPrice.Value.ToString("F0") : "")" />
-                                </div>
-                                <div class="col-6">
-                                    <input type="number" name="MaxPrice" class="form-control bg-light border-0 py-2" placeholder="Tối đa" value="@(filter.MaxPrice.HasValue ? filter.MaxPrice.Value.ToString("F0") : "")" />
-                                </div>
+                            <div class="parts-input-wrapper">
+                                <i class="bi bi-grid-fill parts-input-icon"></i>
+
+                                <select id="partsCategory"
+                                        name="CategoryId"
+                                        class="parts-select">
+                                    <option value="">
+                                        Tất cả danh mục
+                                    </option>
+
+                                    @foreach (var cat in categories)
+                                    {
+                                        if (filter.CategoryId == cat.CategoryId)
+                                        {
+                                            <option value="@cat.CategoryId"
+                                                    selected>
+                                                @cat.CategoryName
+                                            </option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@cat.CategoryId">
+                                                @cat.CategoryName
+                                            </option>
+                                        }
+                                    }
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Sort option -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark mb-2">Sắp xếp theo</label>
-                            <select name="SortBy" class="form-select bg-light border-0 py-2">
-                                <option value="" selected="@(string.IsNullOrEmpty(filter.SortBy))">Mới nhất</option>
-                                <option value="PriceAsc" selected="@(filter.SortBy == "PriceAsc")">Giá tăng dần</option>
-                                <option value="PriceDesc" selected="@(filter.SortBy == "PriceDesc")">Giá giảm dần</option>
-                                <option value="NameAsc" selected="@(filter.SortBy == "NameAsc")">Tên A-Z</option>
-                            </select>
+                        <div class="parts-filter-group">
+                            <label class="parts-filter-label">
+                                Khoảng giá (VND)
+                            </label>
+
+                            <div class="parts-price-grid">
+                                <input type="number"
+                                       name="MinPrice"
+                                       class="parts-control"
+                                       placeholder="Tối thiểu"
+                                       value="@(filter.MinPrice.HasValue ? filter.MinPrice.Value.ToString("F0") : "")" />
+
+                                <input type="number"
+                                       name="MaxPrice"
+                                       class="parts-control"
+                                       placeholder="Tối đa"
+                                       value="@(filter.MaxPrice.HasValue ? filter.MaxPrice.Value.ToString("F0") : "")" />
+                            </div>
                         </div>
 
-                        <!-- Submit and Reset Buttons -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-warning py-2 fw-bold border-0 text-dark" style="background-color: #ffc107;">
-                                <i class="bi bi-search me-1"></i> LỌC SẢN PHẨM
+                        <div class="parts-filter-group">
+                            <label for="partsSortBy"
+                                   class="parts-filter-label">
+                                Sắp xếp theo
+                            </label>
+
+                            <div class="parts-input-wrapper">
+                                <i class="bi bi-sort-down parts-input-icon"></i>
+
+                                <select id="partsSortBy"
+                                        name="SortBy"
+                                        class="parts-select">
+                                    <option value=""
+                                            selected="@(string.IsNullOrEmpty(filter.SortBy))">
+                                        Mới nhất
+                                    </option>
+
+                                    <option value="PriceAsc"
+                                            selected="@(filter.SortBy == "PriceAsc")">
+                                        Giá tăng dần
+                                    </option>
+
+                                    <option value="PriceDesc"
+                                            selected="@(filter.SortBy == "PriceDesc")">
+                                        Giá giảm dần
+                                    </option>
+
+                                    <option value="NameAsc"
+                                            selected="@(filter.SortBy == "NameAsc")">
+                                        Tên A-Z
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="parts-filter-actions">
+                            <button type="submit"
+                                    class="parts-filter-button parts-filter-submit">
+                                <i class="bi bi-search"></i>
+                                Lọc sản phẩm
                             </button>
-                            <a asp-controller="Parts" asp-action="Index" class="btn btn-light py-2 fw-bold text-secondary">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> THIẾT LẬP LẠI
+
+                            <a asp-controller="Parts"
+                               asp-action="Index"
+                               class="parts-filter-button parts-filter-reset">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                Thiết lập lại
                             </a>
                         </div>
                     </form>
                 </div>
-            </div>
-        </div>
+            </aside>
 
-        <!-- RIGHT COLUMN: Part List Grid with Pagination -->
-        <div class="col-lg-9 col-md-8">
-            <!-- Sort and Total count top bar -->
-            <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded-3 mb-4">
-                <div>
-                    <span class="text-secondary">Tìm thấy <b class="text-dark">@Model.TotalItems</b> phụ tùng</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="text-secondary me-2 d-none d-md-inline" style="font-size: 14px;">Trang @Model.PageNumber / @Model.TotalPages</span>
-                </div>
-            </div>
+            <!-- Results -->
+            <section class="parts-result-content">
+                <div class="parts-result-bar">
+                    <div class="parts-result-count">
+                        Tìm thấy
+                        <strong>@Model.TotalItems</strong>
+                        phụ tùng
+                    </div>
 
-            <!-- Part Grid -->
-            @if (Model.Items == null || !Model.Items.Any())
-            {
-                <div class="text-center py-5 bg-white shadow-sm rounded-3">
-                    <i class="bi bi-tools text-secondary" style="font-size: 5rem;"></i>
-                    <h4 class="mt-3 fw-bold text-dark">Không tìm thấy phụ tùng nào!</h4>
-                    <p class="text-secondary">Vui lòng điều chỉnh hoặc thử xóa bớt các bộ lọc tìm kiếm ở cột bên trái.</p>
-                    <a asp-controller="Parts" asp-action="Index" class="btn btn-warning fw-bold border-0 px-4 py-2 mt-2 text-dark" style="background-color: #ffc107;">Xem tất cả</a>
+                    <div class="parts-page-info">
+                        <span>
+                            Trang @Model.PageNumber / @Model.TotalPages
+                        </span>
+
+                        <span class="parts-page-info-icon">
+                            <i class="bi bi-grid-3x3-gap-fill"></i>
+                        </span>
+                    </div>
                 </div>
-            }
-            else
-            {
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    @foreach (var part in Model.Items)
-                    {
-                        var displayImageUrl = string.IsNullOrWhiteSpace(part.ImageUrl) 
-                            ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80" 
-                            : part.ImageUrl;
-                            
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden part-card">
-                                <!-- Part Image and Category Badge -->
-                                <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId" class="d-block position-relative overflow-hidden" style="height: 180px;">
-                                    <img src="@displayImageUrl" alt="@part.PartName" class="w-100 h-100 object-fit-cover part-image transition-transform duration-300">
-                                    <span class="position-absolute top-0 start-0 m-3 badge bg-dark fs-7 px-3 py-2 shadow-sm text-warning">
+
+                @if (Model.Items == null || !Model.Items.Any())
+                {
+                    <div class="parts-empty">
+                        <div class="parts-empty-icon">
+                            <i class="bi bi-tools"></i>
+                        </div>
+
+                        <h2 class="parts-empty-title">
+                            Không tìm thấy phụ tùng nào
+                        </h2>
+
+                        <p class="parts-empty-description">
+                            Vui lòng điều chỉnh hoặc xóa bớt các bộ lọc tìm kiếm
+                            để xem thêm những phụ tùng hiện có.
+                        </p>
+
+                        <a asp-controller="Parts"
+                           asp-action="Index"
+                           class="parts-empty-button">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Xem tất cả
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="parts-grid">
+                        @foreach (var part in Model.Items)
+                        {
+                            var displayImageUrl =
+                                string.IsNullOrWhiteSpace(part.ImageUrl)
+                                ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80"
+                                : part.ImageUrl;
+
+                            <article class="part-card">
+                                <a asp-controller="Parts"
+                                   asp-action="Details"
+                                   asp-route-id="@part.PartId"
+                                   class="part-image-link">
+
+                                    <img src="@displayImageUrl"
+                                         alt="@part.PartName"
+                                         class="part-image" />
+
+                                    <span class="part-category">
+                                        <i class="bi bi-tag-fill"></i>
                                         @part.Category?.CategoryName
                                     </span>
                                 </a>
 
-                                <!-- Part Info Body -->
-                                <div class="card-body p-4 d-flex flex-column">
-                                    <div class="mb-2">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-secondary fw-bold text-uppercase" style="letter-spacing: 0.5px;">@part.Brand</small>
-                                            <small class="text-secondary" style="font-family: monospace;">@part.PartCode</small>
-                                        </div>
-                                        <h5 class="card-title fw-bold mb-0 mt-1" style="font-size: 16px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                            <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId" class="text-dark text-decoration-none part-name-link">@part.PartName</a>
-                                        </h5>
+                                <div class="part-card-body">
+                                    <div class="part-meta-row">
+                                        <span class="part-brand">
+                                            @part.Brand
+                                        </span>
+
+                                        <span class="part-code">
+                                            @part.PartCode
+                                        </span>
                                     </div>
-                                    
-                                    <p class="text-muted mb-3" style="font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;">
-                                        @(string.IsNullOrWhiteSpace(part.Description) ? "Chưa có mô tả chi tiết cho phụ tùng này." : part.Description)
+
+                                    <h2 class="part-name">
+                                        <a asp-controller="Parts"
+                                           asp-action="Details"
+                                           asp-route-id="@part.PartId"
+                                           class="part-name-link">
+                                            @part.PartName
+                                        </a>
+                                    </h2>
+
+                                    <p class="part-description">
+                                        @(string.IsNullOrWhiteSpace(part.Description)
+                                            ? "Chưa có mô tả chi tiết cho phụ tùng này."
+                                            : part.Description)
                                     </p>
 
-                                    <!-- Stock Info -->
-                                    <div class="bg-light rounded p-2 text-center mb-3 mt-auto" style="font-size: 12px;">
-                                        @if (part.Quantity > 0)
-                                        {
-                                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Còn hàng: <b>@part.Quantity</b> sản phẩm</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Hết hàng</span>
-                                        }
-                                    </div>
+                                    @if (part.Quantity > 0)
+                                    {
+                                        <div class="part-stock part-stock-available">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Còn hàng:
+                                            <strong>@part.Quantity</strong>
+                                            sản phẩm
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="part-stock part-stock-empty">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            Hết hàng
+                                        </div>
+                                    }
 
-                                    <!-- Price and Actions -->
-                                    <div class="border-top pt-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fs-6 fw-bold text-danger">@part.Price.ToString("N0") đ</span>
-                                            <a asp-controller="Parts" asp-action="Details" asp-route-id="@part.PartId"
-                                               class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size:12px;">
-                                                <i class="bi bi-eye me-1"></i>Chi tiết
+                                    <div class="part-card-footer">
+                                        <div class="part-price-row">
+                                            <div>
+                                                <span class="part-price-label">
+                                                    Giá bán
+                                                </span>
+
+                                                <span class="part-price">
+                                                    @part.Price.ToString("N0") đ
+                                                </span>
+                                            </div>
+
+                                            <a asp-controller="Parts"
+                                               asp-action="Details"
+                                               asp-route-id="@part.PartId"
+                                               class="part-details-button">
+                                                <i class="bi bi-eye-fill"></i>
+                                                Chi tiết
                                             </a>
                                         </div>
+
                                         @if (part.Quantity > 0)
                                         {
-                                            <button class="btn btn-warning btn-sm fw-bold w-100 py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="addToCart(@part.PartId, @part.Quantity)">
-                                                <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào giỏ hàng
+                                            <button type="button"
+                                                    class="part-cart-button"
+                                                    onclick="addToCart(@part.PartId, @part.Quantity)">
+                                                <i class="bi bi-cart-plus-fill"></i>
+                                                Thêm vào giỏ hàng
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-secondary btn-sm fw-bold w-100 py-2 border-0 text-white" disabled>
+                                            <button type="button"
+                                                    class="part-cart-button"
+                                                    disabled>
+                                                <i class="bi bi-x-circle"></i>
                                                 Hết hàng
                                             </button>
                                         }
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    }
-                </div>
+                            </article>
+                        }
+                    </div>
 
-                <!-- Pagination Controls -->
-                @if (Model.TotalPages > 1)
-                {
-                    <nav aria-label="Page navigation" class="mt-5">
-                        <ul class="pagination justify-content-center">
-                            <!-- Previous page -->
-                            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
-                                <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center" 
-                                   style="width: 40px; height: 40px;"
-                                   href="@Url.Action("Index", "Parts", new {
-                                       PageNumber = Model.PageNumber - 1,
-                                       CategoryId = filter.CategoryId,
-                                       MinPrice = filter.MinPrice,
-                                       MaxPrice = filter.MaxPrice,
-                                       SearchTerm = filter.SearchTerm,
-                                       SortBy = filter.SortBy
-                                   })" aria-label="Previous">
-                                    <i class="bi bi-chevron-left text-dark"></i>
-                                </a>
-                            </li>
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav aria-label="Page navigation">
+                            <ul class="parts-pagination">
 
-                            <!-- Page Numbers -->
-                            @for (int i = 1; i <= Model.TotalPages; i++)
-                            {
-                                <li class="page-item @(Model.PageNumber == i ? "active" : "")">
-                                    @if (Model.PageNumber == i)
-                                    {
-                                        <span class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center text-white bg-warning" 
-                                              style="width: 40px; height: 40px; font-weight: bold;">@i</span>
-                                    }
-                                    else
-                                    {
-                                        <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center text-dark" 
-                                           style="width: 40px; height: 40px;"
-                                           href="@Url.Action("Index", "Parts", new {
-                                               PageNumber = i,
-                                               CategoryId = filter.CategoryId,
-                                               MinPrice = filter.MinPrice,
-                                               MaxPrice = filter.MaxPrice,
-                                               SearchTerm = filter.SearchTerm,
-                                               SortBy = filter.SortBy
-                                           })">@i</a>
-                                    }
+                                <li class="parts-page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                                    <a class="parts-page-link"
+                                       href="@Url.Action("Index", "Parts", new
+                                       {
+                                           PageNumber = Model.PageNumber - 1,
+                                           CategoryId = filter.CategoryId,
+                                           MinPrice = filter.MinPrice,
+                                           MaxPrice = filter.MaxPrice,
+                                           SearchTerm = filter.SearchTerm,
+                                           SortBy = filter.SortBy
+                                       })"
+                                       aria-label="Previous">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
                                 </li>
-                            }
 
-                            <!-- Next page -->
-                            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
-                                <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center" 
-                                   style="width: 40px; height: 40px;"
-                                   href="@Url.Action("Index", "Parts", new {
-                                       PageNumber = Model.PageNumber + 1,
-                                       CategoryId = filter.CategoryId,
-                                       MinPrice = filter.MinPrice,
-                                       MaxPrice = filter.MaxPrice,
-                                       SearchTerm = filter.SearchTerm,
-                                       SortBy = filter.SortBy
-                                   })" aria-label="Next">
-                                    <i class="bi bi-chevron-right text-dark"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="parts-page-item @(Model.PageNumber == i ? "active" : "")">
+                                        @if (Model.PageNumber == i)
+                                        {
+                                            <span class="parts-page-link">
+                                                @i
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <a class="parts-page-link"
+                                               href="@Url.Action("Index", "Parts", new
+                                               {
+                                                   PageNumber = i,
+                                                   CategoryId = filter.CategoryId,
+                                                   MinPrice = filter.MinPrice,
+                                                   MaxPrice = filter.MaxPrice,
+                                                   SearchTerm = filter.SearchTerm,
+                                                   SortBy = filter.SortBy
+                                               })">
+                                                @i
+                                            </a>
+                                        }
+                                    </li>
+                                }
+
+                                <li class="parts-page-item @(Model.HasNextPage ? "" : "disabled")">
+                                    <a class="parts-page-link"
+                                       href="@Url.Action("Index", "Parts", new
+                                       {
+                                           PageNumber = Model.PageNumber + 1,
+                                           CategoryId = filter.CategoryId,
+                                           MinPrice = filter.MinPrice,
+                                           MaxPrice = filter.MaxPrice,
+                                           SearchTerm = filter.SearchTerm,
+                                           SortBy = filter.SortBy
+                                       })"
+                                       aria-label="Next">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    }
                 }
-            }
+            </section>
         </div>
     </div>
-</div>
+</main>
 
 @section Scripts {
     <!-- SweetAlert2 -->
@@ -372,31 +1411,3 @@
         }
     </script>
 }
-
-<style>
-    .part-name-link:hover { color: #ffc107 !important; text-decoration: underline !important; }
-    .part-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .part-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-    }
-    .part-image {
-        transition: transform 0.3s ease;
-    }
-    .part-card:hover .part-image {
-        transform: scale(1.08);
-    }
-    .object-fit-cover {
-        object-fit: cover;
-    }
-    .page-link:hover {
-        background-color: #f8f9fa;
-        color: #ffc107 !important;
-    }
-    .page-item.active .page-link {
-        background-color: #ffc107 !important;
-        border-color: #ffc107 !important;
-    }
-</style>
