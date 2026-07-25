@@ -17,6 +17,8 @@ public class ChatController : Controller
     public ChatController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClient = httpClientFactory.CreateClient();
+        // Chatbot RAG có thể mất vài giây (nhiều bước tool) — nới timeout để không báo lỗi sớm.
+        _httpClient.Timeout = TimeSpan.FromSeconds(100);
         _apiBaseUrl = (configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5084").TrimEnd('/');
     }
 
@@ -41,10 +43,18 @@ public class ChatController : Controller
         try
         {
             AttachJwtToken();
+            // Origin thật khách đang truy cập (vd http://localhost:5188 hoặc domain khi deploy)
+            // để chatbot dựng URL đơn hàng bấm/dán được, không phụ thuộc cấu hình cứng.
+            var frontendOrigin = model.FrontendOrigin;
+            if (string.IsNullOrWhiteSpace(frontendOrigin))
+            {
+                frontendOrigin = $"{Request.Scheme}://{Request.Host}";
+            }
             var payload = new
             {
                 sessionId = model.SessionId,
-                message = model.Message
+                message = model.Message,
+                frontendOrigin
             };
 
             var response = await _httpClient.PostAsJsonAsync($"{_apiBaseUrl}/api/Chat/message", payload);
@@ -85,4 +95,5 @@ public class ChatRequestInput
 {
     public string SessionId { get; set; } = null!;
     public string Message { get; set; } = null!;
+    public string? FrontendOrigin { get; set; }
 }

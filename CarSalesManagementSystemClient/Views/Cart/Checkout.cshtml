@@ -489,7 +489,7 @@
 
     /* Summary step */
 
-    #step-5 .card {
+    #step-4 .card {
         overflow: hidden;
         background-color: #ffffff;
         border: 1px solid var(--checkout-border) !important;
@@ -497,7 +497,7 @@
         box-shadow: 0 10px 28px rgba(17, 19, 24, 0.055) !important;
     }
 
-    #step-5 .card-header {
+    #step-4 .card-header {
         padding: 13px 15px !important;
         color: var(--checkout-accent) !important;
         background: linear-gradient( 135deg, var(--checkout-primary), var(--checkout-secondary) ) !important;
@@ -508,7 +508,7 @@
         text-transform: uppercase;
     }
 
-    #step-5 .list-group-item {
+    #step-4 .list-group-item {
         padding: 13px 15px;
         color: #555a63;
         background-color: #ffffff;
@@ -516,24 +516,24 @@
         font-size: 0.75rem;
     }
 
-    #step-5 .card-footer {
+    #step-4 .card-footer {
         padding: 13px 15px;
         background-color: #f8f9fa !important;
         border-top: 1px solid var(--checkout-border);
     }
 
-    #step-5 .col-md-5 > .card:first-child {
+    #step-4 .col-md-5 > .card:first-child {
         background-color: #ffffff !important;
     }
 
-    #step-5 .col-md-5 > .card.bg-dark {
+    #step-4 .col-md-5 > .card.bg-dark {
         color: #ffffff;
         background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.14), transparent 34% ), linear-gradient( 145deg, var(--checkout-primary), #0d0f13 ) !important;
         border-color: rgba(255, 255, 255, 0.05) !important;
         box-shadow: 0 18px 38px rgba(17, 19, 24, 0.18) !important;
     }
 
-        #step-5 .col-md-5 > .card.bg-dark .card-body {
+        #step-4 .col-md-5 > .card.bg-dark .card-body {
             padding: 20px;
         }
 
@@ -549,11 +549,11 @@
 
     /* Payment method card */
 
-    #step-5 > .card.mt-3 {
+    #step-4 > .card.mt-3 {
         margin-top: 20px !important;
     }
 
-        #step-5 > .card.mt-3 .card-body {
+        #step-4 > .card.mt-3 .card-body {
             padding: 20px;
         }
 
@@ -626,11 +626,11 @@
 
     /* Success */
 
-    #step-6 {
+    #step-5 {
         padding: 24px 0 8px !important;
     }
 
-        #step-6 .display-3 {
+        #step-5 .display-3 {
             width: 94px;
             height: 94px;
             display: inline-flex;
@@ -644,14 +644,14 @@
             box-shadow: 0 15px 32px rgba(25, 135, 84, 0.1);
         }
 
-        #step-6 > h3 {
+        #step-5 > h3 {
             margin-bottom: 9px;
             color: var(--checkout-primary) !important;
             font-size: 1.55rem;
             font-weight: 950 !important;
         }
 
-        #step-6 > p {
+        #step-5 > p {
             max-width: 610px;
             margin-right: auto;
             margin-left: auto;
@@ -660,7 +660,7 @@
             line-height: 1.7;
         }
 
-        #step-6 .p-4.bg-light {
+        #step-5 .p-4.bg-light {
             padding: 20px !important;
             background-color: #f8f9fa !important;
             border: 1px solid var(--checkout-border) !important;
@@ -740,7 +740,7 @@
             min-width: 720px;
         }
 
-        #step-5 .table {
+        #step-4 .table {
             min-width: 0;
         }
 
@@ -774,20 +774,20 @@
         }
 
         #carInfoInputs,
-        #step-4 > .p-4 {
+        #step-3 > .p-4 {
             padding: 18px !important;
         }
 
-        #step-5 .row.g-4 {
+        #step-4 .row.g-4 {
             --bs-gutter-y: 1rem;
         }
 
-        #step-6 .mt-4 {
+        #step-5 .mt-4 {
             display: grid;
             gap: 9px;
         }
 
-            #step-6 .mt-4 .btn {
+            #step-5 .mt-4 .btn {
                 width: 100%;
                 margin: 0 !important;
             }
@@ -848,15 +848,11 @@
                             3
                             <span class="step-indicator-label">Thông tin xe</span>
                         </div>
-                        <div class="step-indicator-item d-none" id="ind-4">
+                        <div class="step-indicator-item" id="ind-4">
                             4
-                            <span class="step-indicator-label">Lịch hẹn</span>
-                        </div>
-                        <div class="step-indicator-item" id="ind-5">
-                            5
                             <span class="step-indicator-label">Xác nhận</span>
                         </div>
-                        <div class="step-indicator-item" id="ind-6">
+                        <div class="step-indicator-item" id="ind-5">
                             ✓
                             <span class="step-indicator-label">Hoàn tất</span>
                         </div>
@@ -1062,40 +1058,13 @@
 
                         <div class="d-flex justify-content-between mt-5">
                             <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(5)">Xem trước &amp; Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(4)">Xem trước &amp; Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
                         </div>
                     </div>
 
-                    <!-- STEP 4: LỊCH HẸN -->
+                    <!-- STEP 4: XÁC NHẬN -->
                     <div class="wizard-step" id="step-4">
-                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-calendar-event text-warning me-2"></i>BƯỚC 4: Chọn thời gian đặt lịch bảo dưỡng</h4>
-
-                        <div class="p-4 bg-light rounded-4 border mb-4">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="AppointmentDateInput" class="form-label fw-semibold text-secondary">Chọn ngày hẹn</label>
-                                    <input type="date" class="form-control rounded-3" id="AppointmentDateInput" min="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")" value="@DateTime.Now.AddDays(1).ToString("yyyy-MM-dd")">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="AppointmentTimeInput" class="form-label fw-semibold text-secondary">Chọn giờ hẹn</label>
-                                    <input type="time" class="form-control rounded-3" id="AppointmentTimeInput" value="09:00">
-                                </div>
-                                <div class="col-12 mt-3">
-                                    <label for="NoteInput" class="form-label fw-semibold text-secondary">Ghi chú yêu cầu thêm cho showroom</label>
-                                    <textarea class="form-control rounded-3" id="NoteInput" rows="3" placeholder="VD: Tôi muốn kiểm tra thêm hệ thống phanh xe..."></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-5">
-                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
-                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(5)">Xem trước & Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
-                        </div>
-                    </div>
-
-                    <!-- STEP 5: XÁC NHẬN -->
-                    <div class="wizard-step" id="step-5">
-                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i>BƯỚC 5: Xác nhận chi phí và thông tin đơn hàng</h4>
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i>BƯỚC 4: Xác nhận chi phí và thông tin đơn hàng</h4>
 
                         <div class="row g-4">
                             <!-- Left columns: Summary list -->
@@ -1255,8 +1224,8 @@
                         </div>
                     </div>
 
-                    <!-- STEP 6: HOÀN TẤT -->
-                    <div class="wizard-step text-center py-4" id="step-6">
+                    <!-- STEP 5: HOÀN TẤT -->
+                    <div class="wizard-step text-center py-4" id="step-5">
                         <div class="mb-4">
                             <span class="display-3 text-success"><i class="bi bi-check-circle-fill"></i></span>
                         </div>
@@ -1458,14 +1427,13 @@
                         return;
                     }
                 } else {
-                    // Skip step 3 & 4 if there are no maintenance items at all
-                    step = 5;
+                    // Skip step 3 if there are no maintenance items at all -> Go directly to Step 4 (Xác nhận)
+                    step = 4;
                 }
             }
 
-            // Đã BỎ bước đặt lịch (chỉ đặt dịch vụ). Đi thẳng bước 3 -> 5.
             // Kiểm tra thông tin xe khi chọn "xe khác".
-            if (step === 5 && activeStep === 3 && hasMaintenance && getCarSource() === 'Other') {
+            if (step === 4 && activeStep === 3 && hasMaintenance && getCarSource() === 'Other') {
                 const carName = $('#CarNameInput').val().trim();
                 const licensePlate = $('#LicensePlateInput').val().trim();
                 if (!carName || !licensePlate) {
@@ -1474,9 +1442,9 @@
                 }
             }
 
-            if (step === 5) {
-                // Populate Step 5 display labels
-                renderStep5Summary(hasStandalone, hasMaintenance);
+            if (step === 4) {
+                // Populate Step 4 display labels
+                renderStep4Summary(hasStandalone, hasMaintenance);
             }
 
             // Perform step switch
@@ -1484,7 +1452,7 @@
             $(`#step-${step}`).addClass('active');
 
             // Update Indicators
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 5; i++) {
                 if (i < step) {
                     $(`#ind-${i}`).addClass('completed').removeClass('active');
                 } else if (i === step) {
@@ -1503,7 +1471,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function renderStep5Summary(hasStandalone, hasMaintenance) {
+        function renderStep4Summary(hasStandalone, hasMaintenance) {
             const hasCar = cartData.Items.some(i => i.ItemType === 'Car');
 
             // 0. Ô tô (yêu cầu mua) — danh mục riêng
@@ -1586,7 +1554,9 @@
                 if (getCarSource() === 'InCart' && carsInCart.length > 0) {
                     $('#summaryCarText').text(getSelectedCarInCartName() + ' (xe trong giỏ hàng)');
                 } else {
-                    $('#summaryCarText').text($('#CarNameInput').val() + ' (' + $('#LicensePlateInput').val() + ')');
+                    const cName = $('#CarNameInput').length ? ($('#CarNameInput').val() || '').trim() : '';
+                    const lPlate = $('#LicensePlateInput').length ? ($('#LicensePlateInput').val() || '').trim() : '';
+                    $('#summaryCarText').text((cName || 'Xe bảo dưỡng') + (lPlate ? ' (' + lPlate + ')' : ''));
                 }
                 $('#summaryTimeText').text('Nhân viên sẽ liên hệ sắp xếp');
             } else {
@@ -1596,30 +1566,46 @@
 
         function submitCheckout() {
             $('#checkoutAlert').addClass('d-none');
+            $('#CustomerNameInput').removeClass('is-invalid');
+            $('#CustomerPhoneInput').removeClass('is-invalid');
 
             const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
             const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
 
-            const name = $('#CustomerNameInput').val().trim();
-            const phone = $('#CustomerPhoneInput').val().trim();
-            const email = $('#CustomerEmailInput').val().trim();
+            const name = ($('#CustomerNameInput').val() || '').trim();
+            const phone = ($('#CustomerPhoneInput').val() || '').trim();
+            const email = ($('#CustomerEmailInput').val() || '').trim();
 
-            if (!name || !phone) {
-                showError("Vui lòng cung cấp Họ tên và Số điện thoại liên hệ nhận đơn hàng.");
+            if (!name) {
+                $('#CustomerNameInput').addClass('is-invalid').focus();
+                showError("Vui lòng nhập Họ và tên liên hệ nhận đơn hàng.");
                 return;
             }
+
+            if (!phone) {
+                $('#CustomerPhoneInput').addClass('is-invalid').focus();
+                showError("Vui lòng nhập Số điện thoại liên hệ nhận đơn hàng.");
+                return;
+            }
+
+            const shippingAddress = $('#ShippingAddressInput').length ? ($('#ShippingAddressInput').val() || '').trim() : '';
+            const carName = $('#CarNameInput').length ? ($('#CarNameInput').val() || '').trim() : '';
+            const licensePlate = $('#LicensePlateInput').length ? ($('#LicensePlateInput').val() || '').trim() : '';
+            const apptDate = $('#AppointmentDateInput').length ? $('#AppointmentDateInput').val() : null;
+            const apptTime = $('#AppointmentTimeInput').length ? $('#AppointmentTimeInput').val() : null;
+            const noteText = $('#NoteInput').length ? ($('#NoteInput').val() || '').trim() : null;
 
             const payload = {
                 CustomerName: name,
                 CustomerPhone: phone,
                 CustomerEmail: email,
-                DeliveryMethod: $('input[name="deliveryMethod"]:checked').val(),
-                ShippingAddress: $('#ShippingAddressInput').val().trim(),
-                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carsInCart.length > 0 ? getSelectedCarInCartName() : $('#CarNameInput').val().trim()) : null,
-                LicensePlate: hasMaintenance ? (getCarSource() === 'InCart' ? 'Chưa cấp biển' : $('#LicensePlateInput').val().trim()) : null,
-                AppointmentDate: hasMaintenance ? $('#AppointmentDateInput').val() : null,
-                AppointmentTime: hasMaintenance ? $('#AppointmentTimeInput').val() : null,
-                Note: hasMaintenance ? $('#NoteInput').val().trim() : null,
+                DeliveryMethod: $('input[name="deliveryMethod"]:checked').val() || 'Pickup',
+                ShippingAddress: shippingAddress,
+                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carsInCart.length > 0 ? getSelectedCarInCartName() : carName) : null,
+                LicensePlate: hasMaintenance ? (getCarSource() === 'InCart' ? 'Chưa cấp biển' : licensePlate) : null,
+                AppointmentDate: apptDate,
+                AppointmentTime: apptTime,
+                Note: noteText,
                 PurchaseType: $('input[name="purchaseType"]:checked').val() || 'Buyout'
             };
 
@@ -1663,7 +1649,7 @@
                             $('#resInvoice').addClass('d-none');
                         }
 
-                        goToStep(6);
+                        goToStep(5);
                     } else {
                         showError(res.message);
                         $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn');

@@ -284,6 +284,12 @@
             .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
             .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="img-fluid rounded my-2 d-block chat-inline-image" />')
+            // Markdown link [text](url) -> thẻ <a> bấm được
+            .replace(/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)\s]+)\)/g,
+                     '<a href="$2" target="_blank" rel="noopener" class="ai-inline-link">$1</a>')
+            // Tự động biến URL thô (đứng riêng) thành link bấm được, vẫn copy được
+            .replace(/(^|[\s(>])((?:https?:\/\/)[^\s<]+)/g,
+                     '$1<a href="$2" target="_blank" rel="noopener" class="ai-inline-link">$2</a>')
             .replace(/\n/g, "<br/>");
 
         if (formattedText.includes("|")) {

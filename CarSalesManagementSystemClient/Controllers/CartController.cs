@@ -275,7 +275,7 @@ namespace CarSalesManagementSystemClient.Controllers
             return RedirectToAction("Checkout");
         }
 
-        /// <summary>Lấy thông tin 1 sản phẩm từ API và tạo UnifiedCartItem. Chatbot "Service" = gói bảo dưỡng (Package).</summary>
+        /// <summary>Lấy thông tin 1 sản phẩm từ API và tạo UnifiedCartItem. Hỗ trợ Car/Part/Package(gói)/Service(dịch vụ lẻ).</summary>
         private async Task<UnifiedCartItem?> ResolveCartItemAsync(HttpClient client, string itemType, int itemId, int quantity)
         {
             try
@@ -295,10 +295,9 @@ namespace CarSalesManagementSystemClient.Controllers
                         ImageUrl = part.TryGetProperty("imageUrl", out var img) ? img.GetString() : null
                     };
                 }
-                if (string.Equals(itemType, "Service", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(itemType, "Package", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(itemType, "Package", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Chatbot index MaintenancePackages dưới nhãn "Service" -> thêm vào giỏ dạng Package.
+                    // Gói bảo dưỡng (MaintenancePackage).
                     var resp = await client.GetAsync($"/api/maintenancepackages/{itemId}");
                     if (!resp.IsSuccessStatusCode) return null;
                     var root = await resp.Content.ReadFromJsonAsync<JsonElement>();
@@ -309,6 +308,22 @@ namespace CarSalesManagementSystemClient.Controllers
                         ItemId = pkg.GetProperty("packageId").GetInt32(),
                         Name = pkg.GetProperty("packageName").GetString() ?? "",
                         Price = pkg.GetProperty("packagePrice").GetDecimal(),
+                        Quantity = 1
+                    };
+                }
+                if (string.Equals(itemType, "Service", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Dịch vụ lẻ (standalone Service).
+                    var resp = await client.GetAsync($"/api/services/{itemId}");
+                    if (!resp.IsSuccessStatusCode) return null;
+                    var root = await resp.Content.ReadFromJsonAsync<JsonElement>();
+                    if (!root.TryGetProperty("data", out var svc)) return null;
+                    return new UnifiedCartItem
+                    {
+                        ItemType = "Service",
+                        ItemId = svc.GetProperty("serviceId").GetInt32(),
+                        Name = svc.GetProperty("serviceName").GetString() ?? "",
+                        Price = svc.GetProperty("basePrice").GetDecimal(),
                         Quantity = 1
                     };
                 }
@@ -471,53 +486,26 @@ namespace CarSalesManagementSystemClient.Controllers
             }
 
             // Validations for Maintenance
+            // LƯU Ý: bước ĐẶT LỊCH đã tạm gỡ khỏi giao diện — chỉ "đặt dịch vụ", nhân viên sẽ liên hệ
+            // sắp xếp giờ sau. Vì vậy KHÔNG bắt buộc ngày/giờ hẹn; nếu thiếu thì dùng mốc tạm (mai 09:00).
             DateOnly? parsedDate = null;
             TimeOnly? parsedTime = null;
             if (hasMaintenance)
             {
-                if (string.IsNullOrWhiteSpace(model.CarName) || string.IsNullOrWhiteSpace(model.LicensePlate))
-                {
-                    return Json(new { success = false, message = "Vui lòng nhập tên xe và biển số xe để đặt lịch bảo dưỡng." });
-                }
-
-                if (string.IsNullOrEmpty(model.AppointmentDate))
-                {
-                    return Json(new { success = false, message = "Vui lòng chọn ngày bảo dưỡng." });
-                }
-
-                if (string.IsNullOrEmpty(model.AppointmentTime))
-                {
-                    return Json(new { success = false, message = "Vui lòng chọn giờ bảo dưỡng." });
-                }
-
-                if (!DateOnly.TryParse(model.AppointmentDate, out var dateVal))
-                {
-                    return Json(new { success = false, message = "Định dạng ngày bảo dưỡng không hợp lệ." });
-                }
-                parsedDate = dateVal;
-
-                if (!TimeOnly.TryParse(model.AppointmentTime, out var timeVal))
-                {
-                    return Json(new { success = false, message = "Định dạng giờ bảo dưỡng không hợp lệ." });
-                }
-                parsedTime = timeVal;
-
-                var today = DateOnly.FromDateTime(DateTime.Now.Date);
-                var nowTime = TimeOnly.FromDateTime(DateTime.Now);
-
-                if (parsedDate.Value < today)
-                {
-                    return Json(new { success = false, message = "Ngày bảo dưỡng không được ở trong quá khứ." });
-                }
-                else if (parsedDate.Value == today && parsedTime.Value <= nowTime)
-                {
-                    return Json(new { success = false, message = "Giờ đặt lịch bảo dưỡng phải ở trong tương lai." });
-                }
-
                 if (!maintenancePackages.Any() && !maintenanceServices.Any())
                 {
-                    return Json(new { success = false, message = "Đặt lịch bảo dưỡng yêu cầu ít nhất một gói bảo dưỡng hoặc một dịch vụ lẻ." });
+                    return Json(new { success = false, message = "Đơn bảo dưỡng cần ít nhất một gói bảo dưỡng hoặc một dịch vụ lẻ." });
                 }
+
+                if (!string.IsNullOrEmpty(model.AppointmentDate) && DateOnly.TryParse(model.AppointmentDate, out var dateVal))
+                    parsedDate = dateVal;
+                else
+                    parsedDate = DateOnly.FromDateTime(DateTime.Now.Date.AddDays(1));   // mốc tạm — nhân viên sắp xếp lại
+
+                if (!string.IsNullOrEmpty(model.AppointmentTime) && TimeOnly.TryParse(model.AppointmentTime, out var timeVal))
+                    parsedTime = timeVal;
+                else
+                    parsedTime = new TimeOnly(9, 0);   // mốc tạm
             }
 
             // Get API client from factory
@@ -589,6 +577,12 @@ namespace CarSalesManagementSystemClient.Controllers
                         customerId = parsedId;
                     }
 
+                    var schedulingNote = string.IsNullOrWhiteSpace(model.AppointmentDate)
+                        ? "Khách chưa chọn lịch — nhân viên liên hệ sắp xếp."
+                        : null;
+                    var combinedNote = string.Join(" ", new[] { model.Note, schedulingNote }
+                        .Where(s => !string.IsNullOrWhiteSpace(s)));
+
                     var maintenancePayload = new
                     {
                         CustomerId = customerId,
@@ -596,11 +590,11 @@ namespace CarSalesManagementSystemClient.Controllers
                         CustomerName = model.CustomerName,
                         CustomerPhone = model.CustomerPhone,
                         CustomerEmail = model.CustomerEmail,
-                        CarName = model.CarName,
-                        LicensePlate = model.LicensePlate,
+                        CarName = string.IsNullOrWhiteSpace(model.CarName) ? "(Chưa xác định)" : model.CarName,
+                        LicensePlate = string.IsNullOrWhiteSpace(model.LicensePlate) ? "Chưa cấp biển" : model.LicensePlate,
                         AppointmentDate = parsedDate,
                         AppointmentTime = parsedTime,
-                        Note = model.Note,
+                        Note = combinedNote,
                         PackageIds = maintenancePackages.Select(p => p.ItemId).ToList(),
                         ServiceIds = maintenanceServices.Select(s => s.ItemId).ToList(),
                         PartItems = maintenanceParts.Select(p => new
