@@ -38,11 +38,14 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
         }
 
         // GET: /Admin/Captchas
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 10;
             if (!AttachJwtToken())
             {
                 TempData["ErrorMessage"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = 1;
                 return View(new List<InvoiceListItemViewModel>());
             }
 
@@ -52,6 +55,8 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                 if (!resp.IsSuccessStatusCode)
                 {
                     TempData["ErrorMessage"] = "Không tải được danh sách hóa đơn (mã " + (int)resp.StatusCode + ").";
+                    ViewBag.CurrentPage = 1;
+                    ViewBag.TotalPages = 1;
                     return View(new List<InvoiceListItemViewModel>());
                 }
 
@@ -59,11 +64,24 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
                 var content = await resp.Content.ReadAsStringAsync();
                 var list = JsonSerializer.Deserialize<List<InvoiceListItemViewModel>>(content, opts)
                            ?? new List<InvoiceListItemViewModel>();
-                return View(list);
+
+                int totalItems = list.Count;
+                int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                if (totalPages == 0) totalPages = 1;
+                if (page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+
+                var paginatedData = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                return View(paginatedData);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Không thể tải danh sách hóa đơn: " + ex.Message;
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = 1;
                 return View(new List<InvoiceListItemViewModel>());
             }
         }

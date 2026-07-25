@@ -45,17 +45,32 @@ namespace CarSalesManagementSystemClient.Areas.Admin.Controllers
             return $"({(int)response.StatusCode} {response.StatusCode}) - {requestUri}: {error}";
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
+            int pageSize = 10;
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<ODataResponse<CarViewModel>>(
                     $"{CarsApiUrl}?$filter=Status ne 'Inactive'&$expand=Brand&$orderby=CreatedAt desc");
-                return View(response?.Value ?? new List<CarViewModel>());
+                var list = response?.Value ?? new List<CarViewModel>();
+
+                int totalItems = list.Count;
+                int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                if (totalPages == 0) totalPages = 1;
+                if (page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+
+                var paginatedData = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                return View(paginatedData);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Khong the tai danh sach xe: " + ex.Message;
+                ViewBag.CurrentPage = 1;
+                ViewBag.TotalPages = 1;
                 return View(new List<CarViewModel>());
             }
         }
