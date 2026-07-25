@@ -1,0 +1,1078 @@
+@model CarSalesManagementSystemClient.Models.CarFormViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thêm xe mới";
+
+    var brands =
+        ViewBag.Brands as IEnumerable<CarSalesManagementSystemClient.Models.CarBrandViewModel>
+        ?? new List<CarSalesManagementSystemClient.Models.CarBrandViewModel>();
+}
+
+<style>
+    :root {
+        --create-car-primary: #17191e;
+        --create-car-secondary: #252830;
+        --create-car-accent: #f5b800;
+        --create-car-accent-hover: #ffca28;
+        --create-car-background: #f4f5f7;
+        --create-car-surface: #ffffff;
+        --create-car-border: #e5e7eb;
+        --create-car-text: #1b1d22;
+        --create-car-muted: #757a84;
+        --create-car-danger: #dc3545;
+        --create-car-radius-lg: 24px;
+        --create-car-radius-md: 14px;
+        --create-car-shadow: 0 18px 45px rgba(17, 19, 24, 0.08);
+    }
+
+    .create-car-page {
+        min-height: 100vh;
+        padding: 32px 0 72px;
+        background: radial-gradient( circle at 94% 7%, rgba(245, 184, 0, 0.1), transparent 25% ), var(--create-car-background);
+    }
+
+    .create-car-container {
+        width: 100%;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    /* Breadcrumb */
+
+    .create-car-breadcrumb {
+        margin-bottom: 22px;
+    }
+
+        .create-car-breadcrumb .breadcrumb {
+            margin-bottom: 0;
+            padding: 0;
+            background-color: transparent;
+        }
+
+        .create-car-breadcrumb .breadcrumb-item {
+            color: #90949c;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+            .create-car-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+                color: #b5b8be;
+            }
+
+        .create-car-breadcrumb a {
+            color: var(--create-car-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+            .create-car-breadcrumb a:hover {
+                color: var(--create-car-primary);
+            }
+
+        .create-car-breadcrumb .active {
+            color: #9b7400;
+        }
+
+    /* Header */
+
+    .create-car-header {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 25px;
+        padding: 30px 34px;
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.18), transparent 30% ), linear-gradient( 135deg, var(--create-car-primary), var(--create-car-secondary) );
+        border-radius: var(--create-car-radius-lg);
+        box-shadow: 0 20px 48px rgba(17, 19, 24, 0.15);
+        overflow: hidden;
+    }
+
+        .create-car-header::after {
+            content: "NEW";
+            position: absolute;
+            top: -34px;
+            right: 24px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .create-car-header-content,
+    .create-car-header-icon {
+        position: relative;
+        z-index: 2;
+    }
+
+    .create-car-header-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--create-car-accent);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+        .create-car-header-label::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background-color: var(--create-car-accent);
+        }
+
+    .create-car-title {
+        margin: 0 0 8px;
+        font-size: clamp(1.75rem, 3vw, 2.5rem);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+    }
+
+    .create-car-description {
+        max-width: 640px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.9rem;
+        line-height: 1.65;
+    }
+
+    .create-car-header-icon {
+        flex: 0 0 auto;
+        width: 68px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--create-car-primary);
+        background-color: var(--create-car-accent);
+        border-radius: 20px;
+        font-size: 1.75rem;
+        box-shadow: 0 14px 34px rgba(245, 184, 0, 0.22);
+        transform: rotate(-4deg);
+    }
+
+    /* Main layout */
+
+    .create-car-layout {
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .create-car-sidebar,
+    .create-car-form-panel {
+        background-color: var(--create-car-surface);
+        border: 1px solid var(--create-car-border);
+        border-radius: var(--create-car-radius-lg);
+        box-shadow: var(--create-car-shadow);
+    }
+
+    /* Sidebar */
+
+    .create-car-sidebar {
+        position: sticky;
+        top: 92px;
+        padding: 25px;
+    }
+
+    .create-car-sidebar-icon {
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+        color: var(--create-car-primary);
+        background-color: rgba(245, 184, 0, 0.15);
+        border: 1px solid rgba(245, 184, 0, 0.25);
+        border-radius: 15px;
+        font-size: 1.25rem;
+    }
+
+    .create-car-sidebar-title {
+        margin-bottom: 9px;
+        color: var(--create-car-primary);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .create-car-sidebar-description {
+        margin-bottom: 23px;
+        color: var(--create-car-muted);
+        font-size: 0.8rem;
+        line-height: 1.65;
+    }
+
+    .create-car-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 14px 0;
+        border-top: 1px solid #eff0f2;
+    }
+
+    .create-car-step-number {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 9px;
+        font-size: 0.7rem;
+        font-weight: 900;
+    }
+
+    .create-car-step-title {
+        margin-bottom: 3px;
+        color: #34373e;
+        font-size: 0.77rem;
+        font-weight: 800;
+    }
+
+    .create-car-step-description {
+        margin: 0;
+        color: #969aa2;
+        font-size: 0.7rem;
+        line-height: 1.45;
+    }
+
+    /* Form panel */
+
+    .create-car-form-panel {
+        overflow: hidden;
+    }
+
+    .create-car-form-heading {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 22px 26px;
+        border-bottom: 1px solid var(--create-car-border);
+    }
+
+    .create-car-form-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--create-car-primary);
+        background-color: var(--create-car-accent);
+        border-radius: 13px;
+        font-size: 1.08rem;
+        box-shadow: 0 9px 22px rgba(245, 184, 0, 0.2);
+    }
+
+    .create-car-form-title {
+        margin: 0 0 3px;
+        color: var(--create-car-primary);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .create-car-form-subtitle {
+        margin: 0;
+        color: var(--create-car-muted);
+        font-size: 0.74rem;
+    }
+
+    .create-car-form-body {
+        padding: 28px;
+    }
+
+    /* Validation */
+
+    .create-car-validation-summary {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 24px;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        font-size: 0.82rem;
+        line-height: 1.55;
+    }
+
+        .create-car-validation-summary i {
+            flex-shrink: 0;
+            margin-top: 2px;
+            color: var(--create-car-danger);
+        }
+
+        .create-car-validation-summary ul {
+            margin-bottom: 0;
+            padding-left: 18px;
+        }
+
+    /* Sections */
+
+    .create-car-section {
+        margin-bottom: 30px;
+    }
+
+        .create-car-section:last-of-type {
+            margin-bottom: 0;
+        }
+
+    .create-car-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eff0f2;
+    }
+
+    .create-car-section-icon {
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8d6a00;
+        background-color: rgba(245, 184, 0, 0.12);
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+
+    .create-car-section-title {
+        margin: 0;
+        color: var(--create-car-primary);
+        font-size: 0.85rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.035em;
+    }
+
+    /* Form fields */
+
+    .create-car-field {
+        margin-bottom: 2px;
+    }
+
+    .create-car-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #3f434b;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+
+    .create-car-required {
+        color: var(--create-car-danger);
+    }
+
+    .create-car-input-wrapper {
+        position: relative;
+    }
+
+    .create-car-input-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 15px;
+        color: #969ba4;
+        font-size: 0.92rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: color 0.2s ease;
+    }
+
+    .create-car-textarea-wrapper .create-car-input-icon {
+        top: 17px;
+        transform: none;
+    }
+
+    .create-car-control,
+    .create-car-select,
+    .create-car-textarea {
+        width: 100%;
+        color: var(--create-car-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--create-car-border);
+        border-radius: var(--create-car-radius-md);
+        outline: none;
+        font-size: 0.86rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .create-car-control,
+    .create-car-select {
+        min-height: 50px;
+    }
+
+    .create-car-control {
+        padding: 12px 14px 12px 43px;
+    }
+
+    .create-car-select {
+        padding: 12px 42px 12px 43px;
+    }
+
+    .create-car-textarea {
+        min-height: 112px;
+        padding: 14px 15px 14px 43px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+        .create-car-control::placeholder,
+        .create-car-textarea::placeholder {
+            color: #a5a9b0;
+        }
+
+        .create-car-control:hover,
+        .create-car-select:hover,
+        .create-car-textarea:hover {
+            border-color: #ccd0d6;
+        }
+
+        .create-car-control:focus,
+        .create-car-select:focus,
+        .create-car-textarea:focus {
+            background-color: #ffffff;
+            border-color: var(--create-car-accent);
+            box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+        }
+
+    .create-car-input-wrapper:focus-within .create-car-input-icon {
+        color: #9a7300;
+    }
+
+    /* Actions */
+
+    .create-car-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 11px;
+        margin-top: 30px;
+        padding-top: 24px;
+        border-top: 1px solid var(--create-car-border);
+    }
+
+    .create-car-button {
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 20px;
+        border-radius: 12px;
+        font-size: 0.76rem;
+        font-weight: 900;
+        text-decoration: none;
+        transition: transform 0.22s ease, color 0.22s ease, background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .create-car-button-cancel {
+        color: #656a73;
+        background-color: #ffffff;
+        border: 1px solid var(--create-car-border);
+    }
+
+        .create-car-button-cancel:hover {
+            color: var(--create-car-primary);
+            background-color: #f6f7f8;
+            border-color: #cfd2d7;
+            transform: translateY(-2px);
+        }
+
+    .create-car-button-submit {
+        color: var(--create-car-primary);
+        background-color: var(--create-car-accent);
+        border: 1px solid var(--create-car-accent);
+        box-shadow: 0 12px 28px rgba(245, 184, 0, 0.2);
+    }
+
+        .create-car-button-submit:hover {
+            color: var(--create-car-primary);
+            background-color: var(--create-car-accent-hover);
+            border-color: var(--create-car-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(245, 184, 0, 0.28);
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .create-car-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .create-car-sidebar {
+            position: static;
+        }
+
+        .create-car-sidebar-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .create-car-step {
+            padding: 14px;
+            border: 1px solid var(--create-car-border);
+            border-radius: 13px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .create-car-page {
+            padding-top: 24px;
+        }
+
+        .create-car-container {
+            padding-right: 14px;
+            padding-left: 14px;
+        }
+
+        .create-car-header {
+            align-items: flex-start;
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+            .create-car-header::after {
+                display: none;
+            }
+
+        .create-car-header-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            font-size: 1.35rem;
+        }
+
+        .create-car-sidebar,
+        .create-car-form-panel {
+            border-radius: 20px;
+        }
+
+        .create-car-sidebar-steps {
+            grid-template-columns: 1fr;
+        }
+
+        .create-car-form-body {
+            padding: 22px 19px;
+        }
+
+        .create-car-form-heading {
+            padding: 19px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .create-car-header-icon {
+            display: none;
+        }
+
+        .create-car-title {
+            font-size: 1.55rem;
+        }
+
+        .create-car-description {
+            font-size: 0.82rem;
+        }
+
+        .create-car-sidebar {
+            display: none;
+        }
+
+        .create-car-actions {
+            flex-direction: column-reverse;
+        }
+
+        .create-car-button {
+            width: 100%;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .create-car-button,
+        .create-car-control,
+        .create-car-select,
+        .create-car-textarea {
+            transition: none;
+        }
+
+            .create-car-button:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="create-car-page">
+    <div class="create-car-container">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb"
+             class="create-car-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-action="Cars">
+                        Quản lý xe
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item active"
+                    aria-current="page">
+                    Thêm xe mới
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <header class="create-car-header">
+            <div class="create-car-header-content">
+                <div class="create-car-header-label">
+                    Showroom management
+                </div>
+
+                <h1 class="create-car-title">
+                    Thêm xe mới
+                </h1>
+
+                <p class="create-car-description">
+                    Điền đầy đủ thông tin để thêm một mẫu xe mới vào danh sách
+                    quản lý của showroom.
+                </p>
+            </div>
+
+            <div class="create-car-header-icon">
+                <i class="bi bi-car-front-fill"></i>
+            </div>
+        </header>
+
+        <div class="create-car-layout">
+
+            <!-- Information Sidebar -->
+            <aside class="create-car-sidebar">
+                <div class="create-car-sidebar-icon">
+                    <i class="bi bi-info-circle-fill"></i>
+                </div>
+
+                <h2 class="create-car-sidebar-title">
+                    Hướng dẫn nhập liệu
+                </h2>
+
+                <p class="create-car-sidebar-description">
+                    Kiểm tra kỹ thông tin xe trước khi thêm vào hệ thống.
+                    Các trường có dấu * là bắt buộc.
+                </p>
+
+                <div class="create-car-sidebar-steps">
+                    <div class="create-car-step">
+                        <div class="create-car-step-number">
+                            01
+                        </div>
+
+                        <div>
+                            <div class="create-car-step-title">
+                                Thông tin cơ bản
+                            </div>
+
+                            <p class="create-car-step-description">
+                                Nhập tên, thương hiệu, model, năm và màu xe.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="create-car-step">
+                        <div class="create-car-step-number">
+                            02
+                        </div>
+
+                        <div>
+                            <div class="create-car-step-title">
+                                Thông số vận hành
+                            </div>
+
+                            <p class="create-car-step-description">
+                                Chọn nhiên liệu, hộp số và số km đã đi.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="create-car-step">
+                        <div class="create-car-step-number">
+                            03
+                        </div>
+
+                        <div>
+                            <div class="create-car-step-title">
+                                Bán hàng
+                            </div>
+
+                            <p class="create-car-step-description">
+                                Cập nhật giá, trạng thái, ảnh và mô tả xe.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Form -->
+            <section class="create-car-form-panel">
+                <div class="create-car-form-heading">
+                    <div class="create-car-form-icon">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="create-car-form-title">
+                            Thông tin xe
+                        </h2>
+
+                        <p class="create-car-form-subtitle">
+                            Nhập các thông tin cần thiết của xe mới
+                        </p>
+                    </div>
+                </div>
+
+                <div class="create-car-form-body">
+                    <form asp-action="CreateCar" method="post">
+                        @Html.AntiForgeryToken()
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="create-car-validation-summary"
+                                 role="alert">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                                <div asp-validation-summary="ModelOnly"></div>
+                            </div>
+                        }
+
+                        <!-- Basic Information -->
+                        <section class="create-car-section">
+                            <div class="create-car-section-header">
+                                <div class="create-car-section-icon">
+                                    <i class="bi bi-card-heading"></i>
+                                </div>
+
+                                <h3 class="create-car-section-title">
+                                    Thông tin cơ bản
+                                </h3>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <div class="create-car-field">
+                                        <label asp-for="CarName"
+                                               class="create-car-label">
+                                            Tên xe
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-car-front create-car-input-icon"></i>
+
+                                            <input asp-for="CarName"
+                                                   class="create-car-control"
+                                                   placeholder="VD: Toyota Camry 2.5Q"
+                                                   required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="BrandId"
+                                               class="create-car-label">
+                                            Thương hiệu
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-building create-car-input-icon"></i>
+
+                                            <select asp-for="BrandId"
+                                                    class="create-car-select"
+                                                    required>
+                                                <option value="">
+                                                    -- Chọn hãng --
+                                                </option>
+
+                                                @foreach (var b in brands)
+                                                {
+                                                    <option value="@b.BrandId">
+                                                        @b.BrandName
+                                                    </option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="Model"
+                                               class="create-car-label">
+                                            Model
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-tag create-car-input-icon"></i>
+
+                                            <input asp-for="Model"
+                                                   class="create-car-control"
+                                                   placeholder="VD: Camry" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="Year"
+                                               class="create-car-label">
+                                            Năm sản xuất
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-calendar-event create-car-input-icon"></i>
+
+                                            <input asp-for="Year"
+                                                   type="number"
+                                                   class="create-car-control"
+                                                   min="1990"
+                                                   max="2030"
+                                                   required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="Color"
+                                               class="create-car-label">
+                                            Màu sắc
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-palette create-car-input-icon"></i>
+
+                                            <input asp-for="Color"
+                                                   class="create-car-control"
+                                                   placeholder="VD: Trắng ngọc trai" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Technical Information -->
+                        <section class="create-car-section">
+                            <div class="create-car-section-header">
+                                <div class="create-car-section-icon">
+                                    <i class="bi bi-speedometer2"></i>
+                                </div>
+
+                                <h3 class="create-car-section-title">
+                                    Thông số vận hành
+                                </h3>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="FuelType"
+                                               class="create-car-label">
+                                            Nhiên liệu
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-fuel-pump create-car-input-icon"></i>
+
+                                            <select asp-for="FuelType"
+                                                    class="create-car-select"
+                                                    required>
+                                                <option value="Gasoline">Xăng</option>
+                                                <option value="Diesel">Dầu diesel</option>
+                                                <option value="Electric">Điện</option>
+                                                <option value="Hybrid">Hybrid</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="Transmission"
+                                               class="create-car-label">
+                                            Hộp số
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-gear create-car-input-icon"></i>
+
+                                            <select asp-for="Transmission"
+                                                    class="create-car-select"
+                                                    required>
+                                                <option value="Automatic">Tự động</option>
+                                                <option value="Manual">Số sàn</option>
+                                                <option value="CVT">CVT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="create-car-field">
+                                        <label asp-for="Mileage"
+                                               class="create-car-label">
+                                            Số km đã đi
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-signpost-2 create-car-input-icon"></i>
+
+                                            <input asp-for="Mileage"
+                                                   type="number"
+                                                   class="create-car-control"
+                                                   min="0"
+                                                   required />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Sales Information -->
+                        <section class="create-car-section">
+                            <div class="create-car-section-header">
+                                <div class="create-car-section-icon">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+
+                                <h3 class="create-car-section-title">
+                                    Thông tin bán hàng
+                                </h3>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="create-car-field">
+                                        <label asp-for="Price"
+                                               class="create-car-label">
+                                            Giá bán (VNĐ)
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-currency-dollar create-car-input-icon"></i>
+
+                                            <input asp-for="Price"
+                                                   type="number"
+                                                   class="create-car-control"
+                                                   min="0"
+                                                   step="1000000"
+                                                   required />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="create-car-field">
+                                        <label asp-for="Status"
+                                               class="create-car-label">
+                                            Trạng thái
+                                            <span class="create-car-required">*</span>
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-toggle-on create-car-input-icon"></i>
+
+                                            <select asp-for="Status"
+                                                    class="create-car-select"
+                                                    required>
+                                                <option value="Available">Có sẵn</option>
+                                                <option value="Reserved">Đang đặt cọc</option>
+                                                <option value="Sold">Đã bán</option>
+                                                <option value="Inactive">Ẩn</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="create-car-field">
+                                        <label asp-for="ImageUrl"
+                                               class="create-car-label">
+                                            URL ảnh
+                                        </label>
+
+                                        <div class="create-car-input-wrapper">
+                                            <i class="bi bi-image create-car-input-icon"></i>
+
+                                            <input asp-for="ImageUrl"
+                                                   class="create-car-control"
+                                                   placeholder="https://..." />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="create-car-field">
+                                        <label asp-for="Description"
+                                               class="create-car-label">
+                                            Mô tả
+                                        </label>
+
+                                        <div class="create-car-input-wrapper create-car-textarea-wrapper">
+                                            <i class="bi bi-text-paragraph create-car-input-icon"></i>
+
+                                            <textarea asp-for="Description"
+                                                      class="create-car-textarea"
+                                                      rows="3"
+                                                      placeholder="Mô tả chi tiết về xe..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Actions -->
+                        <div class="create-car-actions">
+                            <a asp-action="Cars"
+                               class="create-car-button create-car-button-cancel">
+                                <i class="bi bi-x-circle"></i>
+                                Hủy
+                            </a>
+
+                            <button type="submit"
+                                    class="create-car-button create-car-button-submit">
+                                <i class="bi bi-plus-circle-fill"></i>
+                                Thêm xe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>

@@ -1,0 +1,400 @@
+@page
+@model CarSalesRazorPages.Pages.Parts.IndexModel
+@{
+    ViewData["Title"] = "Cửa hàng Phụ tùng Ô tô";
+    var filter = Model.Filter;
+    var categories = Model.Categories;
+}
+
+<div class="container py-5">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="fw-bold text-dark border-start border-warning border-4 ps-3 m-0" style="font-family: 'Outfit', sans-serif;">
+                CỬA HÀNG PHỤ TÙNG
+            </h1>
+            <p class="text-secondary m-0 ps-3">Phụ tùng chính hãng, chất lượng cao dành cho xế yêu</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <nav aria-label="breadcrumb" class="d-inline-block">
+                <ol class="breadcrumb bg-transparent m-0 p-0">
+                    <li class="breadcrumb-item"><a asp-page="/Index" class="text-decoration-none text-dark">Trang chủ</a></li>
+                    <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">Phụ tùng</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    @Html.AntiForgeryToken()
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="row">
+        <!-- LEFT COLUMN: Advanced Filters -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="m-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-funnel-fill me-2 text-warning"></i> BỘ LỌC TÌM KIẾM
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="get" asp-page="/Parts/Index" id="filterForm">
+                        <input type="hidden" name="PageNumber" value="1" />
+                        <input type="hidden" name="PageSize" value="@filter.PageSize" />
+
+                        <!-- Search keyword -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Từ khóa tìm kiếm</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="bi bi-search text-secondary"></i></span>
+                                <input type="text" name="SearchTerm" class="form-control bg-light border-0 py-2" placeholder="Tên, mã phụ tùng..." value="@filter.SearchTerm" />
+                            </div>
+                        </div>
+
+                        <!-- Category filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Loại phụ tùng</label>
+                            <select name="CategoryId" class="form-select bg-light border-0 py-2">
+                                <option value="">Tất cả danh mục</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.CategoryId" selected="@(filter.CategoryId == cat.CategoryId)">@cat.CategoryName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Price filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Khoảng giá (VND)</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" name="MinPrice" class="form-control bg-light border-0 py-2" placeholder="Tối thiểu" value="@(filter.MinPrice.HasValue ? filter.MinPrice.Value.ToString("F0") : "")" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="MaxPrice" class="form-control bg-light border-0 py-2" placeholder="Tối đa" value="@(filter.MaxPrice.HasValue ? filter.MaxPrice.Value.ToString("F0") : "")" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sort option -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark mb-2">Sắp xếp theo</label>
+                            <select name="SortBy" class="form-select bg-light border-0 py-2">
+                                <option value="" selected="@(string.IsNullOrEmpty(filter.SortBy))">Mới nhất</option>
+                                <option value="PriceAsc" selected="@(filter.SortBy == "PriceAsc")">Giá tăng dần</option>
+                                <option value="PriceDesc" selected="@(filter.SortBy == "PriceDesc")">Giá giảm dần</option>
+                                <option value="NameAsc" selected="@(filter.SortBy == "NameAsc")">Tên A-Z</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit and Reset Buttons -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning py-2 fw-bold border-0 text-dark" style="background-color: #ffc107;">
+                                <i class="bi bi-search me-1"></i> LỌC SẢN PHẨM
+                            </button>
+                            <a asp-page="/Parts/Index" class="btn btn-light py-2 fw-bold text-secondary">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> THIẾT LẬP LẠI
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Part List Grid with Pagination -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Sort and Total count top bar -->
+            <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded-3 mb-4">
+                <div>
+                    <span class="text-secondary">Tìm thấy <b class="text-dark">@Model.PagedParts.TotalItems</b> phụ tùng</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="text-secondary me-2 d-none d-md-inline" style="font-size: 14px;">Trang @Model.PagedParts.PageNumber / @Model.PagedParts.TotalPages</span>
+                </div>
+            </div>
+
+            <!-- Part Grid -->
+            @if (Model.PagedParts.Items == null || !Model.PagedParts.Items.Any())
+            {
+                <div class="text-center py-5 bg-white shadow-sm rounded-3">
+                    <i class="bi bi-tools text-secondary" style="font-size: 5rem;"></i>
+                    <h4 class="mt-3 fw-bold text-dark">Không tìm thấy phụ tùng nào!</h4>
+                    <p class="text-secondary">Vui lòng điều chỉnh hoặc thử xóa bớt các bộ lọc tìm kiếm ở cột bên trái.</p>
+                    <a asp-page="/Parts/Index" class="btn btn-warning fw-bold border-0 px-4 py-2 mt-2 text-dark" style="background-color: #ffc107;">Xem tất cả</a>
+                </div>
+            }
+            else
+            {
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    @foreach (var part in Model.PagedParts.Items)
+                    {
+                        var displayImageUrl = string.IsNullOrWhiteSpace(part.ImageUrl) 
+                            ? "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80" 
+                            : part.ImageUrl;
+                            
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden part-card">
+                                <!-- Part Image and Category Badge -->
+                                <a asp-page="/Parts/Details" asp-route-id="@part.PartId" class="d-block position-relative overflow-hidden" style="height: 180px;">
+                                    <img src="@displayImageUrl" alt="@part.PartName" class="w-100 h-100 object-fit-cover part-image transition-transform duration-300">
+                                    <span class="position-absolute top-0 start-0 m-3 badge bg-dark fs-7 px-3 py-2 shadow-sm text-warning">
+                                        @part.Category?.CategoryName
+                                    </span>
+                                </a>
+
+                                <!-- Part Info Body -->
+                                <div class="card-body p-4 d-flex flex-column">
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-secondary fw-bold text-uppercase" style="letter-spacing: 0.5px;">@part.Brand</small>
+                                            <small class="text-secondary" style="font-family: monospace;">@part.PartCode</small>
+                                        </div>
+                                        <h5 class="card-title fw-bold mb-0 mt-1" style="font-size: 16px; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                            <a asp-page="/Parts/Details" asp-route-id="@part.PartId" class="text-dark text-decoration-none part-name-link">@part.PartName</a>
+                                        </h5>
+                                    </div>
+                                    
+                                    <p class="text-muted mb-3" style="font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;">
+                                        @(string.IsNullOrWhiteSpace(part.Description) ? "Chưa có mô tả chi tiết cho phụ tùng này." : part.Description)
+                                    </p>
+
+                                    <!-- Stock Info -->
+                                    <div class="bg-light rounded p-2 text-center mb-3 mt-auto" style="font-size: 12px;">
+                                        @if (part.Quantity > 0)
+                                        {
+                                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Còn hàng: <b>@part.Quantity</b> sản phẩm</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i> Hết hàng</span>
+                                        }
+                                    </div>
+
+                                    <!-- Price and Actions -->
+                                    <div class="border-top pt-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fs-6 fw-bold text-danger">@part.Price.ToString("N0") đ</span>
+                                            <a asp-page="/Parts/Details" asp-route-id="@part.PartId"
+                                               class="btn btn-outline-secondary btn-sm py-1 px-2" style="font-size:12px;">
+                                                <i class="bi bi-eye me-1"></i>Chi tiết
+                                            </a>
+                                        </div>
+                                        @if (part.Quantity > 0)
+                                        {
+                                            <button class="btn btn-warning btn-sm fw-bold w-100 py-2 border-0 text-dark" style="background-color: #ffc107;" onclick="addToCart(@part.PartId, @part.Quantity)">
+                                                <i class="bi bi-cart-plus-fill me-1"></i> Thêm vào giỏ hàng
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary btn-sm fw-bold w-100 py-2 border-0 text-white" disabled>
+                                                Hết hàng
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination Controls -->
+                @if (Model.PagedParts.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous page -->
+                            <li class="page-item @(Model.PagedParts.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center" 
+                                   style="width: 40px; height: 40px;"
+                                   asp-page="/Parts/Index"
+                                   asp-route-PageNumber="@(Model.PagedParts.PageNumber - 1)"
+                                   asp-route-CategoryId="@filter.CategoryId"
+                                   asp-route-MinPrice="@filter.MinPrice"
+                                   asp-route-MaxPrice="@filter.MaxPrice"
+                                   asp-route-SearchTerm="@filter.SearchTerm"
+                                   asp-route-SortBy="@filter.SortBy"
+                                   aria-label="Previous">
+                                    <i class="bi bi-chevron-left text-dark"></i>
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            @for (int i = 1; i <= Model.PagedParts.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.PagedParts.PageNumber == i ? "active" : "")">
+                                    @if (Model.PagedParts.PageNumber == i)
+                                    {
+                                        <span class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center text-white bg-warning" 
+                                              style="width: 40px; height: 40px; font-weight: bold;">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center text-dark" 
+                                           style="width: 40px; height: 40px;"
+                                           asp-page="/Parts/Index"
+                                           asp-route-PageNumber="@i"
+                                           asp-route-CategoryId="@filter.CategoryId"
+                                           asp-route-MinPrice="@filter.MinPrice"
+                                           asp-route-MaxPrice="@filter.MaxPrice"
+                                           asp-route-SearchTerm="@filter.SearchTerm"
+                                           asp-route-SortBy="@filter.SortBy">@i</a>
+                                    }
+                                </li>
+                            }
+
+                            <!-- Next page -->
+                            <li class="page-item @(Model.PagedParts.HasNextPage ? "" : "disabled")">
+                                <a class="page-link border-0 shadow-sm rounded-circle mx-1 d-flex align-items-center justify-content-center" 
+                                   style="width: 40px; height: 40px;"
+                                   asp-page="/Parts/Index"
+                                   asp-route-PageNumber="@(Model.PagedParts.PageNumber + 1)"
+                                   asp-route-CategoryId="@filter.CategoryId"
+                                   asp-route-MinPrice="@filter.MinPrice"
+                                   asp-route-MaxPrice="@filter.MaxPrice"
+                                   asp-route-SearchTerm="@filter.SearchTerm"
+                                   asp-route-SortBy="@filter.SortBy"
+                                   aria-label="Next">
+                                    <i class="bi bi-chevron-right text-dark"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function addToCart(partId, maxQty) {
+            var isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+            if (!isAuthenticated) {
+                Swal.fire({
+                    title: 'Yêu cầu đăng nhập!',
+                    text: 'Vui lòng đăng nhập để thêm phụ tùng vào giỏ hàng.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ffc107',
+                    cancelButtonColor: '#262626',
+                    confirmButtonText: 'Đăng nhập',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var myModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                        myModal.show();
+                    }
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Chọn số lượng',
+                input: 'number',
+                inputAttributes: {
+                    min: 1,
+                    max: maxQty,
+                    step: 1
+                },
+                inputValue: 1,
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy',
+                inputValidator: (value) => {
+                    if (!value || value <= 0) {
+                        return 'Vui lòng nhập số lượng lớn hơn 0!'
+                    }
+                    if (value > maxQty) {
+                        return 'Số lượng vượt quá tồn kho (Tối đa: ' + maxQty + ')!'
+                    }
+                }
+            }).then((inputResult) => {
+                if (inputResult.isConfirmed) {
+                    var qty = parseInt(inputResult.value);
+                    $.ajax({
+                        url: '/PartOrders/Checkout?handler=AddToCart',
+                        type: 'POST',
+                        headers: {
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        data: { partId: partId, quantity: qty },
+                        success: function(res) {
+                            if (res.success) {
+                                updateNavbarCartCount(res.cartCount);
+                                Swal.fire({
+                                    title: 'Đã thêm vào giỏ hàng!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ffc107',
+                                    cancelButtonColor: '#262626',
+                                    confirmButtonText: 'Đi đến giỏ hàng',
+                                    cancelButtonText: 'Tiếp tục mua sắm'
+                                }).then((navResult) => {
+                                    if (navResult.isConfirmed) {
+                                        window.location.href = '/PartOrders/Cart';
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Đã xảy ra lỗi kết nối.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateNavbarCartCount(count) {
+            var badge = $('#navbarCartCount');
+            if (badge.length) {
+                badge.text(count);
+                if (count > 0) {
+                    badge.removeClass('d-none');
+                } else {
+                    badge.addClass('d-none');
+                }
+            }
+        }
+    </script>
+}
+
+<style>
+    .part-name-link:hover { color: #ffc107 !important; text-decoration: underline !important; }
+    .part-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .part-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+    .part-image {
+        transition: transform 0.3s ease;
+    }
+    .part-card:hover .part-image {
+        transform: scale(1.08);
+    }
+    .object-fit-cover {
+        object-fit: cover;
+    }
+    .page-link:hover {
+        background-color: #f8f9fa;
+        color: #ffc107 !important;
+    }
+    .page-item.active .page-link {
+        background-color: #ffc107 !important;
+        border-color: #ffc107 !important;
+    }
+</style>

@@ -1,0 +1,862 @@
+@{
+    ViewData["Title"] = "Chính sách Bảo hành - Group7 ECO DRIVE";
+}
+
+<style>
+    :root {
+        --warranty-dark: #111318;
+        --warranty-dark-soft: #1c1f26;
+        --warranty-accent: #f5b800;
+        --warranty-accent-soft: #fff7d6;
+        --warranty-danger: #dc3545;
+        --warranty-text: #17191d;
+        --warranty-muted: #6e737c;
+        --warranty-surface: #ffffff;
+        --warranty-background: #f4f6f8;
+        --warranty-border: #e6e8ec;
+        --warranty-radius-lg: 30px;
+        --warranty-radius-md: 20px;
+        --warranty-shadow: 0 24px 60px rgba(17, 19, 24, 0.10);
+    }
+
+    .warranty-page {
+        color: var(--warranty-text);
+        background-color: var(--warranty-background);
+        overflow: hidden;
+    }
+
+    /* Hero */
+    .warranty-hero {
+        position: relative;
+        min-height: 560px;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(90deg, rgba(8, 10, 14, 0.96) 0%, rgba(8, 10, 14, 0.80) 50%, rgba(8, 10, 14, 0.34) 100%), url('https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2000') center 52% / cover no-repeat;
+    }
+
+        .warranty-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 18% 35%, rgba(245, 184, 0, 0.17), transparent 28%);
+            pointer-events: none;
+        }
+
+        .warranty-hero::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 150px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.45), transparent);
+            pointer-events: none;
+        }
+
+    .warranty-hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 790px;
+        padding: 80px 0;
+    }
+
+    .warranty-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        color: var(--warranty-accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+        .warranty-eyebrow::before {
+            content: "";
+            width: 42px;
+            height: 2px;
+            background-color: currentColor;
+        }
+
+    .warranty-hero-title {
+        margin-bottom: 24px;
+        color: #ffffff;
+        font-size: clamp(2.8rem, 6vw, 5.2rem);
+        font-weight: 900;
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+        text-transform: uppercase;
+    }
+
+        .warranty-hero-title span {
+            display: block;
+            color: var(--warranty-accent);
+        }
+
+    .warranty-hero-description {
+        max-width: 680px;
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 1.08rem;
+        line-height: 1.8;
+    }
+
+    /* Shared heading */
+    .warranty-section {
+        padding: 96px 0;
+    }
+
+    .warranty-section-heading {
+        max-width: 760px;
+        margin: 0 auto 60px;
+        text-align: center;
+    }
+
+    .warranty-section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        color: var(--warranty-danger);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.20em;
+        text-transform: uppercase;
+    }
+
+        .warranty-section-label::before,
+        .warranty-section-label::after {
+            content: "";
+            width: 28px;
+            height: 2px;
+            background-color: currentColor;
+        }
+
+    .warranty-section-title {
+        margin-bottom: 0;
+        color: var(--warranty-dark);
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+    }
+
+    /* Warranty cards */
+    .warranty-card {
+        position: relative;
+        height: 100%;
+        min-height: 350px;
+        padding: 42px 34px 34px;
+        background-color: var(--warranty-surface);
+        border: 1px solid var(--warranty-border);
+        border-radius: var(--warranty-radius-md);
+        box-shadow: 0 14px 38px rgba(17, 19, 24, 0.06);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+        .warranty-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background-color: var(--warranty-accent);
+        }
+
+        .warranty-card::after {
+            content: attr(data-number);
+            position: absolute;
+            top: 22px;
+            right: 26px;
+            color: #f0f1f3;
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            transition: color 0.3s ease;
+        }
+
+        .warranty-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(245, 184, 0, 0.45);
+            box-shadow: 0 26px 55px rgba(17, 19, 24, 0.13);
+        }
+
+            .warranty-card:hover::after {
+                color: rgba(245, 184, 0, 0.15);
+            }
+
+    .warranty-icon {
+        position: relative;
+        z-index: 2;
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 32px;
+        color: var(--warranty-dark);
+        background-color: var(--warranty-accent);
+        border-radius: 20px;
+        font-size: 1.7rem;
+        box-shadow: 0 14px 28px rgba(245, 184, 0, 0.25);
+        transition: transform 0.3s ease, border-radius 0.3s ease;
+    }
+
+    .warranty-card:hover .warranty-icon {
+        transform: rotate(-5deg) scale(1.05);
+        border-radius: 50%;
+    }
+
+    .warranty-card-title {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 16px;
+        color: var(--warranty-dark);
+        font-size: 1.18rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .warranty-duration {
+        position: relative;
+        z-index: 2;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 7px;
+        margin-bottom: 18px;
+        color: var(--warranty-danger);
+        font-size: 2.4rem;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+    }
+
+    .warranty-card-description {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0;
+        color: var(--warranty-muted);
+        line-height: 1.75;
+    }
+
+    /* Policy section */
+    .policy-section {
+        padding: 96px 0;
+        background-color: var(--warranty-dark);
+    }
+
+    .policy-intro {
+        margin-bottom: 44px;
+    }
+
+        .policy-intro .warranty-section-title {
+            color: #ffffff;
+        }
+
+    .policy-intro-description {
+        max-width: 680px;
+        margin-top: 18px;
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.58);
+        line-height: 1.75;
+    }
+
+    /* Gift box */
+    .gift-box {
+        position: relative;
+        height: 100%;
+        padding: 36px;
+        color: #ffffff;
+        background: linear-gradient(145deg, #242832, #171a20);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--warranty-radius-lg);
+        overflow: hidden;
+    }
+
+        .gift-box::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            top: -120px;
+            right: -90px;
+            background-color: rgba(245, 184, 0, 0.13);
+            border-radius: 50%;
+        }
+
+    .gift-box-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .gift-heading {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .gift-icon {
+        width: 58px;
+        height: 58px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--warranty-dark);
+        background-color: var(--warranty-accent);
+        border-radius: 18px;
+        font-size: 1.45rem;
+    }
+
+    .gift-title {
+        margin-bottom: 0;
+        font-size: 1.3rem;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .gift-description {
+        margin-bottom: 26px;
+        color: rgba(255, 255, 255, 0.62);
+        line-height: 1.75;
+    }
+
+    .gift-list {
+        margin-bottom: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .gift-list-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+        .gift-list-item:last-child {
+            border-bottom: 0;
+        }
+
+    .gift-list-icon {
+        color: var(--warranty-accent);
+        font-size: 1.05rem;
+        line-height: 1.45;
+    }
+
+    .gift-list-text {
+        color: rgba(255, 255, 255, 0.86);
+        font-weight: 600;
+        line-height: 1.55;
+    }
+
+    /* Accordion */
+    .policy-title {
+        margin-bottom: 24px;
+        color: #ffffff;
+        font-size: 1.55rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+    }
+
+    .warranty-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+        .warranty-accordion .accordion-item {
+            background-color: var(--warranty-surface);
+            border: 0;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .warranty-accordion .accordion-button {
+            min-height: 78px;
+            padding: 22px 26px;
+            color: var(--warranty-dark);
+            background-color: var(--warranty-surface);
+            border: 0;
+            box-shadow: none;
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
+            .warranty-accordion .accordion-button::after {
+                width: 38px;
+                height: 38px;
+                margin-left: auto;
+                background-color: var(--warranty-background);
+                background-position: center;
+                background-size: 16px;
+                border-radius: 50%;
+            }
+
+            .warranty-accordion .accordion-button:not(.collapsed) {
+                color: var(--warranty-dark);
+                background-color: var(--warranty-accent-soft);
+                box-shadow: inset 4px 0 0 var(--warranty-accent);
+            }
+
+                .warranty-accordion .accordion-button:not(.collapsed)::after {
+                    background-color: var(--warranty-accent);
+                }
+
+            .warranty-accordion .accordion-button:focus {
+                border-color: transparent;
+                box-shadow: inset 0 0 0 2px rgba(245, 184, 0, 0.45);
+            }
+
+        .warranty-accordion .accordion-body {
+            padding: 24px 30px 28px;
+            color: var(--warranty-muted);
+            line-height: 1.8;
+        }
+
+            .warranty-accordion .accordion-body ul {
+                margin-bottom: 0;
+                padding-left: 1.25rem;
+            }
+
+            .warranty-accordion .accordion-body li + li {
+                margin-top: 10px;
+            }
+
+    /* Contact footer */
+    .warranty-contact {
+        padding: 86px 0;
+        background-color: var(--warranty-surface);
+    }
+
+    .contact-panel {
+        position: relative;
+        padding: 58px 40px;
+        background: linear-gradient(135deg, var(--warranty-dark), var(--warranty-dark-soft));
+        border-radius: var(--warranty-radius-lg);
+        box-shadow: var(--warranty-shadow);
+        overflow: hidden;
+    }
+
+        .contact-panel::before {
+            content: "";
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -190px;
+            left: -120px;
+            background-color: rgba(245, 184, 0, 0.12);
+            border-radius: 50%;
+        }
+
+    .contact-panel-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .contact-brand {
+        margin-bottom: 34px;
+        color: #ffffff;
+        font-size: clamp(1.9rem, 3vw, 2.8rem);
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .contact-item {
+        height: 100%;
+        padding: 24px 18px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    }
+
+        .contact-item:hover {
+            transform: translateY(-5px);
+            border-color: rgba(245, 184, 0, 0.45);
+            background-color: rgba(255, 255, 255, 0.035);
+        }
+
+    .contact-item-icon {
+        width: 54px;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 17px;
+        color: var(--warranty-dark);
+        background-color: var(--warranty-accent);
+        border-radius: 16px;
+        font-size: 1.25rem;
+    }
+
+    .contact-item p,
+    .contact-item h4 {
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.88);
+    }
+
+    .contact-item h4 {
+        font-weight: 800;
+    }
+
+    .contact-item small {
+        display: block;
+        margin-top: 5px;
+        color: rgba(255, 255, 255, 0.48);
+    }
+
+    @@media (max-width: 991.98px) {
+        .warranty-hero {
+            min-height: 500px;
+            background-position: 62% center;
+        }
+
+        .warranty-section,
+        .policy-section {
+            padding: 76px 0;
+        }
+
+        .warranty-card {
+            min-height: 320px;
+        }
+
+        .gift-box {
+            margin-bottom: 10px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .warranty-hero {
+            min-height: 470px;
+            text-align: center;
+            background: linear-gradient(rgba(8, 10, 14, 0.86), rgba(8, 10, 14, 0.91)), url('https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2000') 66% center / cover no-repeat;
+        }
+
+        .warranty-hero-content {
+            margin: 0 auto;
+        }
+
+        .warranty-eyebrow {
+            justify-content: center;
+        }
+
+        .warranty-section,
+        .policy-section,
+        .warranty-contact {
+            padding: 64px 0;
+        }
+
+        .warranty-section-heading {
+            margin-bottom: 42px;
+        }
+
+        .warranty-card {
+            min-height: auto;
+            padding: 34px 28px;
+        }
+
+        .gift-box {
+            padding: 30px 26px;
+            border-radius: 24px;
+        }
+
+        .warranty-accordion .accordion-button {
+            min-height: 72px;
+            padding: 19px 20px;
+        }
+
+        .warranty-accordion .accordion-body {
+            padding: 22px 22px 25px;
+        }
+
+        .contact-panel {
+            padding: 44px 24px;
+            border-radius: 24px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .warranty-hero-title {
+            font-size: 2.55rem;
+        }
+
+        .warranty-hero-description {
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .warranty-section-title {
+            font-size: 2rem;
+        }
+
+        .warranty-card::after {
+            font-size: 3.5rem;
+        }
+
+        .warranty-duration {
+            font-size: 2rem;
+        }
+
+        .policy-title {
+            font-size: 1.35rem;
+        }
+    }
+</style>
+
+<div class="warranty-page">
+    <!-- Hero Banner -->
+    <section class="warranty-hero">
+        <div class="container">
+            <div class="warranty-hero-content">
+                <div class="warranty-eyebrow">Group7 ECO DRIVE</div>
+                <h1 class="warranty-hero-title">
+                    Chính sách
+                    <span>Bảo hành</span>
+                </h1>
+                <p class="warranty-hero-description">
+                    Cam kết đồng hành cùng quý khách trên mọi cung đường với chế độ bảo hành chuyên nghiệp, minh bạch và tận tâm nhất.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Thời gian bảo hành -->
+    <section class="warranty-section">
+        <div class="container">
+            <div class="warranty-section-heading">
+                <div class="warranty-section-label">Cam kết chất lượng</div>
+                <h2 class="warranty-section-title">Thời gian bảo hành</h2>
+            </div>
+
+            <div class="row g-4">
+                <!-- Động cơ -->
+                <div class="col-lg-4">
+                    <div class="warranty-card" data-number="01">
+                        <div class="warranty-icon">
+                            <i class="bi bi-gear-fill"></i>
+                        </div>
+                        <h3 class="warranty-card-title">Động cơ & Hộp số</h3>
+                        <div class="warranty-duration">3 Năm</div>
+                        <p class="warranty-card-description">
+                            Hoặc 100.000 km tùy điều kiện nào đến trước. Bảo hành các lỗi kỹ thuật từ nhà sản xuất.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Khung gầm -->
+                <div class="col-lg-4">
+                    <div class="warranty-card" data-number="02">
+                        <div class="warranty-icon">
+                            <i class="bi bi-car-front-fill"></i>
+                        </div>
+                        <h3 class="warranty-card-title">Hệ thống Khung gầm</h3>
+                        <div class="warranty-duration">5 Năm</div>
+                        <p class="warranty-card-description">
+                            Hoặc 150.000 km. Đảm bảo an toàn tuyệt đối và sự bền bỉ cho khung xe trước các lỗi rạn nứt kết cấu.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Ắc quy / Phụ tùng -->
+                <div class="col-lg-4">
+                    <div class="warranty-card" data-number="03">
+                        <div class="warranty-icon">
+                            <i class="bi bi-lightning-charge-fill"></i>
+                        </div>
+                        <h3 class="warranty-card-title">Ắc quy & Hệ thống điện</h3>
+                        <div class="warranty-duration">1 Năm</div>
+                        <p class="warranty-card-description">
+                            Hoặc 20.000 km. Hỗ trợ thay thế và sửa chữa nhanh chóng khi có sự cố về điện.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quà tặng & Điều khoản -->
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-intro">
+                <div class="warranty-section-label">Quyền lợi khách hàng</div>
+                <h2 class="warranty-section-title">Điều khoản & Chính sách</h2>
+                <p class="policy-intro-description">
+                    Các quyền lợi đi kèm và điều kiện bảo hành được trình bày rõ ràng nhằm giúp khách hàng dễ dàng theo dõi trong suốt quá trình sử dụng xe.
+                </p>
+            </div>
+
+            <div class="row g-4 align-items-stretch">
+                <!-- Cột trái: Quà tặng -->
+                <div class="col-lg-4">
+                    <div class="gift-box">
+                        <div class="gift-box-content">
+                            <div class="gift-heading">
+                                <div class="gift-icon">
+                                    <i class="bi bi-gift"></i>
+                                </div>
+                                <h3 class="gift-title">Quà Tặng Đi Kèm</h3>
+                            </div>
+
+                            <p class="gift-description">
+                                Tri ân khách hàng mua xe tại hệ thống Group7 ECO DRIVE với bộ quà tặng đặc biệt:
+                            </p>
+
+                            <ul class="gift-list">
+                                <li class="gift-list-item">
+                                    <i class="bi bi-check-circle-fill gift-list-icon"></i>
+                                    <span class="gift-list-text">1 Bộ thảm lót sàn cao cấp</span>
+                                </li>
+                                <li class="gift-list-item">
+                                    <i class="bi bi-check-circle-fill gift-list-icon"></i>
+                                    <span class="gift-list-text">1 Gói phủ Ceramic bảo vệ sơn</span>
+                                </li>
+                                <li class="gift-list-item">
+                                    <i class="bi bi-check-circle-fill gift-list-icon"></i>
+                                    <span class="gift-list-text">1 Camera hành trình chính hãng</span>
+                                </li>
+                                <li class="gift-list-item">
+                                    <i class="bi bi-check-circle-fill gift-list-icon"></i>
+                                    <span class="gift-list-text">1 Bộ dụng cụ cứu hộ tiêu chuẩn</span>
+                                </li>
+                                <li class="gift-list-item">
+                                    <i class="bi bi-check-circle-fill gift-list-icon"></i>
+                                    <span class="gift-list-text">Miễn phí công bảo dưỡng lần đầu</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Accordion Điều khoản -->
+                <div class="col-lg-8">
+                    <h3 class="policy-title">Điều Khoản & Chính Sách Chi Tiết</h3>
+
+                    <div class="accordion warranty-accordion" id="warrantyAccordion">
+                        <!-- Item 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    1. Thời gian tính bảo hành
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#warrantyAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Thời gian bảo hành được tính chính thức từ <strong>ngày giao xe</strong> ghi trên Biên bản bàn giao xe hoặc Hóa đơn mua bán.</li>
+                                        <li>Áp dụng theo thời hạn (tháng/năm) hoặc số quãng đường di chuyển (km) tùy theo điều kiện kiện nào đến trước.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    2. Điều kiện được bảo hành
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#warrantyAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Xe đang trong thời gian và giới hạn bảo hành.</li>
+                                        <li>Lỗi xảy ra được xác định là do khuyết tật vật liệu hoặc do lỗi lắp ráp từ phía Nhà sản xuất.</li>
+                                        <li>Xe phải được bảo dưỡng định kỳ đầy đủ tại các Đại lý ủy quyền hoặc Trung tâm dịch vụ của Group7 ECO DRIVE.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    3. Trường hợp KHÔNG bảo hành
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#warrantyAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Xe đã hết thời hạn hoặc số Km bảo hành.</li>
+                                        <li>Các chi tiết hao mòn tự nhiên theo thời gian: Săm lốp, má phanh, chổi gạt mưa, các bộ lọc, dung dịch làm mát...</li>
+                                        <li>Hư hỏng do sử dụng sai mục đích, chở quá tải, đua xe hoặc không tuân thủ Sách hướng dẫn sử dụng.</li>
+                                        <li>Xe bị đâm đụng, tai nạn, đổ vỡ, ngập nước, cháy nổ, hoặc do thiên tai.</li>
+                                        <li>Tự ý can thiệp, độ chế, thay đổi kết cấu điện, động cơ mà không được sự cho phép của hãng.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    4. Chính sách hỗ trợ sau bán hàng
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#warrantyAccordion">
+                                <div class="accordion-body">
+                                    <ul>
+                                        <li>Trong 1 tháng đầu tiên theo giấy tờ, công ty sẽ hỗ trợ hoàn toàn chi phí kiểm tra và các chi phí phát sinh nhỏ khác ngoài danh mục từ chối bảo hành.</li>
+                                        <li>Với những xe đã <strong>hết hạn bảo hành</strong>: Công ty vẫn sẵn sàng đồng hành và hỗ trợ khách hàng kiểm tra, sửa chữa với mức chi phí nhân công vật tư ưu đãi và <strong>thấp nhất có thể</strong>.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Liên hệ Footer -->
+    <section class="warranty-contact">
+        <div class="container">
+            <div class="contact-panel">
+                <div class="contact-panel-content">
+                    <h2 class="contact-brand">GROUP7 ECO DRIVE</h2>
+
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-md-4">
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                                <p>Trường Đại học FPT, Khu CNC Hòa Lạc</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="bi bi-telephone-fill"></i>
+                                </div>
+                                <h4>0359 492 991</h4>
+                                <small>Hotline hỗ trợ kỹ thuật</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="bi bi-clock-fill"></i>
+                                </div>
+                                <p>Thứ 2 - Chủ Nhật<br />08:00 AM - 06:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

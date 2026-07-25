@@ -1,0 +1,1005 @@
+@page "{id:int}"
+@model CarSalesRazorPages.Pages.Cars.DetailsModel
+
+@{
+    ViewData["Title"] = (Model.Car?.CarName ?? "") + " - Chi tiết xe";
+    var displayImageUrl = string.IsNullOrWhiteSpace(Model.Car?.ImageUrl) 
+        ? "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80" 
+        : Model.Car?.ImageUrl;
+}
+
+<!-- Google Fonts & Stylesheets -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .font-outfit {
+        font-family: 'Outfit', sans-serif;
+    }
+    .detail-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .badge-status {
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+    .price-tag {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #dc3545;
+    }
+    .spec-item {
+        background-color: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    .spec-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        border-color: #ffc107;
+    }
+    .btn-action-buy {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        border: none;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .btn-action-buy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(40,167,69,0.3);
+        color: white;
+    }
+    .btn-action-deposit {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+        color: #1f2937;
+        border: none;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .btn-action-deposit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(255,193,7,0.3);
+        color: #1f2937;
+    }
+    .canvas-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        background: radial-gradient(circle, #1e293b, #0f172a);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    #car3dCanvasContainer {
+        width: 100%;
+        height: 100%;
+    }
+    .color-swatch {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: inline-block;
+        margin-right: 10px;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px #cbd5e1;
+        transition: all 0.2s ease;
+    }
+    .color-swatch.active {
+        box-shadow: 0 0 0 2px #ffc107;
+        transform: scale(1.15);
+    }
+    .specs-table td {
+        padding: 12px 16px;
+    }
+    /* ── Deposit Modal ────────────────────────── */
+    .deposit-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .deposit-modal-overlay.active { display: flex; }
+    .deposit-modal-box {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 480px;
+        margin: 16px;
+        padding: 36px 32px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease;
+        position: relative;
+    }
+    @@keyframes slideUp {
+        from { transform: translateY(40px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+    .deposit-step { display: none; }
+    .deposit-step.active { display: block; }
+    .deposit-phone-badge {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border: 2px solid #fbbf24;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .deposit-phone-badge .phone-number {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #92400e;
+        letter-spacing: 2px;
+    }
+    .deposit-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    .deposit-info-row .label { color: #64748b; }
+    .deposit-info-row .value { font-weight: 700; color: #1e293b; }
+    .captcha-input {
+        font-size: 1.4rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px;
+        width: 100%;
+        transition: border-color 0.2s;
+    }
+    .captcha-input:focus {
+        outline: none;
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 3px rgba(251,191,36,0.2);
+    }
+    .btn-deposit-submit {
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        color: #1f2937;
+        border: none;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1rem;
+        padding: 14px;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 16px;
+    }
+    .btn-deposit-submit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(251,191,36,0.4);
+    }
+    .btn-deposit-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    .deposit-success-icon {
+        font-size: 4rem;
+        margin-bottom: 12px;
+        animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @@keyframes popIn {
+        from { transform: scale(0); } to { transform: scale(1); }
+    }
+</style>
+
+<div class="container py-5 font-outfit">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb m-0">
+                    <li class="breadcrumb-item"><a asp-page="/Index" class="text-decoration-none text-dark">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-page="/Cars/Index" class="text-decoration-none text-dark">Showroom</a></li>
+                    <li class="breadcrumb-item active text-warning fw-bold" aria-current="page">@(Model.Car?.CarName ?? "Chi tiết xe")</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a asp-page="/Cars/Index" class="btn btn-outline-secondary btn-sm fw-bold px-3 py-2">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại showroom
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Detail Section -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card detail-card p-0 mb-4">
+                <img src="@displayImageUrl" alt="@(Model.Car?.CarName)" class="w-100 object-fit-cover" style="height: 350px;">
+            </div>
+
+            <div class="card detail-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark m-0 d-flex align-items-center">
+                        <i class="bi bi-box-3d me-2 text-warning"></i> Trải nghiệm góc nhìn 3D tương tác
+                    </h5>
+                    <button id="btnRotateToggle" class="btn btn-warning btn-sm fw-bold px-3 py-1.5 border-0 text-dark d-flex align-items-center">
+                        <i class="bi bi-pause-fill me-1"></i> Tự động xoay
+                    </button>
+                </div>
+                
+                <div class="canvas-container">
+                    <div id="car3dCanvasContainer"></div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <p class="fw-bold text-secondary mb-2" style="font-size: 14px;">THỬ THAY ĐỔI MÀU SƠN XE 3D</p>
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="color-swatch active" data-color="blue" style="background-color: #3b82f6;" title="Xanh Dương"></div>
+                        <div class="color-swatch" data-color="red" style="background-color: #ef4444;" title="Đỏ"></div>
+                        <div class="color-swatch" data-color="white" style="background-color: #f3f4f6;" title="Trắng"></div>
+                        <div class="color-swatch" data-color="black" style="background-color: #111827;" title="Đen"></div>
+                        <div class="color-swatch" data-color="gray" style="background-color: #6b7280;" title="Xám"></div>
+                        <div class="color-swatch" data-color="yellow" style="background-color: #facc15;" title="Vàng"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card detail-card p-4 h-100 d-flex flex-column">
+                <div class="mb-3">
+                    <small class="text-secondary fw-bold text-uppercase" style="letter-spacing: 1.5px;">@(Model.Car?.Brand?.BrandName)</small>
+                    <h2 class="fw-extrabold text-dark mt-1 mb-2">@(Model.Car?.CarName)</h2>
+                    
+                    <div class="d-flex align-items-center gap-2">
+                        @if (Model.Car?.Status == "Available")
+                        {
+                            <span class="badge bg-success badge-status"><i class="bi bi-check-circle-fill me-1"></i> Sẵn sàng bàn giao</span>
+                        }
+                        else if (Model.Car?.Status == "Reserved")
+                        {
+                            <span class="badge bg-warning text-dark badge-status"><i class="bi bi-exclamation-circle-fill me-1"></i> Đang được đặt cọc giữ xe</span>
+                        }
+                        else if (Model.Car?.Status == "Sold")
+                        {
+                            <span class="badge bg-danger badge-status"><i class="bi bi-x-circle-fill me-1"></i> Đã bán</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="bg-light rounded-3 p-4 mb-4">
+                    <small class="text-secondary d-block fw-bold mb-1" style="font-size: 12px; letter-spacing: 1px;">GIÁ BÁN NIÊM YẾT</small>
+                    <div class="price-tag">@(Model.Car?.Price.ToString("N0")) <span style="font-size: 1.5rem;">VND</span></div>
+                    <hr class="my-3 text-secondary opacity-25">
+                    <div class="row text-secondary" style="font-size: 13px;">
+                        <div class="col-6">
+                            <i class="bi bi-shield-check text-success me-1"></i> Bảo hành chính hãng
+                        </div>
+                        <div class="col-6">
+                            <i class="bi bi-patch-check text-success me-1"></i> Cam kết chất lượng
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="fw-bold text-dark mb-2">Giới thiệu mẫu xe</h5>
+                    <p class="text-muted" style="line-height: 1.6;">
+                        @(string.IsNullOrWhiteSpace(Model.Car?.Description) ? "Chưa có mô tả chi tiết từ showroom cho mẫu xe này. Vui lòng liên hệ trực tiếp showroom của chúng tôi để được tư vấn kĩ hơn về các thông số kĩ thuật và ưu đãi đi kèm." : Model.Car?.Description)
+                    </p>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-sm-3">
+                        <div class="spec-item">
+                            <i class="bi bi-calendar-event text-danger fs-4 d-block mb-1"></i>
+                            <small class="text-secondary d-block" style="font-size: 11px;">ĐỜI XE</small>
+                            <span class="fw-bold text-dark">@(Model.Car?.Year)</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="spec-item">
+                            <i class="bi bi-speedometer2 text-danger fs-4 d-block mb-1"></i>
+                            <small class="text-secondary d-block" style="font-size: 11px;">SỐ KM ĐÃ ĐI</small>
+                            <span class="fw-bold text-dark">@(Model.Car?.Mileage.ToString("N0")) km</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="spec-item">
+                            <i class="bi bi-gear-fill text-danger fs-4 d-block mb-1"></i>
+                            <small class="text-secondary d-block" style="font-size: 11px;">HỘP SỐ</small>
+                            <span class="fw-bold text-dark">@((Model.Car?.Transmission == "Automatic") ? "Tự động" : "Số sàn")</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="spec-item">
+                            <i class="bi bi-fuel-pump-fill text-danger fs-4 d-block mb-1"></i>
+                            <small class="text-secondary d-block" style="font-size: 11px;">NHIÊN LIỆU</small>
+                            <span class="fw-bold text-dark">@(Model.Car?.FuelType)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="fw-bold text-dark mb-2">Thông số kĩ thuật</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered specs-table bg-white">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold bg-light text-secondary" style="width: 35%;">Model / Phiên bản</td>
+                                    <td>@(Model.Car?.Model)</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold bg-light text-secondary">Màu ngoại thất</td>
+                                    <td>@(Model.Car?.Color)</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold bg-light text-secondary">Xuất xứ hãng</td>
+                                    <td>@(Model.Car?.Brand?.Country)</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold bg-light text-secondary">Thông tin hãng</td>
+                                    <td class="text-muted" style="font-size: 13px;">@(Model.Car?.Brand?.Description)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-auto">
+                    <div class="col-6">
+                        <button id="btnDepositOpen"
+                                class="btn btn-action-deposit w-100 d-flex align-items-center justify-content-center gap-2"
+                                data-carid="@(Model.Car?.CarId)"
+                                data-carname="@(Model.Car?.CarName)"
+                                data-price="@(Model.Car?.Price)">
+                            <i class="bi bi-cash-stack fs-5"></i>
+                            <span>Đặt Cọc Xe</span>
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button id="btnBuyoutOpen"
+                                class="btn btn-action-buy w-100 d-flex align-items-center justify-content-center gap-2"
+                                data-carid="@(Model.Car?.CarId)"
+                                data-carname="@(Model.Car?.CarName)"
+                                data-price="@(Model.Car?.Price)">
+                            <i class="bi bi-cart-check fs-5"></i>
+                            <span>Mua Đứt Xe</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="depositModalOverlay" class="deposit-modal-overlay" role="dialog" aria-modal="true">
+    <div class="deposit-modal-box font-outfit">
+        <button id="btnDepositClose" style="position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:#94a3b8;cursor:pointer;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <div id="depositStep1" class="deposit-step active">
+            <div class="text-center mb-3">
+                <span style="font-size:2.5rem;">📞</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step1Title">Đặt cọc giữ xe</h4>
+                <p class="text-muted" style="font-size:14px;" id="step1Subtitle">Liên hệ showroom để xác nhận và hoàn tất đặt cọc</p>
+            </div>
+
+            <div class="deposit-phone-badge">
+                <div class="text-muted mb-1" style="font-size:13px; font-weight:600;">📱 HOTLINE SHOWROOM</div>
+                <div class="phone-number">0987 173 229</div>
+                <div class="text-muted mt-1" style="font-size:12px;" id="step1HotlineDesc">Liên hệ trực tiếp để trao đổi và đặt cọc xe</div>
+            </div>
+
+            <div class="deposit-info-row">
+                <span class="label"><i class="bi bi-car-front me-1"></i> Xe</span>
+                <span class="value" id="step1CarName"></span>
+            </div>
+            <div class="deposit-info-row">
+                <span class="label" id="step1AmountLabel"><i class="bi bi-cash me-1"></i> Tiền cọc (5%)</span>
+                <span class="value text-danger" id="step1DepositAmt"></span>
+            </div>
+            <div class="deposit-info-row" id="step1ExpiryRow">
+                <span class="label" id="step1ExpiryLabel"><i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc</span>
+                <span class="value" id="step1ExpiryVal">14 ngày</span>
+            </div>
+
+            <div class="alert alert-warning d-flex align-items-start gap-2 mt-3" style="font-size:13px; border-radius:10px;" id="step1Alert">
+                <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                <span id="step1AlertText">Sau 14 ngày nếu không hoàn tất mua xe, tiền cọc sẽ <strong>bị mất</strong> và xe được trả lại showroom.</span>
+            </div>
+
+            <button id="btnGoStep2" class="btn-deposit-submit">
+                <i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận
+            </button>
+        </div>
+
+        <div id="depositStep2" class="deposit-step">
+            <div class="text-center mb-4">
+                <span style="font-size:2.5rem;">🔐</span>
+                <h4 class="fw-bold text-dark mt-2 mb-1" id="step2Title">Nhập mã xác nhận</h4>
+                <p class="text-muted" style="font-size:14px;" id="step2Subtitle">Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc</p>
+            </div>
+
+            <div id="depositLoginWarning" class="alert alert-info d-none" style="font-size:13px; border-radius:10px;">
+                <i class="bi bi-info-circle me-1 text-warning"></i> <span id="loginWarningText">Bạn cần đăng nhập để đặt cọc.</span>
+            </div>
+
+            <label class="fw-bold text-dark mb-2" style="font-size:14px;">
+                <i class="bi bi-key-fill me-1 text-warning"></i> Mã xác nhận từ nhân viên
+            </label>
+            <input id="captchaInput" type="text" class="captcha-input"
+                   placeholder="VD: ABC123" maxlength="20"
+                   autocomplete="off" spellcheck="false">
+
+            <div id="depositError" class="text-danger mt-2" style="font-size:13px; display:none;">
+                <i class="bi bi-exclamation-circle me-1"></i>
+                <span id="depositErrorMsg"></span>
+            </div>
+
+            <button id="btnSubmitDeposit" class="btn-deposit-submit">
+                <i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">Xác nhận đặt cọc</span>
+            </button>
+
+            <button id="btnBackStep1" style="background:none;border:none;color:#64748b;font-size:13px;cursor:pointer;margin-top:12px;width:100%;text-align:center;">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </button>
+        </div>
+
+        <div id="depositStep3" class="deposit-step">
+            <div class="text-center">
+                <div class="deposit-success-icon">✅</div>
+                <h4 class="fw-bold text-success mb-2" id="step3Title">Đặt cọc thành công!</h4>
+                <p class="text-muted" style="font-size:14px;" id="step3Subtitle">Xe đã được giữ riêng cho bạn.</p>
+
+                <div class="deposit-info-row mt-3">
+                    <span class="label" id="step3AmtLabel">Số tiền cọc</span>
+                    <span class="value text-danger" id="step3DepositAmt"></span>
+                </div>
+                <div class="deposit-info-row" id="step3ExpiryRow">
+                    <span class="label">Hạn hoàn tất mua xe</span>
+                    <span class="value" id="step3Expiry"></span>
+                </div>
+                <div class="deposit-info-row">
+                    <span class="label">Mã giao dịch</span>
+                    <span class="value" id="step3RequestId"></span>
+                </div>
+
+                <div class="alert alert-success mt-3" style="font-size:13px; border-radius:10px;">
+                    <i class="bi bi-telephone-fill me-1"></i>
+                    Showroom sẽ liên hệ xác nhận lại trong vòng 24h làm việc.
+                </div>
+
+                <button id="btnDepositDone" class="btn-deposit-submit">
+                    <i class="bi bi-check-circle me-2"></i> Hoàn tất
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const container = document.getElementById('car3dCanvasContainer');
+        if (!container) return;
+        
+        container.style.position = 'relative';
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'debugConsoleLogOverlay';
+        debugDiv.style.position = 'absolute';
+        debugDiv.style.bottom = '10px';
+        debugDiv.style.left = '10px';
+        debugDiv.style.right = '10px';
+        debugDiv.style.maxHeight = '120px';
+        debugDiv.style.overflowY = 'auto';
+        debugDiv.style.background = 'rgba(0,0,0,0.85)';
+        debugDiv.style.color = '#00ff00';
+        debugDiv.style.fontFamily = 'monospace';
+        debugDiv.style.fontSize = '11px';
+        debugDiv.style.padding = '8px';
+        debugDiv.style.borderRadius = '4px';
+        debugDiv.style.zIndex = '9999';
+        debugDiv.style.pointerEvents = 'none';
+        debugDiv.style.display = 'none';
+        debugDiv.innerHTML = '<strong>Console Errors:</strong><br>';
+        container.appendChild(debugDiv);
+        
+        window.logToDebug = function(msg, type = 'info') {
+            if (msg.includes('warning X4122') || msg.includes('double precision') || msg.includes('precision')) {
+                return;
+            }
+            if (type === 'error') {
+                debugDiv.style.display = 'block';
+            }
+            const span = document.createElement('span');
+            span.style.color = type === 'error' ? '#ff3333' : (type === 'warn' ? '#ffcc00' : '#00ff00');
+            span.innerText = `[${type.toUpperCase()}] ${msg}`;
+            debugDiv.appendChild(span);
+            debugDiv.appendChild(document.createElement('br'));
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        };
+
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            window.logToDebug(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'info');
+        };
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            window.logToDebug(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
+        };
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            window.logToDebug(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
+        };
+
+        window.addEventListener('error', function(e) {
+            window.logToDebug(`${e.message} at ${e.filename}:${e.lineno}`, 'error');
+        });
+    })();
+</script>
+
+@Html.Raw("<script type=\"importmap\">{\n  \"imports\": {\n    \"three\": \"https://cdn.jsdelivr.net/npm/three@latest/build/three.module.js\",\n    \"three/addons/\": \"https://cdn.jsdelivr.net/npm/three@latest/examples/jsm/\"\n  }\n}</script>")
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { USDLoader } from 'three/addons/loaders/USDLoader.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const container = document.getElementById('car3dCanvasContainer');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1e293b);
+    
+    const gridHelper = new THREE.GridHelper(30, 30, 0x475569, 0x334155);
+    gridHelper.position.y = -1.2;
+    scene.add(gridHelper);
+
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(6, 3, 8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    container.appendChild(renderer.domElement);
+
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmremGenerator.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 3;
+    controls.maxDistance = 15;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    dirLight.position.set(10, 20, 10);
+    scene.add(dirLight);
+
+    const light2 = new THREE.DirectionalLight(0x38bdf8, 1.2);
+    light2.position.set(-10, 5, -10);
+    scene.add(light2);
+
+    const frontLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    frontLight.position.set(0, 5, 15);
+    scene.add(frontLight);
+
+    const paintColorMap = {
+        'blue':   0x1e3a5f,
+        'red':    0x8b0000,
+        'white':  0xe8e8e8,
+        'black':  0x141414,
+        'gray':   0x5a6472,
+        'yellow': 0xc8960c
+    };
+    
+    let initialColorHex = paintColorMap['white'];
+    const dbColor = "@(Model.Car?.Color?.ToLower() ?? "blue")";
+    if (dbColor.includes('red') || dbColor.includes('đỏ')) initialColorHex = paintColorMap['red'];
+    else if (dbColor.includes('white') || dbColor.includes('trắng')) initialColorHex = paintColorMap['white'];
+    else if (dbColor.includes('black') || dbColor.includes('đen')) initialColorHex = paintColorMap['black'];
+    else if (dbColor.includes('gray') || dbColor.includes('xám') || dbColor.includes('ghi')) initialColorHex = paintColorMap['gray'];
+    else if (dbColor.includes('yellow') || dbColor.includes('vàng')) initialColorHex = paintColorMap['yellow'];
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        const colorName = swatch.getAttribute('data-color');
+        if (paintColorMap[colorName] === initialColorHex) {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+        }
+    });
+
+    const paintMaterials = [];
+
+    const loadingEl = document.createElement('div');
+    loadingEl.style.position = 'absolute';
+    loadingEl.style.top = '50%';
+    loadingEl.style.left = '50%';
+    loadingEl.style.transform = 'translate(-50%, -50%)';
+    loadingEl.style.color = '#fff';
+    loadingEl.style.fontFamily = 'sans-serif';
+    loadingEl.style.fontWeight = 'bold';
+    loadingEl.style.fontSize = '14px';
+    loadingEl.innerHTML = '<div class="spinner-border text-warning me-2" role="status" style="width: 1.5rem; height: 1.5rem; vertical-align: middle;"></div> Đang tải mô hình 3D...';
+    container.style.position = 'relative';
+    container.appendChild(loadingEl);
+
+    const loader = new USDLoader();
+    let carModel = null;
+    let autoRotate = true;
+
+    loader.load(
+        '/2020_Aston_Martin_DBS_GT_Zagato__www.vecarz.usdz',
+        (usdz) => {
+            if (loadingEl.parentNode) {
+                loadingEl.parentNode.removeChild(loadingEl);
+            }
+
+            carModel = usdz;
+
+            // dbody, door, hood, bumper, mirror_c
+            const BODY_MESH_KW  = ['dbody', 'door', 'hood', 'bumper', 'mirror_c'];
+            const PAINT_MAT_KW  = ['sarpaint', 'paint', 'carpaint', 'car_paint', 'body_paint'];
+
+            const isBodyPanel = (matName, meshName) =>
+                PAINT_MAT_KW.some(k => matName.includes(k)) ||
+                BODY_MESH_KW.some(k => meshName.includes(k));
+
+            carModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+
+                    if (child.material) {
+                        const mats = Array.isArray(child.material) ? child.material : [child.material];
+                        mats.forEach(mat => {
+                            const matName  = (mat.name  || '').toLowerCase();
+                            const meshName = (child.name || '').toLowerCase();
+
+                            if (isBodyPanel(matName, meshName)) {
+                                mat.roughness = 0.18;
+                                mat.metalness = 0.85;
+                                mat.userData.originalMap = mat.map || null;
+                                paintMaterials.push(mat);
+                            }
+                        });
+                    }
+                }
+            });
+
+            console.log('[3D] Body paint materials detected:', paintMaterials.length);
+
+            paintMaterials.forEach(mat => {
+                mat.map = null;
+                mat.color.setHex(initialColorHex);
+                mat.needsUpdate = true;
+            });
+
+            carModel.scale.set(1.5, 1.5, 1.5);
+            carModel.position.set(0, -0.6, 0);
+
+            const box = new THREE.Box3().setFromObject(carModel);
+            const center = box.getCenter(new THREE.Vector3());
+            carModel.position.x += (carModel.position.x - center.x);
+            carModel.position.z += (carModel.position.z - center.z);
+            carModel.position.y += (-1.2 - box.min.y);
+
+            let logText = "";
+            carModel.traverse(child => {
+                if (child.isMesh && child.material) {
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach(mat => {
+                        logText += `Mesh: ${child.name} | Mat: ${mat.name} | Color: ${mat.color.getHexString()} | Metal: ${mat.metalness} | Rough: ${mat.roughness} | Map: ${mat.map ? 'yes' : 'no'}\n`;
+                    });
+                }
+            });
+            const diagEl = document.createElement('pre');
+            diagEl.id = 'debugMaterialsList';
+            diagEl.style.display = 'none';
+            diagEl.innerText = logText;
+            document.body.appendChild(diagEl);
+
+            scene.add(carModel);
+        },
+        undefined,
+        (error) => {
+            console.error('USD Loader Error:', error);
+            loadingEl.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Không thể tải mô hình 3D.</span>';
+        }
+    );
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (autoRotate && carModel) {
+            carModel.rotation.y += 0.004;
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+            const colorName = swatch.getAttribute('data-color');
+            if (paintColorMap[colorName] !== undefined) {
+                const targetColor = paintColorMap[colorName];
+                
+                paintMaterials.forEach(mat => {
+                    mat.map = null;
+                    mat.color.setHex(targetColor);
+                    mat.roughness = 0.22;
+                    mat.metalness = 0.8;
+                    mat.needsUpdate = true;
+                });
+            }
+        });
+    });
+
+    const rotateBtn = document.getElementById('btnRotateToggle');
+    rotateBtn.addEventListener('click', () => {
+        autoRotate = !autoRotate;
+        if (autoRotate) {
+            rotateBtn.innerHTML = '<i class="bi bi-pause-fill me-1"></i> Tự động xoay';
+            rotateBtn.className = "btn btn-warning btn-sm fw-bold px-3 py-1.5 border-0 text-dark";
+        } else {
+            rotateBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Tự động xoay';
+            rotateBtn.className = "btn btn-outline-warning btn-sm fw-bold px-3 py-1.5 text-warning";
+        }
+    });
+
+    // ══════════════════════════════════════════════════════
+    //  DEPOSIT / BUYOUT MODAL LOGIC
+    // ══════════════════════════════════════════════════════
+    const depositOverlay  = document.getElementById('depositModalOverlay');
+    const btnOpen         = document.getElementById('btnDepositOpen');
+    const btnBuyoutOpen   = document.getElementById('btnBuyoutOpen');
+    const btnClose        = document.getElementById('btnDepositClose');
+    const btnGoStep2      = document.getElementById('btnGoStep2');
+    const btnBackStep1    = document.getElementById('btnBackStep1');
+    const btnSubmit       = document.getElementById('btnSubmitDeposit');
+    const btnDone         = document.getElementById('btnDepositDone');
+    const captchaInput    = document.getElementById('captchaInput');
+    const depositError    = document.getElementById('depositError');
+    const depositErrorMsg = document.getElementById('depositErrorMsg');
+    const loginWarning    = document.getElementById('depositLoginWarning');
+
+    let currentCarId    = null;
+    let currentCarPrice = null;
+    let modalMode       = 'deposit'; // 'deposit' | 'buyout'
+    const currentCarStatus = "@Model.Car?.Status";
+
+    if (currentCarStatus === 'Reserved') {
+        btnOpen?.closest('.col-6')?.classList.add('d-none');
+        btnBuyoutOpen?.closest('.col-6')?.classList.replace('col-6', 'col-12');
+        const buyoutText = btnBuyoutOpen?.querySelector('span');
+        if (buyoutText) {
+            buyoutText.textContent = 'Mua đứt - Thanh toán phần còn lại';
+        }
+    }
+
+    function showStep(n) {
+        ['depositStep1','depositStep2','depositStep3'].forEach((id, i) => {
+            document.getElementById(id).classList.toggle('active', i === n - 1);
+        });
+    }
+
+    function formatVnd(amount) {
+        return Number(amount).toLocaleString('vi-VN') + ' VND';
+    }
+
+    function openModal(mode) {
+        modalMode = mode;
+        const btn = (mode === 'deposit') ? btnOpen : btnBuyoutOpen;
+        if (!btn) return;
+
+        currentCarId    = parseInt(btn.dataset.carid);
+        currentCarPrice = parseFloat(btn.dataset.price);
+        const buyoutAmount = currentCarStatus === 'Reserved'
+            ? Math.round(currentCarPrice * 0.95)
+            : currentCarPrice;
+        const carName   = btn.dataset.carname;
+
+        document.getElementById('step1CarName').textContent = carName;
+
+        if (mode === 'deposit') {
+            const deposit = Math.round(currentCarPrice * 0.05);
+            document.getElementById('step1Title').textContent = 'Đặt cọc giữ xe';
+            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để xác nhận và hoàn tất đặt cọc';
+            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để trao đổi và đặt cọc xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Tiền cọc (5%)';
+            document.getElementById('step1DepositAmt').textContent = formatVnd(deposit);
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-calendar-check me-1"></i> Thời hạn giữ cọc';
+            document.getElementById('step1ExpiryVal').textContent = '14 ngày';
+            document.getElementById('step1Alert').style.display = 'flex';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã liên hệ — Nhập mã xác nhận';
+            
+            document.getElementById('step2Title').textContent = 'Nhập mã xác nhận';
+            document.getElementById('step2Subtitle').textContent = 'Nhập mã do nhân viên showroom cung cấp qua điện thoại để khoá lượt đặt cọc';
+            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để đặt cọc.';
+            document.getElementById('btnSubmitText').textContent = 'Xác nhận đặt cọc';
+        } else {
+            document.getElementById('step1Title').textContent = 'Mua đứt xe';
+            document.getElementById('step1Subtitle').textContent = 'Liên hệ showroom để thanh toán và hoàn tất mua đứt';
+            document.getElementById('step1HotlineDesc').textContent = 'Liên hệ trực tiếp để chuyển khoản thanh toán mua đứt xe';
+            document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Giá bán xe (100%)';
+            if (currentCarStatus === 'Reserved') {
+                document.getElementById('step1AmountLabel').innerHTML = '<i class="bi bi-cash me-1"></i> Số tiền còn lại phải trả';
+            }
+            document.getElementById('step1DepositAmt').textContent = formatVnd(buyoutAmount);
+            document.getElementById('step1ExpiryLabel').innerHTML = '<i class="bi bi-truck me-1"></i> Bàn giao dự kiến';
+            document.getElementById('step1ExpiryVal').textContent = 'Sớm nhất';
+            document.getElementById('step1Alert').style.display = 'none';
+            document.getElementById('btnGoStep2').innerHTML = '<i class="bi bi-arrow-right-circle me-2"></i> Tôi đã thanh toán — Nhập mã giao dịch';
+
+            document.getElementById('step2Title').textContent = 'Nhập mã giao dịch';
+            document.getElementById('step2Subtitle').textContent = 'Nhập mã giao dịch do nhân viên cung cấp sau khi thanh toán thành công';
+            document.getElementById('loginWarningText').textContent = 'Bạn cần đăng nhập để mua đứt.';
+            document.getElementById('btnSubmitText').textContent = 'Xác nhận mua đứt';
+        }
+
+        captchaInput.value = '';
+        depositError.style.display = 'none';
+        loginWarning.classList.add('d-none');
+        showStep(1);
+        depositOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        depositOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    btnOpen?.addEventListener('click', () => openModal('deposit'));
+    btnBuyoutOpen?.addEventListener('click', () => openModal('buyout'));
+    btnClose?.addEventListener('click', closeModal);
+    btnDone?.addEventListener('click', () => {
+        closeModal();
+        window.location.reload();
+    });
+
+    // Close on overlay click
+    depositOverlay?.addEventListener('click', (e) => {
+        if (e.target === depositOverlay) closeModal();
+    });
+
+    btnGoStep2?.addEventListener('click', () => showStep(2));
+    btnBackStep1?.addEventListener('click', () => showStep(1));
+
+    // Helper: parse JWT from cookie claims (user identity)
+    function getUserInfo() {
+        const userId   = @(User.FindFirst("sub")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        const fullName = "@(User.FindFirst("name")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "")";
+        const email    = "@(User.FindFirst("email")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "")";
+        return { userId: Number(userId), fullName, email };
+    }
+
+    btnSubmit?.addEventListener('click', async () => {
+        const code = captchaInput.value.trim().toUpperCase();
+        if (!code) {
+            depositErrorMsg.textContent = 'Vui lòng nhập mã xác nhận.';
+            depositError.style.display = 'block';
+            return;
+        }
+
+        const user = getUserInfo();
+        if (!user.userId || user.userId <= 0) {
+            loginWarning.classList.remove('d-none');
+            depositErrorMsg.textContent = modalMode === 'deposit' ? 'Bạn cần đăng nhập để đặt cọc.' : 'Bạn cần đăng nhập để mua đứt.';
+            depositError.style.display = 'block';
+            return;
+        }
+
+        depositError.style.display = 'none';
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
+
+        try {
+            const payload = {
+                carId:        currentCarId,
+                customerId:   user.userId,
+                customerName: user.fullName || 'Khách hàng',
+                customerPhone: '0987173229',
+                customerEmail: user.email,
+                captchaCode:  code
+            };
+
+            const endpoint = modalMode === 'deposit' ? 'deposit' : 'buyout';
+            const resp = await fetch(`/Cars/Details/${currentCarId}?handler=SubmitPurchaseRequest&endpoint=${endpoint}`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await resp.json();
+            const success = (data.success !== undefined) ? data.success : data.Success;
+            const depositAmount = (data.depositAmount !== undefined) ? data.depositAmount : data.DepositAmount;
+            const depositExpiry = (data.depositExpiry !== undefined) ? data.depositExpiry : data.DepositExpiry;
+            const requestId = (data.requestId !== undefined) ? data.requestId : data.RequestId;
+            const message = (data.message !== undefined) ? data.message : data.Message;
+
+            if (resp.ok && success) {
+                if (modalMode === 'deposit') {
+                    document.getElementById('step3Title').textContent = 'Đặt cọc thành công!';
+                    document.getElementById('step3Subtitle').textContent = 'Xe đã được giữ riêng cho bạn.';
+                    document.getElementById('step3AmtLabel').textContent = 'Số tiền cọc';
+                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
+                    document.getElementById('step3ExpiryRow').style.display = 'flex';
+                    if (depositExpiry) {
+                        document.getElementById('step3Expiry').textContent = new Date(depositExpiry).toLocaleDateString('vi-VN');
+                    }
+                } else {
+                    document.getElementById('step3Title').textContent = 'Mua đứt thành công!';
+                    document.getElementById('step3Subtitle').textContent = 'Cảm ơn bạn đã mua xe tại showroom chúng tôi.';
+                    document.getElementById('step3AmtLabel').textContent = 'Tổng số tiền';
+                    document.getElementById('step3DepositAmt').textContent = formatVnd(depositAmount);
+                    document.getElementById('step3ExpiryRow').style.display = 'none';
+                }
+                document.getElementById('step3RequestId').textContent   = '#' + requestId;
+                showStep(3);
+                if (modalMode === 'buyout') {
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } else {
+                depositErrorMsg.textContent = message || (modalMode === 'deposit' ? 'Đặt cọc không thành công.' : 'Mua đứt không thành công.');
+                depositError.style.display = 'block';
+            }
+        } catch (err) {
+            depositErrorMsg.textContent = 'Không thể kết nối đến máy chủ. Vui lòng thử lại.';
+            depositError.style.display = 'block';
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="bi bi-lock-fill me-2"></i> <span id="btnSubmitText">${modalMode === 'deposit' ? 'Xác nhận đặt cọc' : 'Xác nhận mua đứt'}</span>`;
+        }
+    });
+
+    // Auto-uppercase captcha input
+    captchaInput?.addEventListener('input', () => {
+        captchaInput.value = captchaInput.value.toUpperCase();
+    });
+</script>
+@Html.AntiForgeryToken()

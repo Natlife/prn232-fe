@@ -1,0 +1,1665 @@
+@model CarSalesManagementSystemClient.Models.UnifiedCheckoutPostModel
+
+@{
+    ViewData["Title"] = "Thanh Toán & Đặt Lịch Bảo Dưỡng";
+
+    var cart =
+        ViewBag.Cart as CarSalesManagementSystemClient.Models.UnifiedCart
+        ?? new CarSalesManagementSystemClient.Models.UnifiedCart();
+}
+
+<style>
+    :root {
+        --checkout-primary: #17191e;
+        --checkout-secondary: #252830;
+        --checkout-accent: #f5b800;
+        --checkout-accent-hover: #ffca28;
+        --checkout-background: #f4f5f7;
+        --checkout-surface: #ffffff;
+        --checkout-border: #e5e7eb;
+        --checkout-text: #1b1d22;
+        --checkout-muted: #747983;
+        --checkout-danger: #dc3545;
+        --checkout-success: #198754;
+        --checkout-info: #0ea5e9;
+        --checkout-radius-lg: 26px;
+        --checkout-radius-md: 15px;
+        --checkout-shadow: 0 24px 65px rgba(17, 19, 24, 0.11);
+    }
+
+    .checkout-page {
+        min-height: 100vh;
+        padding: 38px 0 78px;
+        background: radial-gradient( circle at 93% 5%, rgba(245, 184, 0, 0.12), transparent 26% ), radial-gradient( circle at 6% 82%, rgba(17, 19, 24, 0.04), transparent 28% ), var(--checkout-background);
+    }
+
+    .checkout-container {
+        width: 100%;
+        max-width: 1220px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    .checkout-layout {
+        width: 100%;
+        max-width: 1080px;
+        margin: 0 auto;
+    }
+
+    .checkout-shell {
+        overflow: hidden;
+        background-color: var(--checkout-surface);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: var(--checkout-radius-lg);
+        box-shadow: var(--checkout-shadow);
+    }
+
+    /* Header */
+
+    .checkout-hero {
+        position: relative;
+        min-height: 190px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+        padding: 34px 38px;
+        color: #ffffff;
+        background: radial-gradient( circle at 86% 13%, rgba(245, 184, 0, 0.2), transparent 31% ), linear-gradient( 135deg, var(--checkout-primary), var(--checkout-secondary) );
+        overflow: hidden;
+    }
+
+        .checkout-hero::after {
+            content: "CHECKOUT";
+            position: absolute;
+            top: -33px;
+            right: 28px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .checkout-hero-content,
+    .checkout-hero-icon {
+        position: relative;
+        z-index: 2;
+    }
+
+    .checkout-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+        color: var(--checkout-accent);
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+        .checkout-eyebrow::before {
+            content: "";
+            width: 31px;
+            height: 2px;
+            background-color: var(--checkout-accent);
+        }
+
+    .checkout-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 10px;
+        color: #ffffff;
+        font-size: clamp(1.75rem, 3.2vw, 2.55rem);
+        font-weight: 950;
+        line-height: 1.14;
+        letter-spacing: -0.045em;
+    }
+
+        .checkout-title i {
+            color: var(--checkout-accent);
+        }
+
+    .checkout-description {
+        max-width: 680px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.61);
+        font-size: 0.89rem;
+        line-height: 1.65;
+    }
+
+    .checkout-hero-icon {
+        flex: 0 0 auto;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--checkout-primary);
+        background-color: var(--checkout-accent);
+        border-radius: 21px;
+        font-size: 1.75rem;
+        box-shadow: 0 15px 36px rgba(245, 184, 0, 0.22);
+        transform: rotate(-4deg);
+    }
+
+    .checkout-body {
+        padding: 34px 38px 40px;
+    }
+
+    /* Step indicator */
+
+    .step-indicator {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        min-width: 650px;
+        margin: 0;
+        padding: 0 24px 38px;
+    }
+
+        .step-indicator::before {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            top: 22px;
+            right: 43px;
+            left: 43px;
+            height: 3px;
+            background-color: #e7e9ed;
+            border-radius: 999px;
+            transform: none;
+        }
+
+    .step-indicator-item {
+        position: relative;
+        z-index: 2;
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8e939c;
+        background-color: #ffffff;
+        border: 2px solid #dfe2e7;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 900;
+        box-shadow: 0 7px 18px rgba(17, 19, 24, 0.06);
+        transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .step-indicator-item.active {
+            color: var(--checkout-primary);
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+            box-shadow: 0 0 0 5px rgba(245, 184, 0, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .step-indicator-item.completed {
+            color: #ffffff;
+            background-color: var(--checkout-success);
+            border-color: var(--checkout-success);
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.11);
+        }
+
+    .step-indicator-label {
+        position: absolute;
+        top: 54px;
+        left: 50%;
+        width: 96px;
+        color: #8c919a;
+        font-size: 0.65rem;
+        font-weight: 800;
+        line-height: 1.25;
+        text-align: center;
+        transform: translateX(-50%);
+    }
+
+    .step-indicator-item.active .step-indicator-label,
+    .step-indicator-item.completed .step-indicator-label {
+        color: var(--checkout-primary) !important;
+        font-weight: 900;
+    }
+
+    .checkout-body > .step-indicator {
+        overflow: visible;
+    }
+
+    /* Wizard */
+
+    .wizard-step {
+        display: none;
+        animation: checkoutFade 0.28s ease;
+    }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+    @@keyframes checkoutFade {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .wizard-step > h4 {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 24px !important;
+        padding-bottom: 16px;
+        color: var(--checkout-primary) !important;
+        border-bottom: 1px solid var(--checkout-border);
+        font-size: 1.05rem;
+        font-weight: 950 !important;
+        line-height: 1.45;
+    }
+
+        .wizard-step > h4 i {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            color: #8f6b00 !important;
+            background-color: rgba(245, 184, 0, 0.13);
+            border: 1px solid rgba(245, 184, 0, 0.21);
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+    /* Alerts */
+
+    #checkoutAlert {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin-bottom: 24px !important;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+        font-size: 0.8rem;
+        line-height: 1.55;
+    }
+
+        #checkoutAlert.d-none {
+            display: none !important;
+        }
+
+    .checkout-page .alert-light,
+    .checkout-page .alert-warning,
+    .checkout-page .alert-success,
+    .checkout-page .alert-info {
+        padding: 16px;
+        border-radius: 14px !important;
+        font-size: 0.78rem;
+        line-height: 1.6;
+    }
+
+    .checkout-page .alert-light {
+        color: #5c616a;
+        background-color: #f8f9fa;
+        border: 1px solid var(--checkout-border) !important;
+    }
+
+    .checkout-page .alert-warning {
+        color: #7c5b00;
+        background-color: #fff9df;
+        border: 1px solid #fde68a;
+    }
+
+    .checkout-page .alert-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+    }
+
+    .checkout-page .alert-info {
+        color: #075985;
+        background-color: #f0f9ff;
+        border: 1px solid #bae6fd;
+    }
+
+    /* Tables */
+
+    .checkout-page .table-responsive {
+        overflow: hidden;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 16px !important;
+    }
+
+    .checkout-page .table {
+        margin-bottom: 0;
+    }
+
+        .checkout-page .table thead th {
+            padding: 14px 16px !important;
+            color: #777c85;
+            background-color: #f7f8f9 !important;
+            border-bottom: 1px solid var(--checkout-border);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .checkout-page .table tbody td {
+            padding: 16px !important;
+            color: #575c65;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eff0f2;
+            font-size: 0.78rem;
+            vertical-align: middle;
+        }
+
+        .checkout-page .table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .checkout-page .table tbody tr:hover td {
+            background-color: #fbfbfc;
+        }
+
+        .checkout-page .table strong,
+        .checkout-page .table .fw-bold {
+            color: var(--checkout-primary);
+        }
+
+    /* Purpose radio choices */
+
+    .checkout-page .purpose-radio {
+        margin-top: 0;
+        border-color: #b7bbc2;
+        box-shadow: none;
+    }
+
+        .checkout-page .purpose-radio:checked {
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+        }
+
+    .checkout-page td .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 !important;
+        padding: 10px 11px 10px 34px;
+        background-color: #f8f9fa;
+        border: 1px solid #eceef1;
+        border-radius: 10px;
+    }
+
+    /* Form cards */
+
+    #carSourceChoice label:has(input[name="carSource"]),
+    .checkout-page label:has(input[name="purchaseType"]) {
+        min-height: 92px;
+        padding: 16px !important;
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 15px !important;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+        #carSourceChoice label:has(input[name="carSource"]):hover,
+        .checkout-page label:has(input[name="purchaseType"]):hover {
+            background-color: #fffdf5;
+            border-color: var(--checkout-accent) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(245, 184, 0, 0.1);
+        }
+
+    #carSourceChoice .form-check-input,
+    .checkout-page input[name="purchaseType"] {
+        flex: 0 0 auto;
+        border-color: #b9bdc4;
+        box-shadow: none;
+    }
+
+        #carSourceChoice .form-check-input:checked,
+        .checkout-page input[name="purchaseType"]:checked {
+            background-color: var(--checkout-accent);
+            border-color: var(--checkout-accent);
+        }
+
+    #carInfoInputs,
+    #step-4 > .p-4 {
+        padding: 23px !important;
+        background-color: #f8f9fa !important;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 17px !important;
+    }
+
+    .checkout-page .form-label {
+        margin-bottom: 8px;
+        color: #464a52 !important;
+        font-size: 0.73rem;
+        font-weight: 900 !important;
+    }
+
+    .checkout-page .form-control,
+    .checkout-page .form-select {
+        min-height: 49px;
+        padding: 11px 13px;
+        color: var(--checkout-text);
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border);
+        border-radius: 12px !important;
+        outline: none;
+        font-size: 0.82rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    .checkout-page textarea.form-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .checkout-page .form-control:focus,
+    .checkout-page .form-select:focus {
+        background-color: #ffffff;
+        border-color: var(--checkout-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .checkout-page .small.text-muted {
+        color: #9499a1 !important;
+        font-size: 0.68rem !important;
+        line-height: 1.5;
+    }
+
+    /* Summary step */
+
+    #step-4 .card {
+        overflow: hidden;
+        background-color: #ffffff;
+        border: 1px solid var(--checkout-border) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 28px rgba(17, 19, 24, 0.055) !important;
+    }
+
+    #step-4 .card-header {
+        padding: 13px 15px !important;
+        color: var(--checkout-accent) !important;
+        background: linear-gradient( 135deg, var(--checkout-primary), var(--checkout-secondary) ) !important;
+        border: 0;
+        font-size: 0.72rem;
+        font-weight: 900 !important;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    #step-4 .list-group-item {
+        padding: 13px 15px;
+        color: #555a63;
+        background-color: #ffffff;
+        border-color: #eff0f2;
+        font-size: 0.75rem;
+    }
+
+    #step-4 .card-footer {
+        padding: 13px 15px;
+        background-color: #f8f9fa !important;
+        border-top: 1px solid var(--checkout-border);
+    }
+
+    #step-4 .col-md-5 > .card:first-child {
+        background-color: #ffffff !important;
+    }
+
+    #step-4 .col-md-5 > .card.bg-dark {
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.14), transparent 34% ), linear-gradient( 145deg, var(--checkout-primary), #0d0f13 ) !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 18px 38px rgba(17, 19, 24, 0.18) !important;
+    }
+
+        #step-4 .col-md-5 > .card.bg-dark .card-body {
+            padding: 20px;
+        }
+
+    #totalOrderDisplay {
+        color: var(--checkout-accent) !important;
+        font-size: 1.3rem !important;
+    }
+
+    #totalCarDisplay,
+    #totalMaintenanceDisplay {
+        color: var(--checkout-accent) !important;
+    }
+
+    /* Payment method card */
+
+    #step-4 > .card.mt-3 {
+        margin-top: 20px !important;
+    }
+
+        #step-4 > .card.mt-3 .card-body {
+            padding: 20px;
+        }
+
+    /* Buttons */
+
+    .checkout-page .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 18px;
+        border-radius: 12px !important;
+        font-size: 0.74rem;
+        font-weight: 900;
+        text-decoration: none;
+        transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .checkout-page .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-gold {
+        color: var(--checkout-primary);
+        background-color: var(--checkout-accent);
+        border-color: var(--checkout-accent);
+        box-shadow: 0 11px 26px rgba(245, 184, 0, 0.18);
+    }
+
+        .btn-gold:hover {
+            color: var(--checkout-primary);
+            background-color: var(--checkout-accent-hover);
+            border-color: var(--checkout-accent-hover);
+            box-shadow: 0 15px 30px rgba(245, 184, 0, 0.25);
+        }
+
+    .checkout-page .btn-outline-secondary {
+        color: #656a73;
+        background-color: #ffffff;
+        border-color: var(--checkout-border);
+    }
+
+        .checkout-page .btn-outline-secondary:hover {
+            color: var(--checkout-primary);
+            background-color: #f7f8f9;
+            border-color: #cfd2d7;
+        }
+
+    #btnSubmitOrder {
+        color: var(--checkout-primary) !important;
+        background-color: var(--checkout-accent) !important;
+        border-color: var(--checkout-accent) !important;
+        box-shadow: 0 12px 28px rgba(245, 184, 0, 0.2);
+    }
+
+        #btnSubmitOrder:hover {
+            background-color: var(--checkout-accent-hover) !important;
+            border-color: var(--checkout-accent-hover) !important;
+        }
+
+    /* Navigation rows */
+
+    .wizard-step > .d-flex.justify-content-between {
+        gap: 12px;
+        margin-top: 30px !important;
+        padding-top: 22px;
+        border-top: 1px solid var(--checkout-border);
+    }
+
+    /* Success */
+
+    #step-5 {
+        padding: 24px 0 8px !important;
+    }
+
+        #step-5 .display-3 {
+            width: 94px;
+            height: 94px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--checkout-success) !important;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 28px;
+            font-size: 2.5rem;
+            box-shadow: 0 15px 32px rgba(25, 135, 84, 0.1);
+        }
+
+        #step-5 > h3 {
+            margin-bottom: 9px;
+            color: var(--checkout-primary) !important;
+            font-size: 1.55rem;
+            font-weight: 950 !important;
+        }
+
+        #step-5 > p {
+            max-width: 610px;
+            margin-right: auto;
+            margin-left: auto;
+            color: var(--checkout-muted) !important;
+            font-size: 0.83rem;
+            line-height: 1.7;
+        }
+
+        #step-5 .p-4.bg-light {
+            padding: 20px !important;
+            background-color: #f8f9fa !important;
+            border: 1px solid var(--checkout-border) !important;
+            border-radius: 16px !important;
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .checkout-container {
+            padding-right: 18px;
+            padding-left: 18px;
+        }
+
+        .checkout-body {
+            padding: 30px 28px 34px;
+        }
+
+        .checkout-body {
+            overflow-x: hidden;
+        }
+
+        .step-indicator {
+            min-width: 620px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .checkout-page {
+            padding-top: 24px;
+        }
+
+        .checkout-container {
+            padding-right: 12px;
+            padding-left: 12px;
+        }
+
+        .checkout-shell {
+            border-radius: 21px;
+        }
+
+        .checkout-hero {
+            min-height: 165px;
+            padding: 27px 23px;
+        }
+
+            .checkout-hero::after {
+                display: none;
+            }
+
+        .checkout-hero-icon {
+            width: 57px;
+            height: 57px;
+            border-radius: 17px;
+            font-size: 1.4rem;
+        }
+
+        .checkout-body {
+            padding: 26px 19px 30px;
+        }
+
+            .checkout-body > .step-indicator {
+                width: calc(100% + 38px);
+                margin-right: -19px;
+                margin-left: -19px;
+                padding-right: 38px;
+                padding-left: 38px;
+                overflow-x: auto;
+                scrollbar-width: thin;
+            }
+
+        .checkout-page .table-responsive {
+            overflow-x: auto;
+        }
+
+        .checkout-page .table {
+            min-width: 720px;
+        }
+
+        #step-4 .table {
+            min-width: 0;
+        }
+
+        .wizard-step > .d-flex.justify-content-between {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+            .wizard-step > .d-flex.justify-content-between .btn,
+            .wizard-step > .d-flex.justify-content-between a {
+                width: 100%;
+            }
+    }
+
+    @@media (max-width: 575.98px) {
+        .checkout-hero-icon {
+            display: none;
+        }
+
+        .checkout-title {
+            font-size: 1.55rem;
+        }
+
+        .checkout-description {
+            font-size: 0.8rem;
+        }
+
+        .wizard-step > h4 {
+            align-items: flex-start;
+            font-size: 0.93rem;
+        }
+
+        #carInfoInputs,
+        #step-3 > .p-4 {
+            padding: 18px !important;
+        }
+
+        #step-4 .row.g-4 {
+            --bs-gutter-y: 1rem;
+        }
+
+        #step-5 .mt-4 {
+            display: grid;
+            gap: 9px;
+        }
+
+            #step-5 .mt-4 .btn {
+                width: 100%;
+                margin: 0 !important;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .wizard-step,
+        .step-indicator-item,
+        .checkout-page .btn,
+        #carSourceChoice label:has(input[name="carSource"]),
+        .checkout-page label:has(input[name="purchaseType"]) {
+            animation: none;
+            transition: none;
+        }
+
+            .checkout-page .btn:hover,
+            #carSourceChoice label:has(input[name="carSource"]):hover,
+            .checkout-page label:has(input[name="purchaseType"]):hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="checkout-page">
+    <div class="checkout-container">
+        <div class="checkout-layout">
+            <div class="checkout-shell">
+                <header class="checkout-hero">
+                    <div class="checkout-hero-content">
+                        <span class="checkout-eyebrow">Unified checkout</span>
+                        <h1 class="checkout-title">
+                            <i class="bi bi-cart-check-fill"></i>
+                            Thanh Toán & Đặt Lịch
+                        </h1>
+                        <p class="checkout-description">
+                            Hoàn tất yêu cầu mua phụ tùng và đặt lịch hẹn bảo dưỡng
+                            trong một quy trình thống nhất.
+                        </p>
+                    </div>
+
+                    <div class="checkout-hero-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </header>
+
+                <div class="checkout-body">
+                    <!-- Progress Step Indicator -->
+                    <div class="step-indicator px-4 mb-5">
+                        <div class="step-indicator-item active" id="ind-1">
+                            1
+                            <span class="step-indicator-label text-dark">Giỏ hàng</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-2">
+                            2
+                            <span class="step-indicator-label">Dịch vụ</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-3">
+                            3
+                            <span class="step-indicator-label">Thông tin xe</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-4">
+                            4
+                            <span class="step-indicator-label">Xác nhận</span>
+                        </div>
+                        <div class="step-indicator-item" id="ind-5">
+                            ✓
+                            <span class="step-indicator-label">Hoàn tất</span>
+                        </div>
+                    </div>
+
+                    <div id="checkoutAlert" class="alert alert-danger d-none rounded-3 shadow-sm mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span id="checkoutAlertText"></span>
+                    </div>
+
+                    <!-- STEP 1: GIỎ HÀNG (PHỤ TÙNG MUA RIÊNG HOẶC DÙNG BẢO DƯỠNG) -->
+                    <div class="wizard-step active" id="step-1">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-gear-wide-connected text-warning me-2"></i>BƯỚC 1: Phân loại mục đích sử dụng phụ tùng</h4>
+
+                        @{
+                            var partItems = cart.Items.Where(i => i.ItemType == "Part").ToList();
+                        }
+
+                        @if (!partItems.Any())
+                        {
+                            <div class="alert alert-light border py-4 text-center rounded-3">
+                                <i class="bi bi-info-circle text-secondary fs-4 d-block mb-2"></i>
+                                Không có linh kiện, phụ tùng nào trong giỏ hàng của bạn.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive rounded-3 border mb-4">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-4">Tên phụ tùng</th>
+                                            <th class="py-3 text-center" style="width: 100px;">Số lượng</th>
+                                            <th class="py-3 text-end" style="width: 150px;">Thành tiền</th>
+                                            <th class="py-3 px-4" style="width: 320px;">Mục đích sử dụng</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in partItems)
+                                        {
+                                            <tr data-item-id="@item.ItemId">
+                                                <td class="py-3 px-4">
+                                                    <strong>@item.Name</strong>
+                                                    <div class="small text-muted">Đơn giá: @item.Price.ToString("N0") đ</div>
+                                                </td>
+                                                <td class="py-3 text-center">@item.Quantity</td>
+                                                <td class="py-3 text-end fw-bold text-slate-800">@item.SubTotal.ToString("N0") đ</td>
+                                                <td class="py-3 px-4">
+                                                    <div class="d-flex flex-column gap-2">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input purpose-radio" type="radio"
+                                                                   name="purpose-@item.ItemId" id="pur-std-@item.ItemId"
+                                                                   value="Standalone" @(item.Purpose != "Maintenance" ? "checked" : "")
+                                                                   onchange="changePurpose('Part', @item.ItemId, 'Standalone')">
+                                                            <label class="form-check-label small fw-semibold text-secondary" for="pur-std-@item.ItemId">
+                                                                Mua riêng mang về
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input purpose-radio" type="radio"
+                                                                   name="purpose-@item.ItemId" id="pur-maint-@item.ItemId"
+                                                                   value="Maintenance" @(item.Purpose == "Maintenance" ? "checked" : "")
+                                                                   onchange="changePurpose('Part', @item.ItemId, 'Maintenance')">
+                                                            <label class="form-check-label small fw-semibold text-secondary" for="pur-maint-@item.ItemId">
+                                                                Sử dụng trong lần bảo dưỡng này
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="/Cart" class="btn btn-outline-secondary rounded-3 px-4">Quay lại Giỏ hàng</a>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(2)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: DỊCH VỤ -->
+                    <div class="wizard-step" id="step-2">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-wrench-adjustable text-warning me-2"></i>BƯỚC 2: Chọn gói bảo dưỡng và dịch vụ lẻ</h4>
+
+                        @{
+                            var serviceItems = cart.Items.Where(i => i.ItemType == "Package" || i.ItemType == "Service").ToList();
+                        }
+
+                        @if (!serviceItems.Any())
+                        {
+                            <div class="alert alert-warning rounded-3 mb-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Bạn chưa chọn gói bảo dưỡng hay dịch vụ nào. Nếu bạn có phụ tùng đánh dấu <em>"Sử dụng trong lần bảo dưỡng này"</em>, bạn bắt buộc phải chọn ít nhất một dịch vụ bảo dưỡng ở trang chủ để gắn kèm.
+                            </div>
+                            <div class="text-center py-3">
+                                <a href="/" class="btn btn-outline-dark rounded-pill px-4"><i class="bi bi-plus-circle me-1"></i> Chọn dịch vụ bảo dưỡng ngay</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive rounded-3 border mb-4">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="py-3 px-4">Tên dịch vụ / gói</th>
+                                            <th class="py-3">Phân loại</th>
+                                            <th class="py-3 text-end px-4" style="width: 200px;">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in serviceItems)
+                                        {
+                                            <tr>
+                                                <td class="py-3 px-4 fw-bold text-slate-800">@item.Name</td>
+                                                <td class="py-3">
+                                                    @if (item.ItemType == "Package")
+                                                    {
+                                                        <span class="badge bg-primary">Gói bảo dưỡng định kỳ</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-info text-dark">Dịch vụ sửa chữa lẻ</span>
+                                                    }
+                                                </td>
+                                                <td class="py-3 text-end fw-bold text-dark px-4">@item.Price.ToString("N0") đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(1)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(3)">Tiếp theo <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: THÔNG TIN XE -->
+                    <div class="wizard-step" id="step-3">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-car-front text-warning me-2"></i>BƯỚC 3: Thông tin xe cần bảo dưỡng</h4>
+
+                        <!-- Chọn nguồn xe: chỉ hiện khi trong giỏ có mua xe -->
+                        <div id="carSourceChoice" class="d-none mb-4">
+                            <p class="form-label fw-semibold text-secondary mb-2">Bạn muốn bảo dưỡng xe nào?</p>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0 h-100" style="cursor:pointer;">
+                                        <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceInCart" value="InCart" checked>
+                                        <div>
+                                            <strong>Xe trong giỏ hàng</strong><br>
+                                            <span class="small text-muted" id="carSourceInCartSubtext">Xe bạn đang mua</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="w-100 p-3 border rounded-4 d-flex align-items-center gap-2 mb-0 h-100" style="cursor:pointer;">
+                                        <input class="form-check-input mt-0" type="radio" name="carSource" id="carSourceOther" value="Other">
+                                        <div>
+                                            <strong>Xe khác</strong><br>
+                                            <span class="small text-muted">Xe bạn đã có sẵn</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Dropdown chọn xe cụ thể trong giỏ (chỉ hiện khi giỏ có nhiều hơn 1 xe và đang chọn 'Xe trong giỏ hàng') -->
+                            <div id="multipleCarsSelectContainer" class="mt-3 p-3 bg-light rounded-4 border d-none">
+                                <label for="carInCartSelect" class="form-label fw-semibold text-secondary mb-1 small">
+                                    <i class="bi bi-car-front-fill me-1 text-warning"></i>Chọn chiếc xe trong giỏ hàng bạn muốn đăng ký bảo dưỡng:
+                                </label>
+                                <select class="form-select rounded-3" id="carInCartSelect">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="carInfoInputs" class="p-4 bg-light rounded-4 border mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="CarNameInput" class="form-label fw-semibold text-secondary">Tên xe / Mẫu xe</label>
+                                    <input type="text" class="form-control rounded-3" id="CarNameInput" placeholder="VD: Toyota Vios 2022" value="@Model.CarName">
+                                    <div class="small text-muted mt-1">Hãng xe, mẫu xe và đời xe cụ thể.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="LicensePlateInput" class="form-label fw-semibold text-secondary">Biển số xe</label>
+                                    <input type="text" class="form-control rounded-3" id="LicensePlateInput" placeholder="VD: 30A-123.45" value="@Model.LicensePlate">
+                                    <div class="small text-muted mt-1">Biển số để nhận diện khi đến showroom.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="carInCartHint" class="alert alert-success rounded-3 small mb-0 d-none">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span id="carInCartHintText">Bảo dưỡng cho xe đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).</span>
+                        </div>
+                        <div id="carOtherHint" class="alert alert-info rounded-3 small mb-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Nếu giỏ hàng không có gói/linh kiện bảo dưỡng nào, bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua thông tin xe.
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-5">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(2)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-gold rounded-3 px-5" onclick="goToStep(4)">Xem trước &amp; Xác nhận <i class="bi bi-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4: XÁC NHẬN -->
+                    <div class="wizard-step" id="step-4">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i>BƯỚC 4: Xác nhận chi phí và thông tin đơn hàng</h4>
+
+                        <div class="row g-4">
+                            <!-- Left columns: Summary list -->
+                            <div class="col-md-7">
+                                <!-- Section 0: Ô tô (yêu cầu mua) -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden d-none" id="summaryCarCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5 d-flex align-items-center">
+                                        🚗 Ô TÔ (YÊU CẦU MUA)
+                                        <a tabindex="0" role="button" class="ms-2 text-warning" data-bs-toggle="popover" data-bs-trigger="focus" title="Về việc mua ô tô"
+                                           data-bs-content="Xe cần nhân viên xác nhận. Sau khi đặt hàng, bạn vào 'Hóa đơn của tôi', liên hệ nhân viên nhận mã và nhập để xác thực đặt cọc/mua đứt.">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                        </a>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryCarList"></ul>
+                                    </div>
+                                </div>
+
+                                <!-- Section A: Standalone Parts -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden" id="summaryStandaloneCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5">
+                                        🛒 PHỤ TÙNG MUA RIÊNG MANG VỀ
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryStandaloneList">
+                                            <!-- Dynamically rendered -->
+                                        </ul>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        @* Tạm thời chỉ hỗ trợ nhận tại showroom — ẩn lựa chọn giao hàng. *@
+                                        <input type="radio" name="deliveryMethod" id="del-pickup" value="Pickup" checked class="d-none">
+                                        <div class="small text-secondary">
+                                            <i class="bi bi-shop me-1 text-warning"></i>Hình thức nhận: <strong>Nhận tại showroom</strong>
+                                        </div>
+                                        <div class="mb-2 d-none" id="shippingAddressContainer">
+                                            <label for="ShippingAddressInput" class="form-label fw-bold text-secondary small">Địa chỉ nhận phụ tùng:</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="ShippingAddressInput" placeholder="Nhập địa chỉ nhà của bạn">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Section B: Maintenance Appointment -->
+                                <div class="card border mb-3 rounded-3 shadow-sm overflow-hidden" id="summaryMaintenanceCard">
+                                    <div class="card-header bg-dark text-warning fw-bold py-2.5">
+                                        🔧 LỊCH HẸN & DỊCH VỤ BẢO DƯỠNG
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush small" id="summaryMaintenanceList">
+                                            <!-- Dynamically rendered -->
+                                        </ul>
+                                        <div class="p-3 bg-light border-top">
+                                            <div class="row g-2 text-secondary small">
+                                                <div class="col-6">Thông tin xe:</div>
+                                                <div class="col-6 fw-bold text-dark text-end" id="summaryCarText"></div>
+
+                                                <div class="col-6">Thời gian hẹn:</div>
+                                                <div class="col-6 fw-bold text-dark text-end" id="summaryTimeText"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right column: Customer and Total cost -->
+                            <div class="col-md-5">
+                                <div class="card border rounded-3 bg-light shadow-sm mb-3">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-person-circle"></i> Thông tin liên hệ nhận đơn</h6>
+                                        <div class="mb-3">
+                                            <label for="CustomerNameInput" class="form-label small text-muted mb-1">Họ và tên</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="CustomerNameInput" value="@Model.CustomerName" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="CustomerPhoneInput" class="form-label small text-muted mb-1">Số điện thoại</label>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="CustomerPhoneInput" value="@Model.CustomerPhone" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="CustomerEmailInput" class="form-label small text-muted mb-1">Email</label>
+                                            <input type="email" class="form-control form-control-sm rounded-2" id="CustomerEmailInput" value="@Model.CustomerEmail">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border rounded-3 bg-dark text-white shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-warning border-bottom border-secondary pb-2 mb-3">TỔNG CHI PHÍ TẠM TÍNH</h6>
+
+                                        <div class="d-flex justify-content-between mb-2 small">
+                                            <span>Ô tô (yêu cầu mua):</span>
+                                            <span class="fw-bold text-warning" id="totalCarDisplay">0 đ</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2 small">
+                                            <span>Phụ tùng mua riêng:</span>
+                                            <span class="fw-bold" id="totalStandaloneDisplay">0 đ</span>
+                                        </div>
+                                        <div id="maintenanceCostBlock" class="border-bottom border-secondary pb-2 mb-2 d-none">
+                                            <div class="d-flex justify-content-between small fw-bold text-warning mb-1">
+                                                <span>
+                                                    Chi phí bảo dưỡng dự kiến
+                                                    <a tabindex="0" role="button" class="text-info ms-1" data-bs-toggle="popover" data-bs-trigger="focus" title="Chi phí dự kiến"
+                                                       data-bs-content="Chi phí bảo dưỡng là dự kiến, có thể thay đổi nếu phát sinh phụ tùng/dịch vụ bổ sung và chỉ chốt sau khi bạn xác nhận.">
+                                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                                    </a>:
+                                                </span>
+                                                <span id="totalMaintenanceDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowPackage">
+                                                <span>• Gói bảo dưỡng:</span><span id="totalPackageDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowService">
+                                                <span>• Dịch vụ lẻ:</span><span id="totalServiceDisplay">0 đ</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between small ps-3 text-white-50" id="rowMaintParts">
+                                                <span>• Phụ tùng bảo dưỡng:</span><span id="totalMaintPartsDisplay">0 đ</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between pt-1">
+                                            <span class="fw-bold fs-6">Tổng cộng:</span>
+                                            <span class="fw-bold fs-5 text-danger" id="totalOrderDisplay">0 đ</span>
+                                        </div>
+                                        <div class="small text-white-50 mt-2"><i class="bi bi-info-circle me-1"></i>Phụ tùng/dịch vụ phát sinh (nếu có) sẽ được tính bổ sung khi bảo dưỡng và cần bạn duyệt.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chọn hình thức thanh toán cho hóa đơn tổng -->
+                        <div class="card border rounded-3 shadow-sm mt-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-dark mb-3">
+                                    Hình thức thanh toán
+                                    <a tabindex="0" role="button" class="text-info ms-1" data-bs-toggle="popover" data-bs-trigger="focus" title="Đặt cọc / Mua đứt"
+                                       data-bs-content="Đặt cọc: trả trước 10% để giữ chỗ (tối đa 2 tuần), sau đó tất toán phần còn lại. Mua đứt: thanh toán toàn bộ. Cả hai đều xác thực bằng mã do nhân viên cấp ở trang Hóa đơn của tôi.">
+                                        <i class="bi bi-exclamation-circle-fill"></i>
+                                    </a>
+                                </h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="w-100 p-3 border rounded-4 d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                                            <input class="form-check-input mt-1" type="radio" name="purchaseType" value="Deposit">
+                                            <span><strong>Đặt cọc</strong><br><span class="small text-muted">Cọc ~10% giữ chỗ tối đa 2 tuần, tất toán sau.</span></span>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="w-100 p-3 border rounded-4 d-flex align-items-start gap-2 mb-0" style="cursor:pointer;">
+                                            <input class="form-check-input mt-1" type="radio" name="purchaseType" value="Buyout" checked>
+                                            <span><strong>Mua đứt</strong><br><span class="small text-muted">Thanh toán toàn bộ một lần.</span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-4" onclick="goToStep(3)"><i class="bi bi-arrow-left me-1"></i> Quay lại</button>
+                            <button type="button" class="btn btn-dark text-warning fw-bold rounded-3 px-5" id="btnSubmitOrder" onclick="submitCheckout()"><i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn</button>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5: HOÀN TẤT -->
+                    <div class="wizard-step text-center py-4" id="step-5">
+                        <div class="mb-4">
+                            <span class="display-3 text-success"><i class="bi bi-check-circle-fill"></i></span>
+                        </div>
+                        <h3 class="fw-bold text-dark">Đặt yêu cầu thành công</h3>
+                        <p class="text-secondary mb-4">Cảm ơn bạn đã lựa chọn dịch vụ của chúng tôi. Yêu cầu của bạn đã được gửi đến hệ thống.</p>
+
+                        <div class="row justify-content-center mb-5">
+                            <div class="col-md-8">
+                                <div class="p-4 bg-light border rounded-4 text-start">
+                                    <div class="d-none mb-3" id="resPartOrder">
+                                        <div class="fw-bold text-dark">Đơn phụ tùng mua riêng <span class="text-primary font-monospace" id="lblPartOrderId"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Đang chờ showroom xác nhận đơn hàng.</div>
+                                    </div>
+                                    <div class="d-none" id="resMaintenance">
+                                        <div class="fw-bold text-dark">Lịch bảo dưỡng <span class="text-primary font-monospace" id="lblAppointmentId"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Đang chờ duyệt lịch hẹn sửa chữa.</div>
+                                    </div>
+                                    <div class="d-none mt-3" id="resCar">
+                                        <div class="fw-bold text-dark">Yêu cầu mua xe <span class="text-primary font-monospace" id="lblCarRequestIds"></span>:</div>
+                                        <div class="text-secondary small"><i class="bi bi-hourglass-split me-1 text-warning"></i>Nhân viên sẽ liên hệ lập hóa đơn và cấp mã xác thực để bạn hoàn tất.</div>
+                                    </div>
+                                    <div class="d-none mt-3 border-top pt-3" id="resInvoice">
+                                        <div class="fw-bold text-dark">Hóa đơn tổng <span class="text-success font-monospace" id="lblInvoiceNumber"></span> — <span id="lblPurchaseType"></span></div>
+                                        <div class="text-secondary small"><i class="bi bi-shield-lock me-1 text-warning"></i>Vào <strong>Hóa đơn của tôi</strong>, liên hệ nhân viên (hotline (+84) 0359492991) để nhận mã và nhập xác thực.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning d-inline-block rounded-3 small mx-auto" style="max-width: 550px;">
+                            <i class="bi bi-info-circle-fill me-1"></i> Với hóa đơn <strong>đặt cọc</strong>, cọc giữ chỗ tối đa <strong>2 tuần</strong>; quá hạn đơn tự hủy và không hoàn cọc. Chi phí bảo dưỡng cuối cùng thanh toán sau khi hoàn thành dịch vụ.
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="/Invoices" class="btn btn-gold rounded-pill px-4 me-2"><i class="bi bi-receipt-cutoff"></i> Hóa đơn của tôi</a>
+                            <a href="/" class="btn btn-outline-secondary rounded-pill px-4">Về Trang chủ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+
+@section Scripts {
+    <script>
+        const cartData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(cart));
+        let activeStep = 1;
+
+        // Danh sách xe đang có trong giỏ (nếu có)
+        const carsInCart = cartData.Items.filter(i => i.ItemType === 'Car');
+
+        function getSelectedCarInCartName() {
+            if (!carsInCart || carsInCart.length === 0) return '';
+            if (carsInCart.length === 1) return carsInCart[0].Name;
+            return $('#carInCartSelect').val() || carsInCart[0].Name;
+        }
+
+        $(document).ready(function() {
+            // Setup delivery address toggle
+            $('input[name="deliveryMethod"]').change(function() {
+                if ($(this).val() === 'Shipping') {
+                    $('#shippingAddressContainer').removeClass('d-none');
+                } else {
+                    $('#shippingAddressContainer').addClass('d-none');
+                }
+            });
+
+            // Bước 3: nếu giỏ có xe -> hiện 2 lựa chọn nguồn xe.
+            if (carsInCart.length > 0) {
+                $('#carSourceChoice').removeClass('d-none');
+                if (carsInCart.length === 1) {
+                    $('#carSourceInCartSubtext').text(carsInCart[0].Name);
+                } else {
+                    $('#carSourceInCartSubtext').text(`Có ${carsInCart.length} xe trong giỏ hàng`);
+                    let optionsHtml = '';
+                    carsInCart.forEach(c => {
+                        optionsHtml += `<option value="${c.Name}">${c.Name}</option>`;
+                    });
+                    $('#carInCartSelect').html(optionsHtml);
+                    $('#carInCartSelect').change(function() {
+                        applyCarSource();
+                    });
+                }
+                $('input[name="carSource"]').change(applyCarSource);
+                applyCarSource();
+            }
+
+            // Initialize total price calculations
+            recalculateSummary();
+
+            // Kích hoạt popover cho các icon dấu "!" giải thích.
+            try {
+                document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) {
+                    new bootstrap.Popover(el);
+                });
+            } catch (e) { /* bootstrap chưa sẵn sàng - bỏ qua */ }
+        });
+
+        // Trả về nguồn xe hiện chọn: 'InCart' | 'Other'. Nếu giỏ không có xe -> luôn 'Other'.
+        function getCarSource() {
+            if (!carsInCart || carsInCart.length === 0) return 'Other';
+            return $('input[name="carSource"]:checked').val() || 'InCart';
+        }
+
+        function applyCarSource() {
+            const src = getCarSource();
+            if (src === 'InCart') {
+                $('#carInfoInputs').addClass('d-none');
+                $('#carInCartHint').removeClass('d-none');
+                $('#carOtherHint').addClass('d-none');
+
+                if (carsInCart.length > 1) {
+                    $('#multipleCarsSelectContainer').removeClass('d-none');
+                } else {
+                    $('#multipleCarsSelectContainer').addClass('d-none');
+                }
+
+                const selectedCarName = getSelectedCarInCartName();
+                if (selectedCarName) {
+                    $('#carInCartHintText').html(`Bảo dưỡng cho xe <strong>${selectedCarName}</strong> đang mua trong giỏ. Bạn có thể nhấn <strong>Tiếp theo</strong> để bỏ qua nhập thông tin (xe chưa có biển số).`);
+                }
+            } else {
+                $('#carInfoInputs').removeClass('d-none');
+                $('#carInCartHint').addClass('d-none');
+                $('#carOtherHint').removeClass('d-none');
+                $('#multipleCarsSelectContainer').addClass('d-none');
+            }
+        }
+
+        function changePurpose(itemType, itemId, purpose) {
+            $.ajax({
+                url: '/Cart/UpdatePurpose',
+                type: 'POST',
+                data: { itemType: itemType, itemId: itemId, purpose: purpose },
+                success: function(res) {
+                    if (res.success) {
+                        // Update local array
+                        const item = cartData.Items.find(i => i.ItemType === itemType && i.ItemId === itemId);
+                        if (item) {
+                            item.Purpose = purpose;
+                        }
+                        recalculateSummary();
+                    }
+                }
+            });
+        }
+
+        function recalculateSummary() {
+            let totalStandalone = 0, totalCar = 0;
+            let totalPackage = 0, totalService = 0, totalMaintParts = 0;
+
+            cartData.Items.forEach(item => {
+                const line = item.Price * item.Quantity;
+                if (item.ItemType === 'Part') {
+                    if (item.Purpose === 'Maintenance') totalMaintParts += line;
+                    else totalStandalone += line;
+                } else if (item.ItemType === 'Package') {
+                    totalPackage += line;
+                } else if (item.ItemType === 'Service') {
+                    totalService += line;
+                } else if (item.ItemType === 'Car') {
+                    totalCar += line;
+                }
+            });
+
+            const totalMaintenance = totalPackage + totalService + totalMaintParts;
+            const fmt = v => v.toLocaleString('vi-VN') + ' đ';
+
+            $('#totalCarDisplay').text(fmt(totalCar));
+            $('#totalStandaloneDisplay').text(fmt(totalStandalone));
+            $('#totalMaintenanceDisplay').text(fmt(totalMaintenance));
+            $('#totalPackageDisplay').text(fmt(totalPackage));
+            $('#totalServiceDisplay').text(fmt(totalService));
+            $('#totalMaintPartsDisplay').text(fmt(totalMaintParts));
+            $('#totalOrderDisplay').text(fmt(totalStandalone + totalMaintenance + totalCar));
+
+            // Ẩn/hiện các dòng theo dữ liệu thực tế cho gọn.
+            $('#maintenanceCostBlock').toggleClass('d-none', totalMaintenance === 0);
+            $('#rowPackage').toggleClass('d-none', totalPackage === 0);
+            $('#rowService').toggleClass('d-none', totalService === 0);
+            $('#rowMaintParts').toggleClass('d-none', totalMaintParts === 0);
+        }
+
+        function goToStep(step) {
+            // Validation check before proceeding
+            $('#checkoutAlert').addClass('d-none');
+
+            const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
+            const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
+
+            if (step === 3 && activeStep === 2) {
+                // If they have maintenance items, they must provide Car info
+                if (hasMaintenance) {
+                    const packages = cartData.Items.filter(i => i.ItemType === 'Package' || i.ItemType === 'Service');
+                    if (packages.length === 0) {
+                        showError("Đặt lịch hẹn bảo dưỡng yêu cầu ít nhất một gói bảo dưỡng hoặc một dịch vụ lẻ được chọn.");
+                        return;
+                    }
+                } else {
+                    // Skip step 3 if there are no maintenance items at all -> Go directly to Step 4 (Xác nhận)
+                    step = 4;
+                }
+            }
+
+            // Kiểm tra thông tin xe khi chọn "xe khác".
+            if (step === 4 && activeStep === 3 && hasMaintenance && getCarSource() === 'Other') {
+                const carName = $('#CarNameInput').val().trim();
+                const licensePlate = $('#LicensePlateInput').val().trim();
+                if (!carName || !licensePlate) {
+                    showError("Vui lòng điền tên xe và biển số xe cho dịch vụ.");
+                    return;
+                }
+            }
+
+            if (step === 4) {
+                // Populate Step 4 display labels
+                renderStep4Summary(hasStandalone, hasMaintenance);
+            }
+
+            // Perform step switch
+            $(`#step-${activeStep}`).removeClass('active');
+            $(`#step-${step}`).addClass('active');
+
+            // Update Indicators
+            for (let i = 1; i <= 5; i++) {
+                if (i < step) {
+                    $(`#ind-${i}`).addClass('completed').removeClass('active');
+                } else if (i === step) {
+                    $(`#ind-${i}`).addClass('active').removeClass('completed');
+                } else {
+                    $(`#ind-${i}`).removeClass('active completed');
+                }
+            }
+
+            activeStep = step;
+        }
+
+        function showError(msg) {
+            $('#checkoutAlertText').text(msg);
+            $('#checkoutAlert').removeClass('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderStep4Summary(hasStandalone, hasMaintenance) {
+            const hasCar = cartData.Items.some(i => i.ItemType === 'Car');
+
+            // 0. Ô tô (yêu cầu mua) — danh mục riêng
+            if (hasCar) {
+                $('#summaryCarCard').removeClass('d-none');
+                let carHtml = "";
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Car') {
+                        carHtml += `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="badge bg-warning text-dark me-1">Ô Tô</span>
+                                            <span class="fw-semibold">${i.Name}</span>
+                                        </div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
+                    }
+                });
+                $('#summaryCarList').html(carHtml);
+            } else {
+                $('#summaryCarCard').addClass('d-none');
+            }
+
+            // A. Standalone Parts list
+            if (hasStandalone) {
+                $('#summaryStandaloneCard').removeClass('d-none');
+                let html = "";
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Part' && i.Purpose !== 'Maintenance') {
+                        html += `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-semibold">${i.Name}</span>
+                                            <div class="text-muted" style="font-size: 11px;">Số lượng: ${i.Quantity}</div>
+                                        </div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
+                    }
+                });
+                $('#summaryStandaloneList').html(html);
+            } else {
+                $('#summaryStandaloneCard').addClass('d-none');
+            }
+
+            // B. Maintenance Appointment
+            if (hasMaintenance) {
+                $('#summaryMaintenanceCard').removeClass('d-none');
+                let html = "";
+
+                // Show packages & services
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Package' || i.ItemType === 'Service') {
+                        let badge = i.ItemType === 'Package' ? '<span class="badge bg-primary me-1">Gói</span>' : '<span class="badge bg-info text-dark me-1">Dịch vụ</span>';
+                        html += `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>${badge} <span class="fw-semibold">${i.Name}</span></div>
+                                        <span class="fw-bold">${i.Price.toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
+                    }
+                });
+
+                // Show parts for maintenance
+                cartData.Items.forEach(i => {
+                    if (i.ItemType === 'Part' && i.Purpose === 'Maintenance') {
+                        html += `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center list-group-item-light">
+                                        <div><span class="badge bg-warning text-dark me-1">Linh kiện</span> ${i.Name} <small class="text-muted">(SL: ${i.Quantity})</small></div>
+                                        <span class="fw-bold">${(i.Price * i.Quantity).toLocaleString('vi-VN')} đ</span>
+                                    </li>
+                                `;
+                    }
+                });
+
+                $('#summaryMaintenanceList').html(html);
+
+                // Details text (tôn trọng lựa chọn nguồn xe)
+                if (getCarSource() === 'InCart' && carsInCart.length > 0) {
+                    $('#summaryCarText').text(getSelectedCarInCartName() + ' (xe trong giỏ hàng)');
+                } else {
+                    const cName = $('#CarNameInput').length ? ($('#CarNameInput').val() || '').trim() : '';
+                    const lPlate = $('#LicensePlateInput').length ? ($('#LicensePlateInput').val() || '').trim() : '';
+                    $('#summaryCarText').text((cName || 'Xe bảo dưỡng') + (lPlate ? ' (' + lPlate + ')' : ''));
+                }
+                $('#summaryTimeText').text('Nhân viên sẽ liên hệ sắp xếp');
+            } else {
+                $('#summaryMaintenanceCard').addClass('d-none');
+            }
+        }
+
+        function submitCheckout() {
+            $('#checkoutAlert').addClass('d-none');
+            $('#CustomerNameInput').removeClass('is-invalid');
+            $('#CustomerPhoneInput').removeClass('is-invalid');
+
+            const hasStandalone = cartData.Items.some(i => i.ItemType === 'Part' && i.Purpose !== 'Maintenance');
+            const hasMaintenance = cartData.Items.some(i => i.ItemType === 'Package' || i.ItemType === 'Service' || (i.ItemType === 'Part' && i.Purpose === 'Maintenance'));
+
+            const name = ($('#CustomerNameInput').val() || '').trim();
+            const phone = ($('#CustomerPhoneInput').val() || '').trim();
+            const email = ($('#CustomerEmailInput').val() || '').trim();
+
+            if (!name) {
+                $('#CustomerNameInput').addClass('is-invalid').focus();
+                showError("Vui lòng nhập Họ và tên liên hệ nhận đơn hàng.");
+                return;
+            }
+
+            if (!phone) {
+                $('#CustomerPhoneInput').addClass('is-invalid').focus();
+                showError("Vui lòng nhập Số điện thoại liên hệ nhận đơn hàng.");
+                return;
+            }
+
+            const shippingAddress = $('#ShippingAddressInput').length ? ($('#ShippingAddressInput').val() || '').trim() : '';
+            const carName = $('#CarNameInput').length ? ($('#CarNameInput').val() || '').trim() : '';
+            const licensePlate = $('#LicensePlateInput').length ? ($('#LicensePlateInput').val() || '').trim() : '';
+            const apptDate = $('#AppointmentDateInput').length ? $('#AppointmentDateInput').val() : null;
+            const apptTime = $('#AppointmentTimeInput').length ? $('#AppointmentTimeInput').val() : null;
+            const noteText = $('#NoteInput').length ? ($('#NoteInput').val() || '').trim() : null;
+
+            const payload = {
+                CustomerName: name,
+                CustomerPhone: phone,
+                CustomerEmail: email,
+                DeliveryMethod: $('input[name="deliveryMethod"]:checked').val() || 'Pickup',
+                ShippingAddress: shippingAddress,
+                CarName: hasMaintenance ? (getCarSource() === 'InCart' && carsInCart.length > 0 ? getSelectedCarInCartName() : carName) : null,
+                LicensePlate: hasMaintenance ? (getCarSource() === 'InCart' ? 'Chưa cấp biển' : licensePlate) : null,
+                AppointmentDate: apptDate,
+                AppointmentTime: apptTime,
+                Note: noteText,
+                PurchaseType: $('input[name="purchaseType"]:checked').val() || 'Buyout'
+            };
+
+            // Toggle spinner on submit button
+            $('#btnSubmitOrder').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Đang xử lý...');
+
+            $.ajax({
+                url: '/Cart/Checkout',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    if (res.success) {
+                        // Render step 6
+                        if (res.partOrderId) {
+                            $('#resPartOrder').removeClass('d-none');
+                            $('#lblPartOrderId').text(res.partOrderId);
+                        } else {
+                            $('#resPartOrder').addClass('d-none');
+                        }
+
+                        if (res.appointmentId) {
+                            $('#resMaintenance').removeClass('d-none');
+                            $('#lblAppointmentId').text(res.appointmentId);
+                        } else {
+                            $('#resMaintenance').addClass('d-none');
+                        }
+
+                        if (res.carRequestIds && res.carRequestIds.length > 0) {
+                            $('#resCar').removeClass('d-none');
+                            $('#lblCarRequestIds').text(res.carRequestIds.join(', '));
+                        } else {
+                            $('#resCar').addClass('d-none');
+                        }
+
+                        if (res.invoiceNumber) {
+                            $('#resInvoice').removeClass('d-none');
+                            $('#lblInvoiceNumber').text(res.invoiceNumber);
+                            $('#lblPurchaseType').text(res.purchaseType === 'Deposit' ? 'Đặt cọc' : 'Mua đứt');
+                        } else {
+                            $('#resInvoice').addClass('d-none');
+                        }
+
+                        goToStep(5);
+                    } else {
+                        showError(res.message);
+                        $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn');
+                    }
+                },
+                error: function() {
+                    showError("Lỗi hệ thống khi gửi yêu cầu. Vui lòng kiểm tra lại kết nối.");
+                    $('#btnSubmitOrder').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i> Xác nhận & tạo hóa đơn');
+                }
+            });
+        }
+    </script>
+}

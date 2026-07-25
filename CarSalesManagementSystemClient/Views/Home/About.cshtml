@@ -1,0 +1,971 @@
+@{
+    ViewData["Title"] = "Giới thiệu - Group7 ECO DRIVE";
+}
+
+<style>
+    :root {
+        --eco-primary: #111827;
+        --eco-secondary: #374151;
+        --eco-accent: #f5b700;
+        --eco-accent-dark: #d99f00;
+        --eco-danger: #dc3545;
+        --eco-surface: #ffffff;
+        --eco-surface-soft: #f5f7fa;
+        --eco-border: #e5e7eb;
+        --eco-text: #111827;
+        --eco-muted: #6b7280;
+        --eco-radius-sm: 14px;
+        --eco-radius-md: 22px;
+        --eco-radius-lg: 32px;
+        --eco-shadow-sm: 0 10px 30px rgba(17, 24, 39, 0.07);
+        --eco-shadow-md: 0 22px 60px rgba(17, 24, 39, 0.12);
+    }
+
+    .about-page {
+        overflow: hidden;
+        background: var(--eco-surface);
+        color: var(--eco-text);
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+        .about-page * {
+            box-sizing: border-box;
+        }
+
+    .about-section {
+        padding: 96px 0;
+    }
+
+    .section-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+        color: var(--eco-danger);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+        .section-kicker::before {
+            content: "";
+            width: 28px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 999px;
+        }
+
+    .section-title {
+        margin-bottom: 18px;
+        color: var(--eco-primary);
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .section-description {
+        color: var(--eco-muted);
+        font-size: 1.05rem;
+        line-height: 1.85;
+    }
+
+    .accent-text {
+        color: var(--eco-accent-dark);
+    }
+
+    .section-heading-center {
+        max-width: 760px;
+        margin: 0 auto 54px;
+        text-align: center;
+    }
+
+        .section-heading-center .section-kicker::before {
+            display: none;
+        }
+
+        .section-heading-center .section-title {
+            margin-bottom: 0;
+        }
+
+    /* Hero */
+    .hero-banner {
+        position: relative;
+        min-height: min(780px, 88vh);
+        display: flex;
+        align-items: center;
+        isolation: isolate;
+        background: linear-gradient(90deg, rgba(7, 10, 16, 0.94) 0%, rgba(7, 10, 16, 0.78) 46%, rgba(7, 10, 16, 0.28) 100%), url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2000') center 58% / cover no-repeat;
+    }
+
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 18% 22%, rgba(245, 183, 0, 0.18), transparent 34%), linear-gradient(180deg, transparent 60%, rgba(7, 10, 16, 0.62) 100%);
+            pointer-events: none;
+        }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 760px;
+        padding-top: 58px;
+        padding-bottom: 58px;
+    }
+
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        padding: 9px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        backdrop-filter: blur(12px);
+    }
+
+    .hero-eyebrow-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--eco-accent);
+        box-shadow: 0 0 0 6px rgba(245, 183, 0, 0.14);
+    }
+
+    .hero-title {
+        max-width: 720px;
+        margin-bottom: 22px;
+        color: #ffffff;
+        font-size: clamp(3.25rem, 7vw, 6.5rem);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -0.065em;
+        text-transform: uppercase;
+    }
+
+        .hero-title .brand-seven {
+            color: var(--eco-accent);
+        }
+
+    .hero-subtitle {
+        max-width: 650px;
+        margin-bottom: 36px;
+        color: rgba(255, 255, 255, 0.76);
+        font-size: clamp(1.05rem, 2vw, 1.3rem);
+        line-height: 1.7;
+    }
+
+    .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 56px;
+        padding: 0 28px;
+        border: 1px solid var(--eco-accent);
+        border-radius: 999px;
+        background: var(--eco-accent);
+        color: #111111;
+        font-weight: 800;
+        letter-spacing: 0.035em;
+        text-decoration: none;
+        box-shadow: 0 16px 40px rgba(245, 183, 0, 0.22);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+    }
+
+        .btn-hero:hover {
+            transform: translateY(-3px);
+            background: #ffca2c;
+            color: #111111;
+            box-shadow: 0 20px 48px rgba(245, 183, 0, 0.34);
+        }
+
+    /* About */
+    .about-intro {
+        background: radial-gradient(circle at 10% 10%, rgba(245, 183, 0, 0.08), transparent 26%), var(--eco-surface);
+    }
+
+    .about-copy {
+        padding-right: 42px;
+    }
+
+        .about-copy strong {
+            color: var(--eco-primary);
+        }
+
+    .about-image-wrap {
+        position: relative;
+        padding: 18px 0 18px 18px;
+    }
+
+        .about-image-wrap::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 42%;
+            height: 42%;
+            border-radius: var(--eco-radius-md) 0 0 0;
+            background: var(--eco-accent);
+        }
+
+    .about-image {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+        border-radius: var(--eco-radius-md);
+        box-shadow: var(--eco-shadow-md);
+    }
+
+    /* Features */
+    .features-section {
+        background: var(--eco-surface-soft);
+    }
+
+    .feature-card {
+        height: 100%;
+        padding: 30px 26px;
+        border: 1px solid var(--eco-border);
+        border-radius: var(--eco-radius-md);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 10px 35px rgba(17, 24, 39, 0.04);
+        transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(245, 183, 0, 0.55);
+            box-shadow: var(--eco-shadow-sm);
+        }
+
+    .feature-icon-box {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 24px;
+        border-radius: 17px;
+        background: rgba(245, 183, 0, 0.13);
+        color: var(--eco-accent-dark);
+        font-size: 1.55rem;
+        transition: transform 0.28s ease, background-color 0.28s ease, color 0.28s ease;
+    }
+
+    .feature-card:hover .feature-icon-box {
+        transform: rotate(-5deg) scale(1.06);
+        background: var(--eco-accent);
+        color: #111111;
+    }
+
+    .feature-title {
+        margin-bottom: 12px;
+        color: var(--eco-primary);
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    .feature-description {
+        margin-bottom: 0;
+        color: var(--eco-muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    /* Products */
+    .products-section {
+        background: #ffffff;
+    }
+
+    .product-row {
+        padding: 30px;
+        border: 1px solid var(--eco-border);
+        border-radius: var(--eco-radius-lg);
+        background: #ffffff;
+        box-shadow: 0 16px 48px rgba(17, 24, 39, 0.06);
+    }
+
+        .product-row + .product-row {
+            margin-top: 36px;
+        }
+
+    .product-media {
+        overflow: hidden;
+        border-radius: calc(var(--eco-radius-lg) - 10px);
+    }
+
+    .product-img {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        transition: transform 0.55s ease;
+    }
+
+    .product-row:hover .product-img {
+        transform: scale(1.045);
+    }
+
+    .product-content {
+        padding: 24px 26px;
+    }
+
+    .product-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 58px;
+        height: 32px;
+        margin-bottom: 20px;
+        border-radius: 999px;
+        background: var(--eco-primary);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+    }
+
+    .product-title {
+        margin-bottom: 18px;
+        color: var(--eco-primary);
+        font-size: clamp(1.55rem, 3vw, 2.2rem);
+        font-weight: 850;
+        letter-spacing: -0.035em;
+    }
+
+    .product-description {
+        margin-bottom: 26px;
+        color: var(--eco-muted);
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .btn-product {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 18px;
+        border: 1px solid var(--eco-primary);
+        border-radius: 999px;
+        color: var(--eco-primary);
+        font-size: 0.92rem;
+        font-weight: 750;
+        text-decoration: none;
+        transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+    }
+
+        .btn-product:hover {
+            transform: translateY(-2px);
+            background: var(--eco-primary);
+            color: #ffffff;
+        }
+
+    /* Contact */
+    .contact-section {
+        background: var(--eco-primary);
+    }
+
+    .contact-image {
+        width: 100%;
+        height: 100%;
+        min-height: 520px;
+        object-fit: cover;
+    }
+
+    .contact-content {
+        position: relative;
+        min-height: 520px;
+        display: flex;
+        align-items: center;
+        padding: clamp(48px, 7vw, 90px);
+        background: radial-gradient(circle at 88% 10%, rgba(245, 183, 0, 0.15), transparent 30%), var(--eco-primary);
+    }
+
+    .contact-content-inner {
+        width: 100%;
+        max-width: 690px;
+    }
+
+    .contact-kicker {
+        margin-bottom: 16px;
+        color: var(--eco-accent);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .contact-title {
+        max-width: 620px;
+        margin-bottom: 38px;
+        color: #ffffff;
+        font-size: clamp(2rem, 4vw, 3.35rem);
+        font-weight: 850;
+        line-height: 1.1;
+        letter-spacing: -0.045em;
+    }
+
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .contact-item {
+        min-height: 128px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.055);
+    }
+
+    .contact-label {
+        display: block;
+        margin-bottom: 12px;
+        color: rgba(255, 255, 255, 0.48);
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .contact-value {
+        color: #ffffff;
+        font-size: 0.96rem;
+        font-weight: 700;
+        line-height: 1.55;
+        word-break: break-word;
+    }
+
+    /* Testimonials */
+    .testimonials-section {
+        background: var(--eco-surface-soft);
+    }
+
+    .testimonial-card {
+        position: relative;
+        height: 100%;
+        padding: 30px;
+        border: 1px solid var(--eco-border);
+        border-radius: var(--eco-radius-md);
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
+    }
+
+        .testimonial-card:hover {
+            transform: translateY(-7px);
+            box-shadow: var(--eco-shadow-sm);
+        }
+
+    .testimonial-quote {
+        position: absolute;
+        top: 18px;
+        right: 24px;
+        color: rgba(245, 183, 0, 0.18);
+        font-size: 3.2rem;
+        line-height: 1;
+    }
+
+    .testimonial-stars {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        color: var(--eco-accent-dark);
+        font-size: 0.95rem;
+    }
+
+    .testimonial-title {
+        margin-bottom: 14px;
+        color: var(--eco-primary);
+        font-size: 1.12rem;
+        font-weight: 800;
+    }
+
+    .testimonial-text {
+        min-height: 132px;
+        margin-bottom: 24px;
+        color: var(--eco-muted);
+        font-size: 0.96rem;
+        font-style: italic;
+        line-height: 1.75;
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-top: 20px;
+        border-top: 1px solid var(--eco-border);
+    }
+
+    .customer-avatar {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        background: var(--eco-primary);
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+
+    .customer-name {
+        margin: 0 0 3px;
+        color: var(--eco-primary);
+        font-size: 0.95rem;
+        font-weight: 800;
+    }
+
+    .customer-location {
+        color: var(--eco-muted);
+        font-size: 0.82rem;
+    }
+
+    @@media (max-width: 991.98px) {
+        .about-section {
+            padding: 76px 0;
+        }
+
+        .hero-banner {
+            min-height: 680px;
+            background-position: 63% center;
+        }
+
+            .hero-banner::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                z-index: -1;
+                background: rgba(7, 10, 16, 0.22);
+            }
+
+        .about-copy {
+            padding-right: 0;
+        }
+
+        .about-image-wrap {
+            margin-top: 32px;
+        }
+
+        .product-content {
+            padding: 28px 8px 8px;
+        }
+
+        .product-row .row.flex-lg-row-reverse .product-content {
+            text-align: left;
+        }
+
+        .contact-image,
+        .contact-content {
+            min-height: 460px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .about-section {
+            padding: 64px 0;
+        }
+
+        .hero-banner {
+            min-height: 620px;
+            text-align: center;
+            background-position: 66% center;
+        }
+
+        .hero-banner {
+            background-image: linear-gradient(180deg, rgba(7, 10, 16, 0.84) 0%, rgba(7, 10, 16, 0.76) 100%), url('https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2000');
+        }
+
+        .hero-content {
+            margin: 0 auto;
+        }
+
+        .hero-eyebrow {
+            justify-content: center;
+        }
+
+        .hero-title {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-subtitle {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-heading-center {
+            margin-bottom: 36px;
+        }
+
+        .product-row {
+            padding: 18px;
+            border-radius: 24px;
+        }
+
+        .product-media {
+            border-radius: 18px;
+        }
+
+        .contact-image {
+            min-height: 360px;
+        }
+
+        .contact-content {
+            min-height: auto;
+            padding: 56px 24px;
+        }
+
+        .contact-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-item {
+            min-height: auto;
+        }
+
+        .testimonial-text {
+            min-height: auto;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .hero-title {
+            font-size: clamp(2.8rem, 17vw, 4.6rem);
+        }
+
+        .hero-subtitle {
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .btn-hero {
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .about-image-wrap {
+            padding: 12px 0 0 12px;
+        }
+
+        .feature-card,
+        .testimonial-card {
+            padding: 24px;
+        }
+
+        .product-content {
+            padding: 24px 4px 8px;
+        }
+    }
+</style>
+
+<div class="about-page">
+    <!-- Hero Banner -->
+    <section class="hero-banner text-white">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-eyebrow">
+                    <span class="hero-eyebrow-dot"></span>
+                    Group7 Automotive
+                </div>
+                <h1 class="hero-title">
+                    Group<span class="brand-seven">7</span><br />ECO DRIVE
+                </h1>
+                <p class="hero-subtitle">
+                    Tiên phong giải pháp di chuyển thông minh tại Việt Nam.
+                </p>
+                <a asp-controller="Cars" asp-action="Index" class="btn-hero">
+                    <i class="bi bi-car-front-fill"></i>
+                    <span>Khám phá ngay</span>
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Welcome Section -->
+    <section class="about-section about-intro">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="about-copy">
+                        <div class="section-kicker">Về chúng tôi</div>
+                        <h2 class="section-title">
+                            GROUP7 <span class="accent-text">ECO DRIVE</span>
+                        </h2>
+                        <p class="section-description mb-4">
+                            Với sứ mệnh mang đến những trải nghiệm lái xe tuyệt vời và an toàn nhất, <strong>Group7 ECO DRIVE</strong> tự hào là đơn vị phân phối ô tô và phụ tùng chính hãng hàng đầu. Trải qua quá trình hình thành và phát triển, chúng tôi không ngừng cập nhật xu hướng công nghệ mới, đa dạng hóa các dòng xe từ thể thao, gia đình đến xe điện thân thiện với môi trường.
+                        </p>
+                        <p class="section-description mb-0">
+                            Sự uy tín, tận tâm và chuyên nghiệp chính là nền tảng giúp chúng tôi xây dựng niềm tin vững chắc và đồng hành lâu dài cùng quý khách hàng trên mọi cung đường.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="about-image-wrap">
+                        <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1000"
+                             class="about-image"
+                             alt="Showroom Group7"
+                             loading="lazy" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="about-section features-section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-xl-3 col-md-6">
+                    <article class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h3 class="feature-title">Giao xe tận nơi</h3>
+                        <p class="feature-description">
+                            Hỗ trợ giao xe tận nhà trên toàn quốc, thủ tục nhanh gọn, an toàn.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <article class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-facebook"></i>
+                        </div>
+                        <h3 class="feature-title">Đặt hàng</h3>
+                        <p class="feature-description">
+                            Chúng tôi chỉ nhận đặt hàng qua facebook Đinh Nhật Quân.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <article class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h3 class="feature-title">Địa chỉ</h3>
+                        <p class="feature-description">
+                            Trường đại học FPT khu công nghệ cao Hòa Lạc.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <article class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3 class="feature-title">Bảo hành chính hãng</h3>
+                        <p class="feature-description">
+                            Cam kết bảo hành dài hạn cùng dịch vụ hậu mãi chu đáo, uy tín.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Showcase Section -->
+    <section class="about-section products-section">
+        <div class="container">
+            <div class="section-heading-center">
+                <div class="section-kicker">Dòng xe nổi bật</div>
+                <h2 class="section-title">Khám phá các mẫu xe đỉnh cao</h2>
+            </div>
+
+            <!-- Product 1 -->
+            <article class="product-row">
+                <div class="row align-items-center g-4 g-lg-5">
+                    <div class="col-lg-6">
+                        <div class="product-media">
+                            <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000"
+                                 class="product-img"
+                                 alt="Xe Thể Thao"
+                                 loading="lazy" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="product-content">
+                            <div class="product-number">01</div>
+                            <h3 class="product-title">SIÊU XE THỂ THAO</h3>
+                            <p class="product-description">
+                                Thiết kế khí động học hoàn hảo, động cơ V8 mạnh mẽ. Đem lại cảm giác tăng tốc từ 0 lên 100km/h chỉ trong 3.5 giây. Trải nghiệm tốc độ đỉnh cao kết hợp với không gian nội thất sang trọng.
+                            </p>
+                            <a asp-controller="Cars" asp-action="Index" class="btn-product">
+                                <span>Xem chi tiết</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Product 2 -->
+            <article class="product-row">
+                <div class="row align-items-center g-4 g-lg-5 flex-lg-row-reverse">
+                    <div class="col-lg-6">
+                        <div class="product-media">
+                            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=1000"
+                                 class="product-img"
+                                 alt="Xe Gia Đình"
+                                 loading="lazy" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="product-content">
+                            <div class="product-number">02</div>
+                            <h3 class="product-title">SUV GIA ĐÌNH CAO CẤP</h3>
+                            <p class="product-description">
+                                Sự kết hợp hoàn hảo giữa không gian rộng rãi (7 chỗ ngồi) và công nghệ an toàn chủ động tiên tiến. Lựa chọn tuyệt vời cho những chuyến dã ngoại cùng gia đình với cốp xe cực lớn và tính năng giải trí đa dạng.
+                            </p>
+                            <a asp-controller="Cars" asp-action="Index" class="btn-product">
+                                <span>Xem chi tiết</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Thank You Section -->
+    <section class="contact-section">
+        <div class="container-fluid p-0">
+            <div class="row g-0">
+                <div class="col-lg-5">
+                    <img src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=1000"
+                         class="contact-image"
+                         alt="Cảm ơn quý khách"
+                         loading="lazy" />
+                </div>
+                <div class="col-lg-7">
+                    <div class="contact-content">
+                        <div class="contact-content-inner">
+                            <div class="contact-kicker">GROUP7 ECO DRIVE</div>
+                            <h2 class="contact-title">
+                                Cảm ơn quý khách đã quan tâm sản phẩm
+                            </h2>
+
+                            <div class="contact-grid">
+                                <div class="contact-item">
+                                    <span class="contact-label">Số điện thoại</span>
+                                    <div class="contact-value">0359 492 991</div>
+                                </div>
+                                <div class="contact-item">
+                                    <span class="contact-label">Facebook</span>
+                                    <div class="contact-value">Đinh Nhật Quân</div>
+                                </div>
+                                <div class="contact-item">
+                                    <span class="contact-label">Tiktok</span>
+                                    <div class="contact-value">Đinh Nhật Quân</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="about-section testimonials-section">
+        <div class="container">
+            <div class="section-heading-center">
+                <div class="section-kicker">Phản hồi từ khách hàng</div>
+                <h2 class="section-title">Khách hàng nói gì về chúng tôi</h2>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <article class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <div class="testimonial-stars" aria-label="5 trên 5 sao">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <h3 class="testimonial-title">Dịch vụ tuyệt vời!</h3>
+                        <p class="testimonial-text">
+                            "Tôi đã mua một chiếc SUV tại đây và cực kỳ hài lòng với thái độ phục vụ cũng như quá trình hỗ trợ làm thủ tục giấy tờ rất nhanh gọn."
+                        </p>
+                        <div class="customer-info">
+                            <div class="customer-avatar">QA</div>
+                            <div>
+                                <h4 class="customer-name">Quốc Anh</h4>
+                                <div class="customer-location">Khách hàng Hà Nội</div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-lg-4">
+                    <article class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <div class="testimonial-stars" aria-label="5 trên 5 sao">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <h3 class="testimonial-title">Chất lượng xe đỉnh cao</h3>
+                        <p class="testimonial-text">
+                            "Mẫu xe thể thao mới tôi vừa nhận quá tuyệt vời. Động cơ êm ái, bốc và thiết kế rất hợp thời trang. Chắc chắn sẽ giới thiệu cho bạn bè."
+                        </p>
+                        <div class="customer-info">
+                            <div class="customer-avatar">MH</div>
+                            <div>
+                                <h4 class="customer-name">Minh Hoàng</h4>
+                                <div class="customer-location">Khách hàng TP.HCM</div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="col-lg-4">
+                    <article class="testimonial-card">
+                        <i class="bi bi-quote testimonial-quote"></i>
+                        <div class="testimonial-stars" aria-label="4.5 trên 5 sao">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
+                        </div>
+                        <h3 class="testimonial-title">Hậu mãi chu đáo</h3>
+                        <p class="testimonial-text">
+                            "Gói bảo dưỡng của Group7 ECO DRIVE rất chuyên nghiệp. Đặt lịch online dễ dàng, giá cả minh bạch và xe luôn được chăm sóc kỹ lưỡng."
+                        </p>
+                        <div class="customer-info">
+                            <div class="customer-avatar">TL</div>
+                            <div>
+                                <h4 class="customer-name">Thanh Lan</h4>
+                                <div class="customer-location">Khách hàng Đà Nẵng</div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

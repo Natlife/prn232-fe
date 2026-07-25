@@ -1,0 +1,105 @@
+@model CarSalesManagementSystemClient.Models.ServiceBookingViewModel
+@{
+    ViewData["Title"] = "Đặt lịch dịch vụ";
+}
+
+<div class="py-4 text-center" style="background-color: #f7f7f7; border-bottom: 1px solid #eee;">
+    <h3 class="fw-bold m-0 text-secondary" style="letter-spacing: 1px;">ĐẶT LỊCH DỊCH VỤ LẺ</h3>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Service Info Banner -->
+            <div class="card border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
+                <div class="card-body bg-dark text-white p-4 d-flex align-items-center gap-4">
+                    <i class="bi bi-wrench-adjustable-circle-fill text-warning" style="font-size: 3rem;"></i>
+                    <div>
+                        <h4 class="fw-bold text-warning text-uppercase mb-1">@(ViewBag.ServiceName ?? Model.ServiceName)</h4>
+                        <div class="d-flex gap-3 text-light opacity-75 small">
+                            @if (ViewBag.ServicePrice != null)
+                            {
+                                <span><i class="bi bi-cash-coin me-1 text-warning"></i>@((decimal)ViewBag.ServicePrice).ToString("N0") VNĐ</span>
+                            }
+                            @if (ViewBag.ServiceDuration != null)
+                            {
+                                <span><i class="bi bi-clock me-1 text-warning"></i>@ViewBag.ServiceDuration phút</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="card shadow-lg border-0 rounded-3 overflow-hidden">
+                <div class="card-body p-lg-5 p-4 bg-white">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger p-3 mb-4 rounded-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error
+                        </div>
+                    }
+
+                    <form asp-action="BookingService" method="post">
+                        <input type="hidden" asp-for="ServiceId" />
+                        <input type="hidden" asp-for="ServiceName" />
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="CarName">TÊN DÒNG XE *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="CarName" placeholder="VD: VinFast VF8" />
+                                <span asp-validation-for="CarName" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="LicensePlate">BIỂN SỐ XE *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="LicensePlate" placeholder="VD: 30G-123.45" />
+                                <span asp-validation-for="LicensePlate" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="CustomerPhone">SỐ ĐIỆN THOẠI LIÊN HỆ *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="CustomerPhone" placeholder="VD: 0987654321" />
+                                <span asp-validation-for="CustomerPhone" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="AppointmentDate">NGÀY HẸN *</label>
+                                <input type="date" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentDate"
+                                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="AppointmentDate" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="AppointmentTime">GIỜ HẸN *</label>
+                                <input type="time" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentTime" />
+                                <span asp-validation-for="AppointmentTime" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="fw-bold mb-2 text-secondary small" asp-for="Note">GHI CHÚ (NẾU CÓ)</label>
+                            <textarea class="form-control p-3 bg-light border-0 rounded-3" asp-for="Note" rows="3"
+                                      placeholder="Ví dụ: Xe bị tiếng kêu lạ, dầu máy đổi màu..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="text-center pt-3 border-top">
+                            <a asp-action="Services" class="btn btn-light px-4 py-2 me-3 rounded-pill fw-bold text-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-warning px-5 py-2 rounded-pill fw-bold shadow-sm text-dark">
+                                <i class="bi bi-calendar2-check-fill me-2"></i>XÁC NHẬN ĐẶT LỊCH
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

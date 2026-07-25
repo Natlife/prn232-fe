@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        @ViewData["Title"] - Group7 Admin Dashboard
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link
+        rel="stylesheet"
+        href="~/css/site.css"
+        asp-append-version="true" />
+
+    <link
+        rel="stylesheet"
+        href="~/CarSalesManagementSystemClient.styles.css"
+        asp-append-version="true" />
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
+    <style>
+        :root {
+            --admin-sidebar-width: 286px;
+            --admin-sidebar-bg: #111318;
+            --admin-sidebar-bg-soft: #1b1e24;
+            --admin-header-bg: rgba(255, 255, 255, 0.92);
+            --admin-page-bg: #f3f4f6;
+            --admin-surface: #ffffff;
+            --admin-border: #e5e7eb;
+            --admin-text: #181a1f;
+            --admin-muted: #7a7f89;
+            --admin-accent: #f5b800;
+            --admin-accent-hover: #ffca28;
+            --admin-danger: #dc3545;
+            --admin-radius: 16px;
+            --admin-shadow: 0 14px 35px rgba(17, 19, 24, 0.08);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-height: 100%;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            color: var(--admin-text);
+            background-color: var(--admin-page-bg);
+            font-family:
+                "Outfit",
+                "Inter",
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            overflow-x: hidden;
+        }
+
+        a,
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================== */
+
+        .admin-sidebar {
+            position: fixed;
+            z-index: 1040;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: var(--admin-sidebar-width);
+            display: flex;
+            flex-direction: column;
+            color: #e5e7eb;
+            background:
+                radial-gradient(
+                    circle at 10% 5%,
+                    rgba(245, 184, 0, 0.12),
+                    transparent 24%
+                ),
+                linear-gradient(
+                    180deg,
+                    #121419 0%,
+                    #0c0e12 100%
+                );
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 12px 0 42px rgba(17, 19, 24, 0.13);
+            transition: transform 0.28s ease;
+        }
+
+        .admin-sidebar::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            bottom: 0;
+            left: 0;
+            height: 150px;
+            background:
+                linear-gradient(
+                    to top,
+                    rgba(245, 184, 0, 0.035),
+                    transparent
+                );
+            pointer-events: none;
+        }
+
+        .admin-brand {
+            position: relative;
+            z-index: 2;
+            min-height: 84px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+        }
+
+        .admin-brand-link {
+            display: flex;
+            min-width: 0;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .admin-brand-link:hover {
+            color: #ffffff;
+        }
+
+        .admin-brand-icon {
+            flex: 0 0 auto;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--admin-sidebar-bg);
+            background-color: var(--admin-accent);
+            border: 1px solid rgba(245, 184, 0, 0.8);
+            border-radius: 14px;
+            font-size: 1.25rem;
+            box-shadow: 0 10px 24px rgba(245, 184, 0, 0.18);
+            transform: rotate(-3deg);
+        }
+
+        .admin-brand-copy {
+            min-width: 0;
+            line-height: 1.1;
+        }
+
+        .admin-brand-name {
+            display: block;
+            overflow: hidden;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-brand-subtitle {
+            display: block;
+            margin-top: 5px;
+            color: #858b96;
+            font-size: 0.57rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .admin-sidebar-close {
+            width: 36px;
+            height: 36px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            color: #a4a9b2;
+            background-color: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .admin-sidebar-close:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-menu {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            min-height: 0;
+            padding: 18px 14px;
+            overflow-y: auto;
+            scrollbar-color:
+                rgba(255, 255, 255, 0.13)
+                transparent;
+            scrollbar-width: thin;
+        }
+
+        .admin-menu::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .admin-menu::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        .admin-menu::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.13);
+            border-radius: 999px;
+        }
+
+        .admin-menu-section-title {
+            margin: 3px 10px 10px;
+            color: #666d78;
+            font-size: 0.59rem;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .admin-menu-section-title.with-divider {
+            margin-top: 22px;
+            padding-top: 19px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .admin-menu-item {
+            position: relative;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 5px;
+            padding: 11px 13px;
+            color: #9299a5;
+            background-color: transparent;
+            border: 1px solid transparent;
+            border-radius: 13px;
+            font-size: 0.79rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition:
+                color 0.2s ease,
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .admin-menu-item::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: -14px;
+            width: 3px;
+            height: 0;
+            background-color: var(--admin-accent);
+            border-radius: 0 999px 999px 0;
+            transform: translateY(-50%);
+            transition: height 0.2s ease;
+        }
+
+        .admin-menu-item:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.055);
+            border-color: rgba(255, 255, 255, 0.055);
+            transform: translateX(2px);
+        }
+
+        .admin-menu-item.active {
+            color: #ffffff;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(245, 184, 0, 0.16),
+                    rgba(245, 184, 0, 0.07)
+                );
+            border-color: rgba(245, 184, 0, 0.2);
+        }
+
+        .admin-menu-item.active::before {
+            height: 26px;
+        }
+
+        .admin-menu-item i {
+            flex: 0 0 auto;
+            width: 21px;
+            color: #a4a9b2 !important;
+            font-size: 1.02rem;
+            text-align: center;
+            transition:
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .admin-menu-item:hover i,
+        .admin-menu-item.active i {
+            color: var(--admin-accent) !important;
+            transform: scale(1.05);
+        }
+
+        .admin-menu-item .admin-menu-chevron {
+            width: auto;
+            margin-left: auto;
+            color: #686f7a !important;
+            font-size: 0.72rem;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-menu-item[aria-expanded="true"] .admin-menu-chevron {
+            color: var(--admin-accent) !important;
+            transform: rotate(180deg);
+        }
+
+        .admin-submenu {
+            margin: 2px 0 8px 17px;
+            padding-left: 10px;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-submenu .admin-menu-item {
+            min-height: 42px;
+            margin-bottom: 3px;
+            padding: 9px 12px;
+            font-size: 0.74rem;
+        }
+
+        .admin-submenu .admin-menu-item::before {
+            display: none;
+        }
+
+        .admin-submenu .admin-menu-item i {
+            font-size: 0.88rem;
+        }
+
+        .admin-sidebar-footer {
+            position: relative;
+            z-index: 2;
+            padding: 16px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .admin-sidebar-footer-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background-color: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 13px;
+        }
+
+        .admin-sidebar-footer-icon {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            color: var(--admin-accent);
+            background-color: rgba(245, 184, 0, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .admin-sidebar-footer-title {
+            display: block;
+            margin-bottom: 2px;
+            color: #b8bdc6;
+            font-size: 0.68rem;
+            font-weight: 800;
+        }
+
+        .admin-sidebar-footer-text {
+            color: #686f7a;
+            font-size: 0.59rem;
+        }
+
+        /* =========================
+           WRAPPER AND HEADER
+        ========================== */
+
+        .admin-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin-left: var(--admin-sidebar-width);
+            transition: margin-left 0.28s ease;
+        }
+
+        .admin-header {
+            position: sticky;
+            z-index: 1030;
+            top: 0;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 12px 28px;
+            background-color: var(--admin-header-bg);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+            box-shadow: 0 8px 28px rgba(17, 19, 24, 0.045);
+            backdrop-filter: blur(14px);
+        }
+
+        .admin-header-left,
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-header-left {
+            min-width: 0;
+            gap: 12px;
+        }
+
+        .admin-header-toggle {
+            width: 42px;
+            height: 42px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            color: var(--admin-primary, #17191e);
+            background-color: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            font-size: 1.25rem;
+            box-shadow: 0 7px 18px rgba(17, 19, 24, 0.06);
+        }
+
+        .admin-header-title-wrapper {
+            min-width: 0;
+        }
+
+        .admin-header-eyebrow {
+            display: block;
+            margin-bottom: 2px;
+            color: #9a7300;
+            font-size: 0.58rem;
+            font-weight: 900;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .admin-header-title {
+            margin: 0;
+            overflow: hidden;
+            color: var(--admin-text);
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: -0.015em;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-header-right {
+            gap: 13px;
+        }
+
+        .admin-user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 7px;
+            background-color: #ffffff;
+            border: 1px solid var(--admin-border);
+            border-radius: 13px;
+        }
+
+        .admin-user-avatar {
+            width: 35px;
+            height: 35px;
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
+            color: var(--admin-sidebar-bg);
+            background-color: var(--admin-accent);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 900;
+        }
+
+        .admin-user-copy {
+            max-width: 180px;
+            min-width: 0;
+            line-height: 1.2;
+        }
+
+        .admin-user-label {
+            display: block;
+            color: #969aa2;
+            font-size: 0.59rem;
+            font-weight: 700;
+        }
+
+        .admin-user-name {
+            display: block;
+            overflow: hidden;
+            color: var(--admin-text);
+            font-size: 0.72rem;
+            font-weight: 900;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-logout-button {
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 9px 14px;
+            color: #b42318;
+            background-color: #fff7f7;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-decoration: none;
+            white-space: nowrap;
+            transition:
+                color 0.2s ease,
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .admin-logout-button:hover {
+            color: #ffffff;
+            background-color: var(--admin-danger);
+            border-color: var(--admin-danger);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(220, 53, 69, 0.18);
+        }
+
+        /* =========================
+           CONTENT
+        ========================== */
+
+        .admin-content {
+            flex: 1;
+            min-width: 0;
+            padding: 0;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================== */
+
+        @@media (max-width: 1199.98px) {
+            :root {
+                --admin-sidebar-width: 270px;
+            }
+
+            .admin-header {
+                padding-right: 22px;
+                padding-left: 22px;
+            }
+        }
+
+        @@media (max-width: 991.98px) {
+            .admin-sidebar {
+                width: 286px;
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+
+            .admin-sidebar-close {
+                display: inline-flex;
+            }
+
+            .admin-wrapper {
+                margin-left: 0;
+            }
+
+            .admin-header-toggle {
+                display: inline-flex;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .admin-header {
+                min-height: 66px;
+                padding: 10px 14px;
+            }
+
+            .admin-header-eyebrow {
+                display: none;
+            }
+
+            .admin-header-title {
+                font-size: 0.9rem;
+            }
+
+            .admin-user-card {
+                padding-right: 7px;
+            }
+
+            .admin-user-copy {
+                display: none;
+            }
+
+            .admin-logout-button {
+                width: 41px;
+                height: 41px;
+                padding: 0;
+            }
+
+            .admin-logout-button span {
+                display: none;
+            }
+        }
+
+        @@media (max-width: 575.98px) {
+            .admin-header-title-wrapper {
+                max-width: 145px;
+            }
+
+            .admin-header-right {
+                gap: 8px;
+            }
+
+            .admin-user-card {
+                display: none;
+            }
+        }
+
+        @@media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            .admin-sidebar,
+            .admin-wrapper,
+            .admin-menu-item,
+            .admin-logout-button {
+                transition: none;
+            }
+
+            .admin-menu-item:hover,
+            .admin-logout-button:hover {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside
+        class="admin-sidebar"
+        id="adminSidebar">
+
+        <!-- Brand -->
+        <div class="admin-brand">
+            <a
+                asp-area=""
+                asp-controller="Home"
+                asp-action="Index"
+                class="admin-brand-link">
+
+                <span class="admin-brand-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </span>
+
+                <span class="admin-brand-copy">
+                    <span class="admin-brand-name">
+                        GROUP7
+                    </span>
+
+                    <span class="admin-brand-subtitle">
+                        Admin Dashboard
+                    </span>
+                </span>
+            </a>
+
+            <button
+                type="button"
+                class="admin-sidebar-close"
+                onclick="toggleSidebar()"
+                aria-label="Đóng menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="admin-menu">
+            <div class="admin-menu-section-title">
+                Quản lý hệ thống
+            </div>
+
+            <a
+                class="admin-menu-item @(ViewContext.RouteData.Values["area"]?.ToString() == "Admin" && ViewContext.RouteData.Values["controller"]?.ToString() == "Cars" ? "active" : "")"
+                href="/Admin/Cars">
+                <i class="bi bi-car-front-fill"></i>
+                <span>Quản lý ô tô</span>
+            </a>
+
+            <a
+                class="admin-menu-item @(ViewContext.RouteData.Values["area"]?.ToString() == "Admin" && ViewContext.RouteData.Values["controller"]?.ToString() == "Captchas" ? "active" : "")"
+                href="/Admin/Captchas">
+                <i class="bi bi-key-fill"></i>
+                <span>Tạo mã captcha & Hóa đơn</span>
+            </a>
+
+            <a
+                class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Parts" && ViewContext.RouteData.Values["action"]?.ToString() == "Manage" ? "active" : "")"
+                asp-area=""
+                asp-controller="Parts"
+                asp-action="Manage">
+                <i class="bi bi-tools"></i>
+                <span>Quản lý phụ tùng</span>
+            </a>
+
+            @{
+                bool isMaintenanceActive =
+                    ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages"
+                    || ViewContext.RouteData.Values["controller"]?.ToString() == "Services";
+            }
+
+            <a
+                class="admin-menu-item @(isMaintenanceActive ? "active" : "")"
+                data-bs-toggle="collapse"
+                href="#maintenanceSubmenu"
+                role="button"
+                aria-expanded="@(isMaintenanceActive ? "true" : "false")"
+                aria-controls="maintenanceSubmenu">
+                <i class="bi bi-wrench-adjustable-circle"></i>
+                <span>Quản lý bảo dưỡng</span>
+                <i class="bi bi-chevron-down admin-menu-chevron"></i>
+            </a>
+
+            <div
+                class="collapse @(isMaintenanceActive ? "show" : "")"
+                id="maintenanceSubmenu">
+                <div class="admin-submenu">
+                    <a
+                        class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MaintenancePackages" ? "active" : "")"
+                        asp-area="Admin"
+                        asp-controller="MaintenancePackages"
+                        asp-action="Index">
+                        <i class="bi bi-ui-checks-grid"></i>
+                        <span>Gói bảo dưỡng</span>
+                    </a>
+
+                    <a
+                        class="admin-menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Services" ? "active" : "")"
+                        asp-area="Admin"
+                        asp-controller="Services"
+                        asp-action="Index">
+                        <i class="bi bi-wrench"></i>
+                        <span>Dịch vụ lẻ</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-menu-section-title with-divider">
+                Giao diện
+            </div>
+        </nav>
+
+        <!-- Footer -->
+        <div class="admin-sidebar-footer">
+            <div class="admin-sidebar-footer-card">
+                <div class="admin-sidebar-footer-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+                <div>
+                    <span class="admin-sidebar-footer-title">
+                        Group7 Admin
+                    </span>
+
+                    <span class="admin-sidebar-footer-text">
+                        &copy; 2026 Admin Panel
+                    </span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="admin-wrapper">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="admin-header-left">
+                <button
+                    type="button"
+                    class="admin-header-toggle"
+                    onclick="toggleSidebar()"
+                    aria-label="Mở menu">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <div class="admin-header-title-wrapper">
+                    <span class="admin-header-eyebrow">
+                        Group7 ECO DRIVE
+                    </span>
+
+                    <h1 class="admin-header-title">
+                        Giao diện quản trị
+                    </h1>
+                </div>
+            </div>
+
+            <div class="admin-header-right">
+                <div class="admin-user-card">
+                    <div class="admin-user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+
+                    <div class="admin-user-copy">
+                        <span class="admin-user-label">
+                            Xin chào
+                        </span>
+
+                        <span class="admin-user-name">
+                            @User.Identity?.Name
+                        </span>
+                    </div>
+                </div>
+
+                <a
+                    class="admin-logout-button"
+                    asp-area=""
+                    asp-controller="Auth"
+                    asp-action="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Page content -->
+        <main class="admin-content">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script
+        src="~/js/site.js"
+        asp-append-version="true">
+    </script>
+
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.getElementById("adminSidebar");
+            sidebar.classList.toggle("show");
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

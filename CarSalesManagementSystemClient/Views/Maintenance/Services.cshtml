@@ -1,0 +1,803 @@
+@model CarSalesManagementSystemClient.Models.ServicesIndexViewModel
+@{
+    ViewData["Title"] = "Dịch vụ bảo dưỡng lẻ";
+}
+
+<!-- Hero Banner -->
+<div class="services-hero py-5 bg-dark text-white text-center mb-5" style="background-image: url('https://images.unsplash.com/photo-1487754180451-c456f719a1fc?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative;">
+    <div class="services-hero__overlay" style="background-color: rgba(0,0,0,0.65); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+    <div class="services-hero__content position-relative" style="padding: 60px 0; z-index: 1;">
+        <h1 class="services-hero__title display-4 fw-bold text-warning text-uppercase" style="letter-spacing: 2px;">Dịch vụ Bảo dưỡng Lẻ</h1>
+        <p class="services-hero__subtitle lead mt-3">Chọn từng dịch vụ phù hợp theo nhu cầu thực tế của xe bạn</p>
+    </div>
+</div>
+
+<main class="services-store-page">
+    <div class="container services-store-container mb-5">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="services-layout row mb-5">
+            <!-- LEFT: Filter -->
+            <div class="services-filter-column col-lg-3 col-md-4 mb-4">
+                <div class="services-filter-card card border-0 shadow-sm rounded-3 overflow-hidden sticky-top" style="top: 90px;">
+                    <div class="services-filter-header card-header bg-dark text-white py-3">
+                        <h5 class="m-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-funnel-fill me-2 text-warning"></i> BỘ LỌC
+                        </h5>
+                    </div>
+                    <div class="services-filter-body card-body p-4 bg-white">
+                        <form method="get" asp-controller="Maintenance" asp-action="Services" id="filterForm">
+                            <input type="hidden" name="pageNumber" value="1" />
+
+                            <!-- Search -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Tên dịch vụ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-secondary"></i></span>
+                                    <input type="text" name="searchTerm" class="form-control bg-light border-0 py-2"
+                                           placeholder="Tìm kiếm..." value="@Model.SearchTerm" />
+                                </div>
+                            </div>
+
+                            <!-- Price range -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Khoảng giá (VNĐ)</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="number" name="minPrice" class="form-control bg-light border-0 py-2"
+                                               placeholder="Tối thiểu" value="@(Model.MinPrice.HasValue ? Model.MinPrice.Value.ToString("F0") : "")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" name="maxPrice" class="form-control bg-light border-0 py-2"
+                                               placeholder="Tối đa" value="@(Model.MaxPrice.HasValue ? Model.MaxPrice.Value.ToString("F0") : "")" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-warning py-2 fw-bold border-0 text-dark">
+                                    <i class="bi bi-search me-1"></i> ÁP DỤNG
+                                </button>
+                                <a asp-controller="Maintenance" asp-action="Services" class="btn btn-light py-2 fw-bold text-secondary">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> XÓA LỌC
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Service Cards -->
+            <div class="services-results-column col-lg-9 col-md-8">
+                <div class="services-grid row">
+                    @if (Model.Services != null && Model.Services.Any())
+                    {
+                        foreach (var svc in Model.Services)
+                        {
+                            <div class="services-card-column col-lg-4 col-md-6 mb-4">
+                                <article class="card h-100 border-0 shadow-sm service-card" style="border-radius: 15px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                                    <div class="card-header bg-dark text-warning text-center py-4 border-0">
+                                        <i class="bi bi-wrench-adjustable-circle-fill" style="font-size: 2.5rem;"></i>
+                                        <h5 class="m-0 fw-bold text-uppercase mt-2" style="font-size: 0.9rem; letter-spacing: 1px;">@svc.ServiceName</h5>
+                                    </div>
+                                    <div class="card-body d-flex flex-column bg-white p-4">
+                                        <h3 class="text-danger fw-bold text-center mb-3">
+                                            @svc.BasePrice.ToString("N0") <span class="fs-5">VNĐ</span>
+                                        </h3>
+                                        <div class="d-flex justify-content-center align-items-center text-muted small mb-3">
+                                            <span><i class="bi bi-clock me-1 text-primary"></i>@svc.EstimatedDurationMinutes phút</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(svc.Description))
+                                        {
+                                            <p class="text-muted small text-center mb-4" style="flex-grow: 1; white-space: pre-line;">@svc.Description</p>
+                                        }
+                                        else
+                                        {
+                                            <div style="flex-grow: 1;"></div>
+                                        }
+                                        <div class="card-footer bg-light border-0 text-center pb-4 pt-3">
+                                            <button type="button" onclick="addToCart('Service', @svc.ServiceId, '@(svc.ServiceName?.Replace("'", "\\'"))')" class="btn btn-warning text-dark fw-bold w-100 rounded-pill shadow-sm py-2">
+                                                <i class="bi bi-cart-plus me-2"></i>THÊM VÀO GIỎ HÀNG
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="services-empty col-12 text-center text-muted py-5">
+                            <i class="bi bi-tools display-1 text-secondary opacity-50 mb-4"></i>
+                            <h4>Không tìm thấy dịch vụ nào phù hợp.</h4>
+                            <p>Vui lòng thử điều chỉnh lại bộ lọc tìm kiếm.</p>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="services-pagination pagination justify-content-center">
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link text-dark" href="@Url.Action("Services", new { pageNumber = Model.PageNumber - 1, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })">
+                                    &laquo; Trước
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                                    <a class="page-link @(Model.PageNumber == i ? "bg-warning border-warning text-dark fw-bold" : "text-dark")"
+                                       href="@Url.Action("Services", new { pageNumber = i, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link text-dark" href="@Url.Action("Services", new { pageNumber = Model.PageNumber + 1, searchTerm = Model.SearchTerm, minPrice = Model.MinPrice, maxPrice = Model.MaxPrice })">
+                                    Sau &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<style>
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.12) !important;
+    }
+</style>
+
+<style>
+    :root {
+        --services-primary: #17191e;
+        --services-secondary: #292c33;
+        --services-accent: #f5b800;
+        --services-accent-hover: #ffca28;
+        --services-bg: #f3f4f6;
+        --services-surface: #ffffff;
+        --services-border: #e5e7eb;
+        --services-text: #181a1f;
+        --services-muted: #747983;
+        --services-danger: #dc3545;
+        --services-success: #198754;
+        --services-radius-xl: 24px;
+        --services-radius-lg: 17px;
+        --services-radius-md: 12px;
+        --services-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --services-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
+    }
+
+    .services-store-page {
+        min-height: 100vh;
+        padding-bottom: 30px;
+        color: var(--services-text);
+        background: radial-gradient( circle at 96% 2%, rgba(245, 184, 0, 0.11), transparent 31rem ), radial-gradient( circle at 3% 88%, rgba(17, 19, 24, 0.035), transparent 30rem ), var(--services-bg);
+    }
+
+    .services-store-container {
+        max-width: 1380px;
+        padding-top: 38px;
+    }
+
+    /* Hero */
+
+    .services-hero {
+        position: relative;
+        min-height: 360px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0 !important;
+        background-attachment: fixed;
+        isolation: isolate;
+        overflow: hidden;
+    }
+
+        .services-hero::after {
+            content: "SERVICE";
+            position: absolute;
+            z-index: 1;
+            top: -48px;
+            right: 4%;
+            color: rgba(255, 255, 255, 0.045);
+            font-size: clamp(6rem, 14vw, 12rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.09em;
+            pointer-events: none;
+        }
+
+    .services-hero__overlay {
+        z-index: 0;
+        background: linear-gradient( 90deg, rgba(10, 12, 16, 0.94), rgba(10, 12, 16, 0.65) 58%, rgba(10, 12, 16, 0.78) ) !important;
+    }
+
+    .services-hero__content {
+        width: min(1180px, calc(100% - 36px));
+        margin: 0 auto;
+        padding: 78px 0 !important;
+        text-align: left;
+    }
+
+        .services-hero__content::before {
+            content: "GROUP7 ECO DRIVE";
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 14px;
+            color: var(--services-accent);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+        }
+
+    .services-hero__title {
+        max-width: 820px;
+        margin: 0;
+        color: #ffffff !important;
+        font-size: clamp(2.25rem, 5vw, 4.3rem);
+        font-weight: 950 !important;
+        line-height: 1.05;
+        letter-spacing: -0.055em !important;
+        text-transform: none !important;
+    }
+
+        .services-hero__title::after {
+            content: "";
+            width: 82px;
+            height: 5px;
+            display: block;
+            margin-top: 21px;
+            background-color: var(--services-accent);
+            border-radius: 999px;
+        }
+
+    .services-hero__subtitle {
+        max-width: 670px;
+        margin: 20px 0 0 !important;
+        color: rgba(255, 255, 255, 0.67);
+        font-size: 0.94rem;
+        line-height: 1.75;
+    }
+
+    /* Alerts */
+
+    .services-store-container > .alert {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        box-shadow: var(--services-shadow-soft) !important;
+        font-size: 0.78rem;
+    }
+
+    .services-store-container > .alert-success {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .services-store-container > .alert-danger {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    /* Layout */
+
+    .services-layout {
+        --bs-gutter-x: 1.5rem;
+    }
+
+    /* Filter */
+
+    .services-filter-card {
+        top: 90px !important;
+        background-color: var(--services-surface);
+        border: 1px solid var(--services-border) !important;
+        border-radius: var(--services-radius-xl) !important;
+        box-shadow: var(--services-shadow) !important;
+    }
+
+    .services-filter-header {
+        padding: 20px 22px !important;
+        background: radial-gradient( circle at 88% 12%, rgba(245, 184, 0, 0.18), transparent 38% ), linear-gradient( 135deg, var(--services-primary), var(--services-secondary) ) !important;
+        border: 0;
+    }
+
+        .services-filter-header h5 {
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 950 !important;
+            letter-spacing: 0.05em;
+        }
+
+        .services-filter-header i {
+            color: var(--services-accent) !important;
+        }
+
+    .services-filter-body {
+        padding: 22px !important;
+    }
+
+        .services-filter-body .mb-4 {
+            margin-bottom: 19px !important;
+        }
+
+        .services-filter-body .form-label {
+            margin-bottom: 8px !important;
+            color: #454a52 !important;
+            font-size: 0.68rem;
+            font-weight: 900 !important;
+        }
+
+        .services-filter-body .input-group {
+            overflow: hidden;
+            border: 1px solid var(--services-border);
+            border-radius: 12px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .services-filter-body .input-group:focus-within {
+                border-color: var(--services-accent);
+                box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+            }
+
+        .services-filter-body .input-group-text {
+            padding-left: 13px;
+            background-color: #f8f9fa !important;
+            border: 0 !important;
+        }
+
+        .services-filter-body .form-control {
+            min-height: 46px;
+            color: var(--services-text);
+            background-color: #f8f9fa !important;
+            border: 1px solid var(--services-border) !important;
+            border-radius: 11px;
+            outline: none;
+            font-size: 0.72rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .services-filter-body .input-group .form-control {
+            border: 0 !important;
+            border-radius: 0;
+        }
+
+        .services-filter-body .form-control:focus {
+            background-color: #ffffff !important;
+            border-color: var(--services-accent) !important;
+            box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+        }
+
+        .services-filter-body .input-group .form-control:focus {
+            box-shadow: none;
+        }
+
+        .services-filter-body .btn-warning {
+            min-height: 45px;
+            color: var(--services-primary) !important;
+            background-color: var(--services-accent) !important;
+            border-color: var(--services-accent) !important;
+            border-radius: 11px;
+            font-size: 0.68rem;
+            font-weight: 900 !important;
+            box-shadow: 0 11px 25px rgba(245, 184, 0, 0.18);
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .services-filter-body .btn-warning:hover {
+                background-color: var(--services-accent-hover) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 15px 30px rgba(245, 184, 0, 0.25);
+            }
+
+        .services-filter-body .btn-light {
+            min-height: 43px;
+            color: #626871 !important;
+            background-color: #ffffff !important;
+            border: 1px solid var(--services-border);
+            border-radius: 11px;
+            font-size: 0.66rem;
+            font-weight: 900 !important;
+        }
+
+    /* Cards */
+
+    .services-grid {
+        --bs-gutter-x: 1.15rem;
+        --bs-gutter-y: 1.15rem;
+    }
+
+    .services-card-column {
+        margin-bottom: 0 !important;
+    }
+
+    .service-card {
+        position: relative;
+        background-color: var(--services-surface);
+        border: 1px solid var(--services-border) !important;
+        border-radius: 19px !important;
+        box-shadow: 0 13px 35px rgba(17, 19, 24, 0.07) !important;
+        transition: transform 0.27s ease, border-color 0.27s ease, box-shadow 0.27s ease !important;
+    }
+
+        .service-card:hover {
+            border-color: rgba(245, 184, 0, 0.52) !important;
+            transform: translateY(-7px);
+            box-shadow: 0 23px 47px rgba(17, 19, 24, 0.13) !important;
+        }
+
+        .service-card .card-header {
+            position: relative;
+            min-height: 155px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 18px !important;
+            background: radial-gradient( circle at 85% 10%, rgba(245, 184, 0, 0.18), transparent 38% ), linear-gradient( 135deg, var(--services-primary), var(--services-secondary) ) !important;
+            overflow: hidden;
+        }
+
+            .service-card .card-header::after {
+                content: "SERVICE";
+                position: absolute;
+                top: -20px;
+                right: -4px;
+                color: rgba(255, 255, 255, 0.035);
+                font-size: 3.8rem;
+                font-weight: 950;
+                pointer-events: none;
+            }
+
+            .service-card .card-header > i {
+                position: relative;
+                z-index: 2;
+                width: 64px;
+                height: 64px;
+                display: grid;
+                place-items: center;
+                color: var(--services-primary);
+                background-color: var(--services-accent);
+                border-radius: 18px;
+                font-size: 1.65rem !important;
+                box-shadow: 0 13px 30px rgba(245, 184, 0, 0.22);
+                transform: rotate(-4deg);
+            }
+
+            .service-card .card-header h5 {
+                position: relative;
+                z-index: 2;
+                margin-top: 17px !important;
+                color: #ffffff !important;
+                font-size: 0.82rem !important;
+                font-weight: 950 !important;
+                line-height: 1.45;
+                letter-spacing: 0.025em !important;
+            }
+
+        .service-card .card-body {
+            padding: 21px !important;
+        }
+
+            .service-card .card-body h3 {
+                margin-bottom: 13px !important;
+                color: #b42318 !important;
+                font-size: 1.35rem;
+                font-weight: 950 !important;
+            }
+
+                .service-card .card-body h3 span {
+                    color: #7d828a;
+                    font-size: 0.7rem !important;
+                    font-weight: 800;
+                }
+
+            .service-card .card-body > .d-flex {
+                display: inline-flex !important;
+                align-self: center;
+                padding: 7px 11px;
+                color: #6f747d !important;
+                background-color: #f4f5f7;
+                border: 1px solid var(--services-border);
+                border-radius: 999px;
+                font-size: 0.64rem !important;
+                font-weight: 800;
+            }
+
+                .service-card .card-body > .d-flex i {
+                    color: #8a6800 !important;
+                }
+
+            .service-card .card-body > p {
+                min-height: 74px;
+                margin: 17px 0 0 !important;
+                overflow: hidden;
+                color: var(--services-muted) !important;
+                font-size: 0.69rem !important;
+                line-height: 1.7;
+                text-align: left !important;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 3;
+            }
+
+        .service-card .card-footer {
+            margin-top: auto;
+            padding: 19px 0 0 !important;
+            background-color: #ffffff !important;
+            border-top: 1px solid var(--services-border) !important;
+        }
+
+            .service-card .card-footer .btn-warning {
+                min-height: 44px;
+                color: var(--services-primary) !important;
+                background-color: var(--services-accent) !important;
+                border-color: var(--services-accent) !important;
+                border-radius: 11px !important;
+                font-size: 0.64rem;
+                font-weight: 900 !important;
+                box-shadow: 0 10px 23px rgba(245, 184, 0, 0.17) !important;
+            }
+
+                .service-card .card-footer .btn-warning:hover {
+                    background-color: var(--services-accent-hover) !important;
+                }
+
+    /* Empty state */
+
+    .services-empty {
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 55px 24px !important;
+        background-color: var(--services-surface);
+        border: 1px solid var(--services-border);
+        border-radius: var(--services-radius-xl);
+        box-shadow: var(--services-shadow);
+    }
+
+        .services-empty > i {
+            width: 82px;
+            height: 82px;
+            display: grid;
+            margin-bottom: 19px !important;
+            place-items: center;
+            color: #8b6800 !important;
+            background-color: #fff8d6;
+            border: 1px solid #fde68a;
+            border-radius: 24px;
+            font-size: 2rem !important;
+            opacity: 1 !important;
+        }
+
+        .services-empty h4 {
+            margin-bottom: 7px;
+            color: var(--services-primary);
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
+        .services-empty p {
+            margin: 0;
+            color: var(--services-muted);
+            font-size: 0.74rem;
+        }
+
+    /* Pagination */
+
+    .services-pagination {
+        gap: 6px;
+        margin-top: 29px;
+    }
+
+        .services-pagination .page-link {
+            min-width: 41px;
+            height: 41px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            color: #575d66 !important;
+            background-color: #ffffff;
+            border: 1px solid var(--services-border);
+            border-radius: 11px !important;
+            font-size: 0.68rem;
+            font-weight: 900;
+            box-shadow: 0 8px 20px rgba(17, 19, 24, 0.05);
+        }
+
+        .services-pagination .page-item.active .page-link {
+            color: var(--services-primary) !important;
+            background-color: var(--services-accent) !important;
+            border-color: var(--services-accent) !important;
+        }
+
+        .services-pagination .page-item.disabled {
+            opacity: 0.48;
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 1199.98px) {
+        .services-store-container {
+            max-width: 1160px;
+        }
+
+        .services-hero__content {
+            width: min(1050px, calc(100% - 36px));
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .services-hero {
+            min-height: 320px;
+            background-attachment: scroll;
+        }
+
+        .services-filter-card {
+            position: static !important;
+        }
+
+        .services-filter-body form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+            .services-filter-body form > .mb-4 {
+                margin-bottom: 0 !important;
+            }
+
+            .services-filter-body form > .d-grid {
+                grid-column: 1 / -1;
+                grid-template-columns: 1fr 1fr;
+                margin-top: 0 !important;
+            }
+    }
+
+    @@media (max-width: 767.98px) {
+        .services-hero {
+            min-height: 290px;
+        }
+
+        .services-hero__content {
+            padding: 58px 0 !important;
+        }
+
+        .services-hero__title {
+            font-size: 2rem;
+        }
+
+        .services-hero__subtitle {
+            font-size: 0.8rem;
+        }
+
+        .services-store-container {
+            padding-right: 13px;
+            padding-left: 13px;
+            padding-top: 28px;
+        }
+
+        .services-filter-card,
+        .services-empty {
+            border-radius: 20px !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .services-hero__content {
+            width: calc(100% - 26px);
+        }
+
+        .services-filter-body form {
+            grid-template-columns: 1fr;
+        }
+
+            .services-filter-body form > .d-grid {
+                grid-column: auto;
+                grid-template-columns: 1fr;
+            }
+
+        .service-card .card-body > p {
+            min-height: auto;
+        }
+
+        .services-pagination {
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .service-card,
+        .services-filter-body .btn-warning {
+            transition: none !important;
+        }
+
+            .service-card:hover,
+            .services-filter-body .btn-warning:hover {
+                transform: none;
+            }
+    }
+</style>
+
+
+@section Scripts {
+    <script>
+        function addToCart(type, id, name) {
+            Swal.fire({
+                title: 'Xác nhận',
+                html: 'Bạn có chắc chắn muốn thêm <b>' + (name || type) + '</b> vào giỏ hàng?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Cart/AddToCart',
+                        type: 'POST',
+                        data: { itemType: type, itemId: id, quantity: 1 },
+                        success: function(res) {
+                            if (res.success) {
+                                updateNavbarCartCount(res.cartCount);
+                                Swal.fire({
+                                    title: 'Đã thêm vào giỏ hàng!',
+                                    text: 'Bạn có muốn đi đến giỏ hàng chung để thanh toán?',
+                                    icon: 'success',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ffc107',
+                                    cancelButtonColor: '#262626',
+                                    confirmButtonText: 'Đi đến giỏ hàng',
+                                    cancelButtonText: 'Tiếp tục xem'
+                                }).then((navResult) => {
+                                    if (navResult.isConfirmed) {
+                                        window.location.href = '/Cart/Index';
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Đã xảy ra lỗi kết nối.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        function updateNavbarCartCount(count) {
+            var badge = $('#navbarCartCount');
+            if (badge.length) {
+                badge.text(count);
+                count > 0 ? badge.removeClass('d-none') : badge.addClass('d-none');
+            }
+        }
+    </script>
+}
+
+

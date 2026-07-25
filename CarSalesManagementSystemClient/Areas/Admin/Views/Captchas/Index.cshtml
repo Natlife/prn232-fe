@@ -1,0 +1,1052 @@
+@model List<CarSalesManagementSystemClient.Models.InvoiceListItemViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý hóa đơn & sinh mã captcha";
+
+    string Money(decimal v) => v.ToString("N0") + " đ";
+
+    string TypeLabel(string t) => t switch
+    {
+        "Car" => "Ô tô",
+        "Part" => "Phụ tùng",
+        "Service" => "Dịch vụ",
+        "Combined" => "Gộp",
+        _ => t
+    };
+}
+
+<style>
+    :root {
+        --captcha-admin-primary: #17191e;
+        --captcha-admin-secondary: #292c33;
+        --captcha-admin-accent: #f5b800;
+        --captcha-admin-accent-hover: #ffca28;
+        --captcha-admin-bg: #f3f4f6;
+        --captcha-admin-surface: #ffffff;
+        --captcha-admin-border: #e5e7eb;
+        --captcha-admin-text: #181a1f;
+        --captcha-admin-muted: #747983;
+        --captcha-admin-danger: #dc3545;
+        --captcha-admin-success: #198754;
+        --captcha-admin-info: #0f6f9f;
+        --captcha-admin-radius-xl: 24px;
+        --captcha-admin-radius-lg: 17px;
+        --captcha-admin-radius-md: 12px;
+        --captcha-admin-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --captcha-admin-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
+    }
+
+    .captcha-admin-page {
+        min-height: 100vh;
+        padding: 32px 0 72px;
+        color: var(--captcha-admin-text);
+        background: radial-gradient( circle at 96% 2%, rgba(245, 184, 0, 0.11), transparent 31rem ), radial-gradient( circle at 3% 88%, rgba(17, 19, 24, 0.035), transparent 30rem ), var(--captcha-admin-bg);
+    }
+
+    .captcha-admin-container {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    /* Breadcrumb */
+
+    .captcha-admin-breadcrumb {
+        margin-bottom: 18px;
+    }
+
+        .captcha-admin-breadcrumb .breadcrumb {
+            margin: 0;
+            padding: 11px 14px;
+            background-color: var(--captcha-admin-surface);
+            border: 1px solid var(--captcha-admin-border);
+            border-radius: 12px;
+            box-shadow: var(--captcha-admin-shadow-soft);
+        }
+
+        .captcha-admin-breadcrumb .breadcrumb-item {
+            color: #90959d;
+            font-size: 0.69rem;
+            font-weight: 800;
+        }
+
+            .captcha-admin-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+                color: #b5b9c0;
+            }
+
+        .captcha-admin-breadcrumb a {
+            color: #5e646d !important;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+            .captcha-admin-breadcrumb a:hover {
+                color: #8a6800 !important;
+            }
+
+        .captcha-admin-breadcrumb .active {
+            color: #8a6800 !important;
+            font-weight: 900 !important;
+        }
+
+    /* Hero */
+
+    .captcha-admin-hero {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 20px;
+        padding: 30px 32px;
+        color: #ffffff;
+        background: radial-gradient( circle at 89% 10%, rgba(245, 184, 0, 0.2), transparent 32% ), linear-gradient( 135deg, var(--captcha-admin-primary), var(--captcha-admin-secondary) );
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        border-radius: var(--captcha-admin-radius-xl);
+        box-shadow: 0 22px 54px rgba(17, 19, 24, 0.17);
+        overflow: hidden;
+    }
+
+        .captcha-admin-hero::after {
+            content: "CAPTCHA";
+            position: absolute;
+            top: -38px;
+            right: 22px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: clamp(5rem, 11vw, 8.5rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .captcha-admin-hero-content,
+    .captcha-admin-hero-icon {
+        position: relative;
+        z-index: 2;
+    }
+
+    .captcha-admin-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 9px;
+        color: var(--captcha-admin-accent);
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+        .captcha-admin-eyebrow::before {
+            content: "";
+            width: 29px;
+            height: 2px;
+            background-color: var(--captcha-admin-accent);
+        }
+
+    .captcha-admin-title {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin: 0 0 8px;
+        color: #ffffff;
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 950;
+        line-height: 1.13;
+        letter-spacing: -0.045em;
+    }
+
+        .captcha-admin-title i {
+            color: var(--captcha-admin-accent);
+        }
+
+    .captcha-admin-description {
+        max-width: 720px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.8rem;
+        line-height: 1.68;
+    }
+
+    .captcha-admin-hero-icon {
+        width: 68px;
+        height: 68px;
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        color: var(--captcha-admin-primary);
+        background-color: var(--captcha-admin-accent);
+        border-radius: 19px;
+        font-size: 1.65rem;
+        box-shadow: 0 14px 32px rgba(245, 184, 0, 0.22);
+        transform: rotate(-4deg);
+    }
+
+    /* Alerts */
+
+    .captcha-admin-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        box-shadow: var(--captcha-admin-shadow-soft);
+        font-size: 0.76rem;
+        line-height: 1.6;
+    }
+
+        .captcha-admin-alert i {
+            flex: 0 0 auto;
+            margin-top: 2px;
+        }
+
+    .captcha-admin-alert-success {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .captcha-admin-alert-danger {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    .captcha-admin-guide {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 16px 18px;
+        color: #6f5200;
+        background-color: #fff9df;
+        border: 1px solid #fde68a;
+        border-radius: 15px;
+        box-shadow: var(--captcha-admin-shadow-soft);
+        font-size: 0.74rem;
+        line-height: 1.65;
+    }
+
+    .captcha-admin-guide-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        color: #8a6800;
+        background-color: rgba(245, 184, 0, 0.14);
+        border-radius: 11px;
+        font-size: 0.95rem;
+    }
+
+    /* Empty state */
+
+    .captcha-admin-empty {
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 56px 24px;
+        color: var(--captcha-admin-muted);
+        text-align: center;
+        background-color: var(--captcha-admin-surface);
+        border: 1px solid var(--captcha-admin-border);
+        border-radius: var(--captcha-admin-radius-xl);
+        box-shadow: var(--captcha-admin-shadow);
+    }
+
+    .captcha-admin-empty-icon {
+        width: 82px;
+        height: 82px;
+        display: grid;
+        margin-bottom: 19px;
+        place-items: center;
+        color: #8b6800;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 24px;
+        font-size: 1.9rem;
+    }
+
+    .captcha-admin-empty h2 {
+        margin: 0 0 7px;
+        color: var(--captcha-admin-primary);
+        font-size: 1rem;
+        font-weight: 950;
+    }
+
+    .captcha-admin-empty p {
+        margin: 0;
+        font-size: 0.72rem;
+    }
+
+    /* Table card */
+
+    .captcha-admin-table-card {
+        overflow: hidden;
+        background-color: var(--captcha-admin-surface);
+        border: 1px solid var(--captcha-admin-border);
+        border-radius: var(--captcha-admin-radius-xl);
+        box-shadow: var(--captcha-admin-shadow);
+    }
+
+    .captcha-admin-table-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 24px;
+        background: linear-gradient( 135deg, #ffffff, #fafafa );
+        border-bottom: 1px solid var(--captcha-admin-border);
+    }
+
+        .captcha-admin-table-header h2 {
+            margin: 0 0 4px;
+            color: var(--captcha-admin-primary);
+            font-size: 0.98rem;
+            font-weight: 950;
+        }
+
+        .captcha-admin-table-header p {
+            margin: 0;
+            color: var(--captcha-admin-muted);
+            font-size: 0.67rem;
+            line-height: 1.55;
+        }
+
+    .captcha-admin-result-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        font-size: 0.61rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .captcha-admin-table {
+        min-width: 1180px;
+        margin-bottom: 0;
+    }
+
+        .captcha-admin-table thead th {
+            padding: 13px 15px;
+            color: #777d86;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--captcha-admin-border);
+            font-size: 0.57rem;
+            font-weight: 900;
+            letter-spacing: 0.055em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .captcha-admin-table tbody td {
+            padding: 14px 15px;
+            color: #50565f;
+            background-color: #ffffff;
+            border-bottom: 1px solid #edf0f3;
+            font-size: 0.67rem;
+            vertical-align: middle;
+        }
+
+        .captcha-admin-table tbody tr {
+            transition: background-color 0.16s ease;
+        }
+
+            .captcha-admin-table tbody tr:hover td {
+                background-color: #fffdf6;
+            }
+
+            .captcha-admin-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+
+    /* Invoice cell */
+
+    .captcha-invoice-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--captcha-admin-primary);
+        font-family: monospace;
+        font-size: 0.69rem;
+        font-weight: 900 !important;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+        .captcha-invoice-link i {
+            color: #8a6800;
+        }
+
+        .captcha-invoice-link:hover {
+            color: #8a6800;
+            transform: translateX(2px);
+        }
+
+    .captcha-customer {
+        max-width: 180px;
+        overflow: hidden;
+        color: var(--captcha-admin-primary);
+        font-weight: 800;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Badges */
+
+    .captcha-type-badge,
+    .captcha-status-badge,
+    .captcha-method-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 9px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.57rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .captcha-type-badge {
+        color: #555b64;
+        background-color: #f1f2f4;
+        border-color: #dfe1e5;
+    }
+
+    .captcha-method-badge {
+        color: #ffffff;
+        background-color: var(--captcha-admin-primary);
+        border-color: var(--captcha-admin-primary);
+    }
+
+    .captcha-status-cancelled {
+        color: #991b1b;
+        background-color: #fee2e2;
+        border-color: #fecaca;
+    }
+
+    .captcha-status-paid {
+        color: #166534;
+        background-color: #dcfce7;
+        border-color: #bbf7d0;
+    }
+
+    .captcha-status-deposited {
+        color: #075985;
+        background-color: #e0f2fe;
+        border-color: #bae6fd;
+    }
+
+    .captcha-status-pending {
+        color: #805f00;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .captcha-remaining {
+        margin-top: 5px;
+        color: #8b9098;
+        font-size: 0.6rem;
+        white-space: nowrap;
+    }
+
+    .captcha-money {
+        color: #b42318;
+        font-size: 0.71rem;
+        font-weight: 950;
+        white-space: nowrap;
+    }
+
+    /* Existing captcha codes */
+
+    .captcha-code-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 220px;
+    }
+
+    .captcha-code-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #737982;
+        font-size: 0.65rem;
+    }
+
+    .captcha-code-label {
+        width: 52px;
+        flex-shrink: 0;
+        text-align: right;
+        color: #888d96;
+        font-weight: 800;
+        font-size: 0.65rem;
+    }
+
+    .captcha-code-value {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 76px;
+        padding: 4px 8px;
+        border: 1px dashed;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.72rem;
+        font-weight: 950;
+        letter-spacing: 0.08em;
+    }
+
+    .btn-copy-captcha {
+        border: 1px solid #dcdfe4;
+        background: #f8f9fa;
+        color: #495057;
+        padding: 3px 6px;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .btn-copy-captcha:hover {
+        color: #17191e;
+        background-color: #f5b800;
+        border-color: #f5b800;
+        transform: scale(1.08);
+    }
+
+    .captcha-code-deposit {
+        color: #805f00;
+        background-color: #fff8d6;
+        border-color: #e2c55d;
+    }
+
+    .captcha-code-final {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #87d6a6;
+    }
+
+    .captcha-code-used {
+        display: inline-flex;
+        padding: 3px 6px;
+        color: #626871;
+        background-color: #f1f2f4;
+        border: 1px solid #dfe1e5;
+        border-radius: 999px;
+        font-size: 0.53rem;
+        font-weight: 900;
+    }
+
+    /* Action buttons */
+
+    .captcha-action-button {
+        min-height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 11px;
+        border-radius: 9px;
+        font-size: 0.58rem;
+        font-weight: 900;
+        white-space: nowrap;
+        transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .captcha-action-button:hover {
+            transform: translateY(-2px);
+        }
+
+    .captcha-action-deposit {
+        color: var(--captcha-admin-primary);
+        background-color: var(--captcha-admin-accent);
+        border: 1px solid var(--captcha-admin-accent);
+        box-shadow: 0 9px 20px rgba(245, 184, 0, 0.16);
+    }
+
+        .captcha-action-deposit:hover {
+            color: var(--captcha-admin-primary);
+            background-color: var(--captcha-admin-accent-hover);
+            border-color: var(--captcha-admin-accent-hover);
+        }
+
+    .captcha-action-final {
+        color: #ffffff;
+        background-color: var(--captcha-admin-success);
+        border: 1px solid var(--captcha-admin-success);
+        box-shadow: 0 9px 20px rgba(25, 135, 84, 0.15);
+    }
+
+        .captcha-action-final:hover {
+            color: #ffffff;
+            background-color: #157347;
+            border-color: #157347;
+        }
+
+    .captcha-no-action {
+        color: #9aa0a8;
+        font-size: 0.68rem;
+    }
+
+    /* Responsive */
+
+    @@media (max-width: 991.98px) {
+        .captcha-admin-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .captcha-admin-hero-icon {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .captcha-admin-page {
+            padding-top: 22px;
+        }
+
+        .captcha-admin-container {
+            padding-right: 13px;
+            padding-left: 13px;
+        }
+
+        .captcha-admin-hero {
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+            .captcha-admin-hero::after {
+                display: none;
+            }
+
+        .captcha-admin-table-card {
+            border-radius: 20px;
+        }
+
+        .captcha-admin-table-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 20px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .captcha-admin-title {
+            align-items: flex-start;
+            font-size: 1.52rem;
+        }
+
+        .captcha-admin-description {
+            font-size: 0.74rem;
+        }
+
+        .captcha-admin-guide {
+            padding: 14px;
+        }
+
+        .captcha-admin-guide-icon {
+            width: 34px;
+            height: 34px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .captcha-admin-table tbody tr,
+        .captcha-invoice-link,
+        .captcha-action-button {
+            transition: none;
+        }
+
+            .captcha-invoice-link:hover,
+            .captcha-action-button:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="captcha-admin-page">
+    <div class="captcha-admin-container">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb"
+             class="captcha-admin-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-area="Admin"
+                       asp-controller="Cars"
+                       asp-action="Index">
+                        Admin
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item active"
+                    aria-current="page">
+                    Hóa đơn & Captcha
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Hero -->
+        <header class="captcha-admin-hero">
+            <div class="captcha-admin-hero-content">
+                <div class="captcha-admin-eyebrow">
+                    Invoice verification management
+                </div>
+
+                <h1 class="captcha-admin-title">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    Hóa đơn tổng — Sinh mã xác thực
+                </h1>
+
+                <p class="captcha-admin-description">
+                    Theo dõi trạng thái thanh toán và cấp mã xác thực tương ứng
+                    cho giao dịch đặt cọc, mua đứt hoặc tất toán của khách hàng.
+                </p>
+            </div>
+
+            <div class="captcha-admin-hero-icon">
+                <i class="bi bi-key-fill"></i>
+            </div>
+        </header>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="captcha-admin-alert captcha-admin-alert-success"
+                 role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="captcha-admin-alert captcha-admin-alert-danger"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+        }
+
+        <!-- Guide -->
+        <section class="captcha-admin-guide">
+            <div class="captcha-admin-guide-icon">
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+
+            <div>
+                Sinh mã <strong>Đặt cọc</strong> hoặc
+                <strong>Mua đứt / Tất toán</strong> cho hóa đơn, rồi đọc mã
+                cho khách để khách nhập xác thực ở trang
+                <strong>“Hóa đơn của tôi”</strong>.
+            </div>
+        </section>
+
+        @if (!Model.Any())
+        {
+            <section class="captcha-admin-empty">
+                <div class="captcha-admin-empty-icon">
+                    <i class="bi bi-inbox-fill"></i>
+                </div>
+
+                <h2>Chưa có hóa đơn nào</h2>
+
+                <p>
+                    Các hóa đơn mới phát sinh sẽ được hiển thị tại đây để quản lý.
+                </p>
+            </section>
+        }
+        else
+        {
+            <section class="captcha-admin-table-card">
+                <div class="captcha-admin-table-header">
+                    <div>
+                        <h2>Danh sách hóa đơn</h2>
+
+                        <p>
+                            Chọn số hóa đơn để xem chi tiết hoặc sinh mã xác thực
+                            theo trạng thái hiện tại.
+                        </p>
+                    </div>
+
+                    <span class="captcha-admin-result-count">
+                        <i class="bi bi-receipt"></i>
+                        @Model.Count hóa đơn
+                    </span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table captcha-admin-table">
+                        <thead>
+                            <tr>
+                                <th>Số HĐ</th>
+                                <th>Khách</th>
+                                <th>Loại</th>
+                                <th>Hình thức</th>
+                                <th class="text-end">Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Mã hiện có</th>
+                                <th class="text-center">Sinh mã</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var inv in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="Admin"
+                                           asp-controller="Captchas"
+                                           asp-action="Details"
+                                           asp-route-id="@inv.MasterInvoiceId"
+                                           class="captcha-invoice-link">
+                                            <i class="bi bi-receipt-cutoff"></i>
+                                            @inv.InvoiceNumber
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <div class="captcha-customer"
+                                             title="@inv.CustomerName">
+                                            @inv.CustomerName
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="captcha-type-badge">
+                                            <i class="bi bi-tag-fill"></i>
+                                            @TypeLabel(inv.InvoiceType)
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="captcha-method-badge">
+                                            <i class="bi bi-cash-stack"></i>
+                                            @(inv.IsDeposit ? "Đặt cọc" : "Mua đứt")
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end">
+                                        <span class="captcha-money">
+                                            @Money(inv.TotalAmount)
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @if (inv.IsCancelled)
+                                        {
+                                            <span class="captcha-status-badge captcha-status-cancelled">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                                Đã hủy
+                                            </span>
+                                        }
+                                        else if (inv.IsPaid)
+                                        {
+                                            <span class="captcha-status-badge captcha-status-paid">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                                Đã thanh toán
+                                            </span>
+                                        }
+                                        else if (inv.IsDeposited)
+                                        {
+                                            <span class="captcha-status-badge captcha-status-deposited">
+                                                <i class="bi bi-wallet2"></i>
+                                                Đã cọc
+                                            </span>
+
+                                            <div class="captcha-remaining">
+                                                Còn @Money(inv.RemainingAmount)
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="captcha-status-badge captcha-status-pending">
+                                                <i class="bi bi-hourglass-split"></i>
+                                                Chờ xác thực
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="captcha-code-list">
+                                            @if (!string.IsNullOrEmpty(inv.DepositCaptchaCode))
+                                            {
+                                                <div class="captcha-code-line">
+                                                    <span class="captcha-code-label">Cọc:</span>
+
+                                                    <span class="captcha-code-value captcha-code-deposit">
+                                                        @inv.DepositCaptchaCode
+                                                    </span>
+
+                                                    <button type="button" class="btn-copy-captcha" data-code="@inv.DepositCaptchaCode" title="Sao chép mã cọc">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
+
+                                                    @if (inv.IsDepositCaptchaUsed)
+                                                    {
+                                                        <span class="captcha-code-used">
+                                                            Đã dùng
+                                                        </span>
+                                                    }
+                                                </div>
+                                            }
+
+                                            @if (!string.IsNullOrEmpty(inv.FinalCaptchaCode))
+                                            {
+                                                <div class="captcha-code-line">
+                                                    <span class="captcha-code-label">Tất toán:</span>
+
+                                                    <span class="captcha-code-value captcha-code-final">
+                                                        @inv.FinalCaptchaCode
+                                                    </span>
+
+                                                    <button type="button" class="btn-copy-captcha" data-code="@inv.FinalCaptchaCode" title="Sao chép mã tất toán/mua đứt">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
+
+                                                    @if (inv.IsFinalCaptchaUsed)
+                                                    {
+                                                        <span class="captcha-code-used">
+                                                            Đã dùng
+                                                        </span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center">
+                                        @if (inv.IsCancelled || inv.IsPaid)
+                                        {
+                                            <span class="captcha-no-action">
+                                                —
+                                            </span>
+                                        }
+                                        else if (inv.IsDeposit && !inv.IsDepositCaptchaUsed)
+                                        {
+                                            <form asp-area="Admin"
+                                                  asp-controller="Captchas"
+                                                  asp-action="GenerateDeposit"
+                                                  method="post"
+                                                  class="d-inline">
+
+                                                <input type="hidden"
+                                                       name="masterInvoiceId"
+                                                       value="@inv.MasterInvoiceId" />
+
+                                                <button type="submit"
+                                                        class="captcha-action-button captcha-action-deposit">
+                                                    <i class="bi bi-cash-stack"></i>
+                                                    Mã đặt cọc
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (!inv.IsFinalCaptchaUsed)
+                                        {
+                                            <form asp-area="Admin"
+                                                  asp-controller="Captchas"
+                                                  asp-action="GenerateFinal"
+                                                  method="post"
+                                                  class="d-inline">
+
+                                                <input type="hidden"
+                                                       name="masterInvoiceId"
+                                                       value="@inv.MasterInvoiceId" />
+
+                                                <button type="submit"
+                                                        class="captcha-action-button captcha-action-final">
+                                                    <i class="bi bi-check2-circle"></i>
+
+                                                    @(inv.IsDeposit
+                                                        ? "Mã tất toán"
+                                                        : "Mã mua đứt")
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                </div>
+
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer bg-light p-3 border-0">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-end m-0">
+                                <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)">Trang trước</a>
+                                </li>
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="?page=@i">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)">Trang sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </section>
+        }
+
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-copy-captcha').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const code = btn.getAttribute('data-code');
+                if (!code) return;
+
+                navigator.clipboard.writeText(code).then(function () {
+                    const icon = btn.querySelector('i');
+                    if (icon) {
+                        icon.className = 'bi bi-check-lg text-success';
+                        setTimeout(function () {
+                            icon.className = 'bi bi-clipboard';
+                        }, 1800);
+                    }
+                    if (window.Swal) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Đã chép mã: ' + code
+                        });
+                    }
+                }).catch(function () {
+                    alert('Đã chép mã: ' + code);
+                });
+            });
+        });
+    </script>
+}

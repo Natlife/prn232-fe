@@ -1,0 +1,217 @@
+@page
+@model CarSalesRazorPages.Pages.Maintenance.IndexModel
+@{
+    ViewData["Title"] = "Dịch vụ Bảo dưỡng & Lịch sử";
+}
+
+<!-- Hero Banner -->
+<div class="py-5 bg-dark text-white text-center mb-5" style="background-image: url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative;">
+    <div style="background-color: rgba(0,0,0,0.6); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+    <div class="position-relative" style="padding: 60px 0; z-index: 1;">
+        <h1 class="display-4 fw-bold text-warning text-uppercase" style="letter-spacing: 2px;">Dịch vụ Bảo dưỡng</h1>
+        <p class="lead mt-3">Chăm sóc xế yêu của bạn bằng những dịch vụ cao cấp nhất từ Group7</p>
+    </div>
+</div>
+
+<div class="container mb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Packages Section -->
+    <div class="text-center mb-5">
+        <h3 class="fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">CHỌN GÓI DỊCH VỤ</h3>
+        <hr class="w-25 mx-auto text-warning border-2 opacity-100">
+    </div>
+
+    <div class="row mb-5 pb-4">
+        @if (Model.Packages != null && Model.Packages.Any())
+        {
+            foreach (var package in Model.Packages)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0 package-card" style="transition: transform 0.3s; overflow: hidden; border-radius: 15px;">
+                        <div class="card-header bg-dark text-warning text-center py-4 border-0">
+                            <h5 class="m-0 fw-bold text-uppercase">@package.PackageName</h5>
+                        </div>
+                        <div class="card-body d-flex flex-column bg-white">
+                            <h3 class="text-danger fw-bold text-center mb-4">@package.Price.ToString("N0") <span class="fs-5">VNĐ</span></h3>
+                            <p class="text-secondary flex-grow-1" style="line-height: 1.8;">
+                                <i class="bi bi-check2-circle text-success me-2"></i>@package.Description
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mt-3 text-muted small border-top pt-3">
+                                <span><i class="bi bi-clock me-1 text-primary"></i>@package.EstimatedDuration phút</span>
+                                <span class="badge bg-success rounded-pill px-3 py-2">Sẵn sàng</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light border-0 text-center pb-4 pt-3">
+                            <a asp-page="/Maintenance/Booking" asp-route-id="@package.PackageId" class="btn btn-warning text-dark fw-bold w-100 rounded-pill shadow-sm py-2">
+                                <i class="bi bi-calendar-check me-2"></i>ĐẶT LỊCH NGAY
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-tools display-1 text-secondary opacity-50 mb-4"></i>
+                <h4>Hệ thống đang cập nhật các gói bảo dưỡng.</h4>
+                <p>Vui lòng quay lại sau.</p>
+            </div>
+        }
+    </div>
+
+    <!-- History Section -->
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <div id="history" class="text-center mb-4 mt-5">
+            <h3 class="fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">LỊCH HẸN CỦA TÔI</h3>
+            <hr class="w-25 mx-auto text-warning border-2 opacity-100">
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-3 overflow-hidden mb-5">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-borderless align-middle m-0">
+                        <thead class="bg-dark text-white text-uppercase" style="font-size: 13px;">
+                            <tr>
+                                <th class="py-3 px-4 rounded-start-0 rounded-end-0">Ngày tạo</th>
+                                <th class="py-3">Gói Dịch Vụ</th>
+                                <th class="py-3">Xe / Biển Số</th>
+                                <th class="py-3">Lịch Hẹn</th>
+                                <th class="py-3">Trạng Thái</th>
+                                <th class="py-3 text-end px-4">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Appointments != null && Model.Appointments.Any())
+                            {
+                                foreach (var item in Model.Appointments)
+                                {
+                                    <tr class="border-bottom">
+                                        <td class="py-4 px-4 text-secondary small">
+                                            @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="py-4">
+                                            <span class="fw-bold text-dark">@(item.Package?.PackageName ?? "Gói Tự Chọn")</span>
+                                        </td>
+                                        <td class="py-4">
+                                            <div class="fw-bold text-dark">@item.CarName</div>
+                                            <div class="text-secondary small">@item.LicensePlate</div>
+                                        </td>
+                                        <td class="py-4">
+                                            <div class="fw-bold text-danger">@item.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                                            <div class="text-secondary small"><i class="bi bi-clock me-1"></i>@item.AppointmentTime.ToString("HH:mm")</div>
+                                        </td>
+                                        <td class="py-4">
+                                            @if (item.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Đang chờ</span>
+                                            }
+                                            else if (item.Status == "Cancelled")
+                                            {
+                                                <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>
+                                                @if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[Lý do hủy:"))
+                                                {
+                                                    string reasonText = "";
+                                                    try
+                                                    {
+                                                        var reasonStartIndex = item.Note.LastIndexOf("[Lý do hủy:");
+                                                        reasonText = item.Note.Substring(reasonStartIndex).Replace("[Lý do hủy:", "").Replace("]", "").Trim();
+                                                    }
+                                                    catch {}
+                                                    <div class="mt-2 text-danger small" style="font-size: 0.75rem;">
+                                                        <i class="bi bi-info-circle me-1"></i>Lý do: @reasonText
+                                                    </div>
+                                                }
+                                            }
+                                            else if (item.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3 py-2">Hoàn thành</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary rounded-pill px-3 py-2">@item.Status</span>
+                                            }
+                                        </td>
+                                        <td class="py-4 text-end px-4">
+                                            @if (item.Status == "Pending")
+                                            {
+                                                <form asp-page-handler="Cancel" asp-route-id="@item.AppointmentId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này không?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                        <i class="bi bi-x-circle me-1"></i>Hủy
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-light rounded-pill px-3 text-muted disabled" disabled>
+                                                    <i class="bi bi-ban me-1"></i>Hủy
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-50"></i>
+                                        Bạn chưa có lịch hẹn bảo dưỡng nào.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                @if (Model.TotalPages > 1)
+                {
+                    <div class="card-footer bg-white border-top py-3">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link text-dark" asp-page="/Maintenance/Index" asp-route-page="@(Model.CurrentPage - 1)" asp-fragment="history" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                        <a class="page-link @(Model.CurrentPage == i ? "bg-warning border-warning text-dark fw-bold" : "text-dark")" asp-page="/Maintenance/Index" asp-route-page="@i" asp-fragment="history">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                    <a class="page-link text-dark" asp-page="/Maintenance/Index" asp-route-page="@(Model.CurrentPage + 1)" asp-fragment="history" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .package-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+</style>

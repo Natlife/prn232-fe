@@ -1,0 +1,133 @@
+@page
+@model CarSalesRazorPages.Pages.Admin.CarsModel
+@{ 
+    Layout = "_AdminLayout"; 
+    ViewData["Title"] = "Quản lý Xe ô tô";
+}
+
+<div class="container py-5" style="min-height: 80vh;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark m-0">Quản lý Xe ô tô</h2>
+            <p class="text-muted mb-0">Thêm, chỉnh sửa và xóa danh sách xe trong showroom</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-page="/Admin/Captchas" class="btn btn-outline-dark rounded-3 fw-bold">
+                <i class="bi bi-key-fill me-1"></i>Captchas
+            </a>
+            <a asp-page="/Admin/CreateCar" class="btn btn-dark rounded-3 fw-bold">
+                <i class="bi bi-plus-circle-fill me-1"></i>Thêm xe mới
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+        <div class="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="m-0 fw-bold"><i class="bi bi-table me-2"></i>Danh sách xe</h5>
+            <span class="badge bg-secondary rounded-pill">@Model.Cars.Count xe</span>
+        </div>
+        @if (!Model.Cars.Any())
+        {
+            <div class="text-center py-5">
+                <span class="display-3">🚗</span>
+                <h5 class="fw-bold mt-3">Chưa có xe nào</h5>
+                <a asp-page="/Admin/CreateCar" class="btn btn-dark mt-2 rounded-3">+ Thêm xe đầu tiên</a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="py-3 px-3" style="font-size:13px;">Ảnh</th>
+                            <th class="py-3" style="font-size:13px;">Tên xe</th>
+                            <th class="py-3" style="font-size:13px;">Thương hiệu</th>
+                            <th class="py-3" style="font-size:13px;">Năm / Màu</th>
+                            <th class="py-3" style="font-size:13px;">Giá</th>
+                            <th class="py-3" style="font-size:13px;">Trạng thái</th>
+                            <th class="py-3 text-center" style="font-size:13px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var car in Model.Cars)
+                        {
+                            <tr>
+                                <td class="py-2 px-3">
+                                    @if (!string.IsNullOrEmpty(car.ImageUrl))
+                                    {
+                                        <img src="@car.ImageUrl" alt="@car.CarName" class="rounded-2" style="width:64px;height:44px;object-fit:cover;" onerror="this.src='/images/car-placeholder.png'" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary rounded-2 d-flex align-items-center justify-content-center" style="width:64px;height:44px;">
+                                            <i class="bi bi-car-front text-white"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td class="py-2">
+                                    <div class="fw-bold text-dark">@car.CarName</div>
+                                    <div class="text-muted" style="font-size:12px;">@car.Model | @car.FuelType | @car.Transmission</div>
+                                </td>
+                                <td class="py-2 text-secondary" style="font-size:13px;">@(car.Brand?.BrandName ?? "N/A")</td>
+                                <td class="py-2 text-secondary" style="font-size:13px;">@car.Year / @car.Color</td>
+                                <td class="py-2 fw-bold text-dark" style="font-size:13px;">
+                                    @car.Price.ToString("N0") đ
+                                </td>
+                                <td class="py-2">
+                                    @{
+                                        var badgeClass = car.Status switch
+                                        {
+                                            "Available" => "bg-success",
+                                            "Reserved" => "bg-warning text-dark",
+                                            "Sold" => "bg-danger",
+                                            _ => "bg-secondary"
+                                        };
+                                        var statusLabel = car.Status switch
+                                        {
+                                            "Available" => "Có sẵn",
+                                            "Reserved" => "Đang cọc",
+                                            "Sold" => "Đã bán",
+                                            _ => car.Status
+                                        };
+                                    }
+                                    <span class="badge @badgeClass rounded-pill px-3">@statusLabel</span>
+                                </td>
+                                <td class="py-2 text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a asp-page="/Admin/EditCar" asp-route-id="@car.CarId"
+                                           class="btn btn-sm btn-outline-primary rounded-2 px-2" title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        <form method="post" asp-page-handler="DeleteCar" asp-route-id="@car.CarId"
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa xe này không?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-2 px-2" title="Xóa">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

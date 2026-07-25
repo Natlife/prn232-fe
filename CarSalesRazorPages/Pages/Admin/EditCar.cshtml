@@ -1,0 +1,123 @@
+@page "{id:int}"
+@model CarSalesRazorPages.Pages.Admin.EditCarModel
+@{ Layout = "_AdminLayout"; }
+
+@{
+    ViewData["Title"] = "Chỉnh sửa xe";
+    var brands = Model.Brands;
+}
+
+<div class="container py-5" style="max-width: 860px;">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-page="/Admin/Cars" class="text-decoration-none text-dark">Quản lý xe</a></li>
+            <li class="breadcrumb-item active fw-bold" aria-current="page">Chỉnh sửa xe #@Model.Form.CarId</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold mb-4">📝 Chỉnh sửa xe</h3>
+
+    <div class="card border-0 shadow rounded-4 p-4">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Form.CarId" />
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger rounded-3">
+                    <div asp-validation-summary="ModelOnly"></div>
+                </div>
+            }
+
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Tên xe *</label>
+                    <input asp-for="Form.CarName" class="form-control rounded-3" required />
+                    <span asp-validation-for="Form.CarName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Thương hiệu *</label>
+                    <select asp-for="Form.BrandId" class="form-select rounded-3" required>
+                        <option value="">-- Chọn hãng --</option>
+                        @foreach (var b in brands)
+                        {
+                            <option value="@b.BrandId" selected="@(b.BrandId == Model.Form.BrandId)">@b.BrandName</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Form.BrandId" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Model</label>
+                    <input asp-for="Form.Model" class="form-control rounded-3" />
+                    <span asp-validation-for="Form.Model" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Năm sản xuất *</label>
+                    <input asp-for="Form.Year" type="number" class="form-control rounded-3" min="1990" max="2030" required />
+                    <span asp-validation-for="Form.Year" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Màu sắc</label>
+                    <input asp-for="Form.Color" class="form-control rounded-3" />
+                    <span asp-validation-for="Form.Color" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Nhiên liệu *</label>
+                    <select asp-for="Form.FuelType" class="form-select rounded-3" required>
+                        <option value="Gasoline">Xăng</option>
+                        <option value="Diesel">Dầu diesel</option>
+                        <option value="Electric">Điện</option>
+                        <option value="Hybrid">Hybrid</option>
+                    </select>
+                    <span asp-validation-for="Form.FuelType" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Hộp số *</label>
+                    <select asp-for="Form.Transmission" class="form-select rounded-3" required>
+                        <option value="Automatic">Tự động</option>
+                        <option value="Manual">Số sàn</option>
+                        <option value="CVT">CVT</option>
+                    </select>
+                    <span asp-validation-for="Form.Transmission" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Số km đã đi *</label>
+                    <input asp-for="Form.Mileage" type="number" class="form-control rounded-3" min="0" required />
+                    <span asp-validation-for="Form.Mileage" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Giá bán (VNĐ) *</label>
+                    <input asp-for="Form.Price" type="number" class="form-control rounded-3" min="0" step="1000000" required />
+                    <span asp-validation-for="Form.Price" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Trạng thái *</label>
+                    <select asp-for="Form.Status" class="form-select rounded-3" required>
+                        <option value="Available">Có sẵn</option>
+                        <option value="Reserved">Đang đặt cọc</option>
+                        <option value="Sold">Đã bán</option>
+                        <option value="Inactive">Ẩn</option>
+                    </select>
+                    <span asp-validation-for="Form.Status" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">URL ảnh</label>
+                    <input asp-for="Form.ImageUrl" class="form-control rounded-3" placeholder="https://..." />
+                    <span asp-validation-for="Form.ImageUrl" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold text-secondary" style="font-size:13px;">Mô tả</label>
+                    <textarea asp-for="Form.Description" class="form-control rounded-3" rows="3"></textarea>
+                    <span asp-validation-for="Form.Description" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary fw-bold px-4 rounded-3">
+                    <i class="bi bi-save-fill me-2"></i>Lưu thay đổi
+                </button>
+                <a asp-page="/Admin/Cars" class="btn btn-outline-secondary px-4 rounded-3">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>

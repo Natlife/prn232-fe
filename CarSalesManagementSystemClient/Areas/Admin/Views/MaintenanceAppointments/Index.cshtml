@@ -1,0 +1,279 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.AppointmentHistoryViewModel>
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Quản lý Lịch Hẹn";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0 text-dark fw-bold"><i class="bi bi-calendar-range text-primary me-2"></i>Duyệt Lịch Hẹn Bảo Dưỡng</h2>
+        <span class="badge bg-primary px-3 py-2 fs-6 shadow-sm">
+            Tổng số lịch: @Model.Count()
+        </span>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark text-warning">
+                    <tr>
+                        <th class="ps-4 py-3">Mã lịch</th>
+                        <th class="py-3">Khách hàng</th>
+                        <th class="py-3">Gói dịch vụ đăng ký</th>
+                        <th class="py-3">Thông tin Xe</th>
+                        <th class="py-3">Thời gian hẹn</th>
+                        <th class="py-3 text-center" style="width: 150px;">Trạng thái</th>
+                        <th class="py-3 text-end pe-4" style="width: 250px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-calendar-x fs-1 d-block mb-3 text-secondary"></i>
+                                Không có lịch hẹn bảo dưỡng nào cần duyệt.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr id="row-@item.AppointmentId">
+                                <td class="ps-4 fw-bold text-dark">
+                                    #SV-@item.AppointmentId.ToString("D4")
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.CustomerName</div>
+                                    <div class="small text-muted"><i class="bi bi-telephone-fill me-1"></i>@item.CustomerPhone</div>
+                                </td>
+                                <td>
+                                    @if (item.Details != null && item.Details.Any())
+                                    {
+                                        <ul class="list-unstyled mb-0 small">
+                                            @foreach(var d in item.Details)
+                                            {
+                                                <li><i class="bi bi-check2 text-success me-1"></i>@(d.PackageId.HasValue ? d.PackageName : d.ServiceName)</li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa chọn dịch vụ</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.CustomerCar != null)
+                                    {
+                                        <div class="fw-bold text-dark">@item.CustomerCar.Model</div>
+                                        <div class="small text-muted">Biển số: @item.CustomerCar.LicensePlate</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa khai báo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="text-danger fw-bold"><i class="bi bi-calendar2-week me-1"></i>@item.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="small text-muted"><i class="bi bi-clock me-1"></i>@item.AppointmentTime.ToString("HH:mm")</div>
+                                </td>
+                                <td class="text-center" id="status-@item.AppointmentId">
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark border border-warning">Chờ duyệt</span>
+                                    }
+                                    else if (item.Status == "Confirmed")
+                                    {
+                                        <span class="badge bg-info text-dark border border-info">Đã xác nhận lịch</span>
+                                    }
+                                    else if (item.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger border border-danger">Đã từ chối/hủy</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4" id="actions-@item.AppointmentId">
+                                    <button class="btn btn-sm btn-dark me-1" onclick="viewAppointmentDetails(@JsonSerializer.Serialize(item))" title="Xem chi tiết">
+                                        <i class="bi bi-eye-fill"></i> Chi tiết
+                                    </button>
+
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <button class="btn btn-sm btn-success me-1" onclick="confirmAppointment(@item.AppointmentId)" title="Xác nhận lịch hẹn">
+                                            <i class="bi bi-check-circle-fill"></i> Xác nhận
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(@item.AppointmentId)" title="Từ chối lịch hẹn">
+                                            <i class="bi bi-x-circle-fill"></i> Từ chối
+                                        </button>
+                                    }
+                                    else if (item.Status == "Confirmed")
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment(@item.AppointmentId)" title="Hủy lịch hẹn">
+                                            <i class="bi bi-x-circle-fill"></i> Hủy lịch
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+        </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-light p-3 border-0">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end m-0">
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)">Trang trước</a>
+                        </li>
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)">Trang sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ==========================================
+     APPOINTMENT DETAIL MODAL (SIMPLIFIED)
+     ========================================== -->
+<div class="modal fade" id="apptDetailModal" tabindex="-1" aria-labelledby="apptDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-warning">
+                <h5 class="modal-title fw-bold" id="apptDetailModalLabel"><i class="bi bi-info-circle-fill me-2"></i>Chi Tiết Lịch Hẹn</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="apptDetailContent">
+                <!-- Populate dynamically -->
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function viewAppointmentDetails(appt) {
+            let detailsList = "";
+            if (appt.Details && appt.Details.length > 0) {
+                appt.Details.forEach(d => {
+                    detailsList += `<li>- ${d.PackageName || d.ServiceName} (Đơn giá: ${d.UnitPrice.toLocaleString()} đ)</li>`;
+                });
+            } else {
+                detailsList = "<li>Chưa đăng ký dịch vụ</li>";
+            }
+
+            let partsList = "";
+            if (appt.ConsumedParts && appt.ConsumedParts.length > 0) {
+                appt.ConsumedParts.forEach(p => {
+                    partsList += `<li>- ${p.PartName} (SL: ${p.Quantity} - Dùng trong bảo dưỡng)</li>`;
+                });
+            } else {
+                partsList = "<li>Không sử dụng linh kiện kèm theo</li>";
+            }
+
+            const html = `
+                <div class="mb-3 border-bottom pb-2">
+                    <div class="text-secondary small">Mã lịch hẹn:</div>
+                    <div class="fw-bold fs-5 text-primary">#SV-${appt.AppointmentId.toString().padStart(4, '0')}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small">Thông tin khách hàng:</div>
+                    <div class="fw-bold text-dark">${appt.CustomerName}</div>
+                    <div class="small text-muted">SĐT: ${appt.CustomerPhone} | Email: ${appt.CustomerEmail || "N/A"}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small">Thông tin xe đặt hẹn:</div>
+                    <div class="fw-bold text-dark">${appt.CustomerCar ? appt.CustomerCar.Model : "Chưa rõ"}</div>
+                    <div class="small text-muted">Biển số: ${appt.CustomerCar ? appt.CustomerCar.LicensePlate : "Chưa rõ"}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small">Thời gian hẹn bảo dưỡng:</div>
+                    <div class="fw-bold text-danger">${appt.AppointmentDate.split('T')[0]} lúc ${appt.AppointmentTime}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small">Dịch vụ bảo dưỡng đăng ký:</div>
+                    <ul class="list-unstyled mb-0 fw-semibold text-dark">
+                        ${detailsList}
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <div class="text-secondary small">Linh kiện mang theo đã chọn:</div>
+                    <ul class="list-unstyled mb-0 small text-secondary">
+                        ${partsList}
+                    </ul>
+                </div>
+                ${appt.Note ? `
+                <div class="p-3 bg-light rounded-3 mt-3">
+                    <div class="text-secondary small fw-bold">Ghi chú yêu cầu:</div>
+                    <div class="text-dark small">${appt.Note}</div>
+                </div>` : ''}
+            `;
+            $('#apptDetailContent').html(html);
+            $('#apptDetailModal').modal('show');
+        }
+
+        function confirmAppointment(id) {
+            Swal.fire({
+                title: 'Xác nhận lịch hẹn?',
+                text: "Xác nhận lịch hẹn bảo dưỡng này với khách hàng.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/MaintenanceAppointments/UpdateStatus', { id: id, status: 'Confirmed' }, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function cancelAppointment(id) {
+            Swal.fire({
+                title: 'Từ chối / Hủy lịch hẹn?',
+                text: 'Nhập lý do từ chối/hủy lịch hẹn:',
+                input: 'text',
+                inputPlaceholder: 'Lý do từ chối...',
+                showCancelButton: true,
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Bỏ qua',
+                showLoaderOnConfirm: true,
+                preConfirm: (reason) => {
+                    if (!reason) {
+                        Swal.showValidationMessage('Vui lòng nhập lý do!');
+                        return false;
+                    }
+                    return $.post('/Admin/MaintenanceAppointments/UpdateStatus', { id: id, status: 'Cancelled', reason: reason });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value.success) {
+                    Swal.fire('Thành công', 'Đã từ chối/hủy lịch hẹn.', 'success').then(() => location.reload());
+                } else if (result.value && !result.value.success) {
+                    Swal.fire('Thất bại', result.value.message, 'error');
+                }
+            });
+        }
+    </script>
+}

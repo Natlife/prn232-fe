@@ -1,0 +1,74 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Custom styles for Group7 Navigation */
+.hover-bg-warning:hover {
+    background-color: #e0a800 !important;
+    transition: background-color 0.3s ease;
+}
+
+/* Floating Contact Buttons */
+.floating-buttons {
+    position: fixed;
+    bottom: 30px;
+    left: 20px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+}
+
+.floating-buttons .btn {
+    width: 220px;
+    border-radius: 50px !important;
+    padding: 10px 20px;
+    font-size: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.floating-buttons .btn:hover {
+    transform: translateX(10px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
+}
+
+/* Footer styles */
+.hover-text-white:hover {
+    color: white !important;
+    transition: color 0.3s ease;
+}
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+/* Dropdown Hover styling for Desktop navbar */
+@media (min-width: 992px) {
+    .dropdown:hover .dropdown-menu {
+        display: block;
+        margin-top: 0; /* Remove default offset */
+        transition: all 0.3s ease;
+    }
+}
+
+.dropdown-item {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #e0a800 !important;
+    color: #000 !important;
+}

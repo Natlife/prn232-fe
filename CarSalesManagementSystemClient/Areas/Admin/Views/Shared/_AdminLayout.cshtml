@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        .admin-sidebar {
+            min-height: 100vh;
+            background-color: #212529;
+            color: white;
+        }
+
+        .admin-sidebar .nav-link {
+            color: #adb5bd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }
+
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            color: #212529;
+            background-color: #ffc107;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <div class="col-md-2 admin-sidebar p-3 shadow" style="position: fixed; width: 16.666667%; height: 100vh; z-index: 1000;">
+                <a href="#" class="d-flex align-items-center mb-4 text-white text-decoration-none">
+                    <i class="bi bi-car-front-fill fs-3 me-2 text-warning"></i>
+                    <span class="fs-5 fw-bold">ECO DRIVE<br><small class="text-warning fs-6">Admin Panel</small></span>
+                </a>
+                <hr>
+                <ul class="nav flex-column mb-auto">
+                    <li>
+                        <a href="/Admin/Cars" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Cars" ? "active" : "")">
+                            <i class="bi bi-car-front-fill me-2"></i> Quản lý ô tô
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Admin/Captchas" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Captchas" ? "active" : "")">
+                            <i class="bi bi-key-fill me-2"></i> Tạo mã captcha
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#maintenanceSubmenu" data-bs-toggle="collapse" class="nav-link dropdown-toggle @((ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Services") ? "active" : "")">
+                            <i class="bi bi-tools me-2"></i> Quản lý Bảo dưỡng
+                        </a>
+                        <ul class="collapse list-unstyled ms-3 mt-1 @((ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" || ViewContext.RouteData.Values["Controller"]?.ToString() == "Services") ? "show" : "")" id="maintenanceSubmenu">
+                            <li>
+                                <a href="/Admin/MaintenancePackages" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenancePackages" ? "text-warning fw-bold" : "")">
+                                    <i class="bi bi-box-seam-fill me-2"></i> Gói bảo dưỡng
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/Admin/Services" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Services" ? "text-warning fw-bold" : "")">
+                                    <i class="bi bi-wrench-adjustable me-2"></i> Dịch vụ lẻ
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/Admin/MaintenanceAppointments" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "MaintenanceAppointments" ? "active" : "")">
+                            <i class="bi bi-calendar-check me-2"></i> Lịch hẹn bảo dưỡng
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Orders" ? "active" : "")" href="@Url.Action("Index", "Orders", new { area = "Admin" })">
+                            <i class="bi bi-receipt me-2"></i> Quản lý đơn hàng
+                        </a>
+                    </li>
+                </ul>
+                <hr>
+                <div class="dropdown">
+                    <a href="/" class="d-flex align-items-center text-white text-decoration-none hover-bg-warning p-2 rounded">
+                        <i class="bi bi-box-arrow-left me-2 text-danger"></i> Thoát về web
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-10 offset-md-2 bg-light" style="min-height: 100vh;">
+                <nav class="navbar navbar-expand-lg navbar-white bg-white shadow-sm px-4 py-3 mb-4 sticky-top">
+                    <div class="container-fluid">
+                        <span class="navbar-brand mb-0 h3 fw-bold text-secondary">@ViewData["Title"]</span>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">Xin chào, <b>@User.Identity.Name</b> <span class="badge bg-danger ms-1">Admin</span></span>
+                            <a href="/Auth/Logout" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Đăng xuất</a>
+                        </div>
+                    </div>
+                </nav>
+
+                <main class="px-4 pb-4">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

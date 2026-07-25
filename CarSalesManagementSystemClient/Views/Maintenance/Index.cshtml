@@ -1,0 +1,853 @@
+@model CarSalesManagementSystemClient.Models.MaintenanceIndexViewModel
+@{
+    ViewData["Title"] = "Dịch vụ Bảo dưỡng & Lịch sử";
+}
+
+<!-- Hero Banner -->
+<div class="maintenance-hero py-5 bg-dark text-white text-center mb-5" style="background-image: url('https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=2000&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative;">
+    <div class="maintenance-hero__overlay" style="background-color: rgba(0,0,0,0.6); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+    <div class="maintenance-hero__content position-relative" style="padding: 60px 0; z-index: 1;">
+        <h1 class="maintenance-hero__title display-4 fw-bold text-warning text-uppercase" style="letter-spacing: 2px;">Dịch vụ Bảo dưỡng</h1>
+        <p class="maintenance-hero__subtitle lead mt-3">Chăm sóc xế yêu của bạn bằng những dịch vụ cao cấp nhất từ Group7</p>
+    </div>
+</div>
+
+<main class="maintenance-store-page">
+    <div class="container maintenance-store-container mb-5">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Packages Section -->
+        <div class="maintenance-section-heading text-center mb-5">
+            <span class="maintenance-section-eyebrow">Maintenance packages</span>
+            <h3 class="fw-bold text-secondary text-uppercase" style="letter-spacing: 1px;">CHỌN GÓI DỊCH VỤ</h3>
+            <hr class="w-25 mx-auto text-warning border-2 opacity-100">
+        </div>
+
+        <div class="maintenance-layout row mb-5 pb-4">
+            <!-- LEFT COLUMN: Advanced Filters -->
+            <div class="maintenance-filter-column col-lg-3 col-md-4 mb-4">
+                <div class="maintenance-filter-card card border-0 shadow-sm rounded-3 overflow-hidden">
+                    <div class="maintenance-filter-header card-header bg-dark text-white py-3">
+                        <h5 class="m-0 fw-bold d-flex align-items-center">
+                            <i class="bi bi-funnel-fill me-2 text-warning"></i> BỘ LỌC
+                        </h5>
+                    </div>
+                    <div class="maintenance-filter-body card-body p-4 bg-white">
+                        <form method="get" asp-controller="Maintenance" asp-action="Index" id="filterForm">
+                            <input type="hidden" name="PageNumber" value="1" />
+                            <input type="hidden" name="PageSize" value="@Model.Filter.PageSize" />
+
+                            <!-- Search keyword -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Tên gói bảo dưỡng</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="bi bi-search text-secondary"></i></span>
+                                    <input type="text" name="SearchTerm" class="form-control bg-light border-0 py-2" placeholder="Ví dụ: Tiêu chuẩn..." value="@Model.Filter.SearchTerm" />
+                                </div>
+                            </div>
+
+                            <!-- Price filter -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Khoảng giá (VND)</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <input type="number" name="MinPrice" class="form-control bg-light border-0 py-2" placeholder="Tối thiểu" value="@(Model.Filter.MinPrice.HasValue ? Model.Filter.MinPrice.Value.ToString("F0") : "")" />
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="number" name="MaxPrice" class="form-control bg-light border-0 py-2" placeholder="Tối đa" value="@(Model.Filter.MaxPrice.HasValue ? Model.Filter.MaxPrice.Value.ToString("F0") : "")" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Duration filter -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Thời gian tối đa</label>
+                                <select name="MaxDuration" class="form-select bg-light border-0 py-2">
+                                    <option value="" selected="@(!Model.Filter.MaxDuration.HasValue)">Tất cả</option>
+                                    <option value="3" selected="@(Model.Filter.MaxDuration == 3)">Dưới 3 giờ</option>
+                                    <option value="6" selected="@(Model.Filter.MaxDuration == 6)">Dưới 6 giờ</option>
+                                    <option value="9" selected="@(Model.Filter.MaxDuration == 9)">Dưới 9 giờ</option>
+                                    <option value="12" selected="@(Model.Filter.MaxDuration == 12)">Dưới 12 giờ</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort option -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-dark mb-2">Sắp xếp theo</label>
+                                <select name="SortBy" class="form-select bg-light border-0 py-2">
+                                    <option value="" selected="@(string.IsNullOrEmpty(Model.Filter.SortBy))">Mới nhất</option>
+                                    <option value="PriceAsc" selected="@(Model.Filter.SortBy == "PriceAsc")">Giá tăng dần</option>
+                                    <option value="PriceDesc" selected="@(Model.Filter.SortBy == "PriceDesc")">Giá giảm dần</option>
+                                    <option value="DurationAsc" selected="@(Model.Filter.SortBy == "DurationAsc")">Thời gian ngắn nhất</option>
+                                </select>
+                            </div>
+
+                            <!-- Submit and Reset Buttons -->
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-warning py-2 fw-bold border-0 text-dark" style="background-color: #ffc107;">
+                                    <i class="bi bi-search me-1"></i> ÁP DỤNG
+                                </button>
+                                <a asp-controller="Maintenance" asp-action="Index" class="btn btn-light py-2 fw-bold text-secondary">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> XÓA LỌC
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Package List Grid -->
+            <div class="maintenance-results-column col-lg-9 col-md-8">
+                <div class="maintenance-package-grid row">
+                    @if (Model.Packages != null && Model.Packages.Any())
+                    {
+                        foreach (var package in Model.Packages)
+                        {
+                            <div class="maintenance-package-column col-lg-6 col-xl-4 col-md-6 mb-4">
+                                <article class="card h-100 shadow-sm border-0 package-card" style="transition: transform 0.3s; overflow: hidden; border-radius: 15px;">
+                                    <div class="card-header bg-dark text-warning text-center py-4 border-0">
+                                        <h5 class="m-0 fw-bold text-uppercase">@package.PackageName</h5>
+                                    </div>
+                                    <div class="card-body d-flex flex-column bg-white">
+                                        <h3 class="text-danger fw-bold text-center mb-4">@package.PackagePrice.ToString("N0") <span class="fs-5">VNĐ</span></h3>
+                                        <p class="text-secondary flex-grow-1" style="line-height: 1.8; white-space: pre-line;">
+                                            <i class="bi bi-check2-circle text-success me-2"></i>@package.Description
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center mt-3 text-muted small border-top pt-3">
+                                            <span><i class="bi bi-clock me-1 text-primary"></i>@package.TotalDurationMinutes phút</span>
+                                            <span class="badge bg-success rounded-pill px-3 py-2">Sẵn sàng</span>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-light border-0 text-center pb-4 pt-3">
+                                        <button type="button" onclick="addToCart('Package', @package.PackageId, '@(package.PackageName?.Replace("'", "\\'"))')" class="btn btn-warning text-dark fw-bold w-100 rounded-pill shadow-sm py-2">
+                                            <i class="bi bi-cart-plus me-2"></i>THÊM VÀO GIỎ HÀNG
+                                        </button>
+                                    </div>
+                                </article>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="maintenance-empty col-12 text-center text-muted py-5">
+                            <i class="bi bi-tools display-1 text-secondary opacity-50 mb-4"></i>
+                            <h4>Không tìm thấy gói bảo dưỡng nào phù hợp.</h4>
+                            <p>Vui lòng thử điều chỉnh lại bộ lọc tìm kiếm.</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination Controls -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="maintenance-pagination pagination justify-content-center">
+                            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                <a class="page-link text-dark" href="@Url.Action("Index", new { PageNumber = Model.CurrentPage - 1, SearchTerm = Model.Filter.SearchTerm, MinPrice = Model.Filter.MinPrice, MaxPrice = Model.Filter.MaxPrice, MaxDuration = Model.Filter.MaxDuration, SortBy = Model.Filter.SortBy })">
+                                    &laquo; Trước
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                    <a class="page-link @(Model.CurrentPage == i ? "bg-warning border-warning text-dark fw-bold" : "text-dark")" href="@Url.Action("Index", new { PageNumber = i, SearchTerm = Model.Filter.SearchTerm, MinPrice = Model.Filter.MinPrice, MaxPrice = Model.Filter.MaxPrice, MaxDuration = Model.Filter.MaxDuration, SortBy = Model.Filter.SortBy })">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link text-dark" href="@Url.Action("Index", new { PageNumber = Model.CurrentPage + 1, SearchTerm = Model.Filter.SearchTerm, MinPrice = Model.Filter.MinPrice, MaxPrice = Model.Filter.MaxPrice, MaxDuration = Model.Filter.MaxDuration, SortBy = Model.Filter.SortBy })">
+                                    Sau &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+
+        <!-- Removed History Section as it's now in History.cshtml -->
+    </div>
+
+</main>
+
+<style>
+    .package-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+</style>
+
+<style>
+    :root {
+        --maintenance-primary: #17191e;
+        --maintenance-secondary: #292c33;
+        --maintenance-accent: #f5b800;
+        --maintenance-accent-hover: #ffca28;
+        --maintenance-bg: #f3f4f6;
+        --maintenance-surface: #ffffff;
+        --maintenance-border: #e5e7eb;
+        --maintenance-text: #181a1f;
+        --maintenance-muted: #747983;
+        --maintenance-danger: #dc3545;
+        --maintenance-success: #198754;
+        --maintenance-radius-xl: 24px;
+        --maintenance-radius-lg: 17px;
+        --maintenance-radius-md: 12px;
+        --maintenance-shadow: 0 18px 48px rgba(17, 19, 24, 0.08);
+        --maintenance-shadow-soft: 0 10px 28px rgba(17, 19, 24, 0.055);
+    }
+
+    .maintenance-store-page {
+        min-height: 100vh;
+        padding-bottom: 28px;
+        color: var(--maintenance-text);
+        background: radial-gradient( circle at 96% 2%, rgba(245, 184, 0, 0.11), transparent 31rem ), radial-gradient( circle at 3% 88%, rgba(17, 19, 24, 0.035), transparent 30rem ), var(--maintenance-bg);
+    }
+
+    .maintenance-store-container {
+        max-width: 1380px;
+        padding-top: 38px;
+    }
+
+    /* Hero */
+
+    .maintenance-hero {
+        position: relative;
+        min-height: 360px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 0 !important;
+        background-attachment: fixed;
+        isolation: isolate;
+        overflow: hidden;
+    }
+
+        .maintenance-hero::after {
+            content: "SERVICE";
+            position: absolute;
+            z-index: 1;
+            top: -48px;
+            right: 4%;
+            color: rgba(255, 255, 255, 0.045);
+            font-size: clamp(6rem, 14vw, 12rem);
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.09em;
+            pointer-events: none;
+        }
+
+    .maintenance-hero__overlay {
+        z-index: 0;
+        background: linear-gradient( 90deg, rgba(10, 12, 16, 0.92), rgba(10, 12, 16, 0.62) 58%, rgba(10, 12, 16, 0.75) ) !important;
+    }
+
+    .maintenance-hero__content {
+        width: min(1180px, calc(100% - 36px));
+        margin: 0 auto;
+        padding: 78px 0 !important;
+        text-align: left;
+    }
+
+        .maintenance-hero__content::before {
+            content: "GROUP7 ECO DRIVE";
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 14px;
+            color: var(--maintenance-accent);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+        }
+
+    .maintenance-hero__title {
+        max-width: 760px;
+        margin: 0;
+        color: #ffffff !important;
+        font-size: clamp(2.25rem, 5vw, 4.35rem);
+        font-weight: 950 !important;
+        line-height: 1.05;
+        letter-spacing: -0.055em !important;
+        text-transform: none !important;
+    }
+
+        .maintenance-hero__title::after {
+            content: "";
+            width: 82px;
+            height: 5px;
+            display: block;
+            margin-top: 21px;
+            background-color: var(--maintenance-accent);
+            border-radius: 999px;
+        }
+
+    .maintenance-hero__subtitle {
+        max-width: 660px;
+        margin: 20px 0 0 !important;
+        color: rgba(255, 255, 255, 0.67);
+        font-size: 0.94rem;
+        line-height: 1.75;
+    }
+
+    /* Alerts */
+
+    .maintenance-store-container > .alert {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        box-shadow: var(--maintenance-shadow-soft) !important;
+        font-size: 0.78rem;
+    }
+
+    .maintenance-store-container > .alert-success {
+        color: #166534;
+        background-color: #effbf4;
+        border-color: #bbf7d0;
+    }
+
+    .maintenance-store-container > .alert-danger {
+        color: #991b1b;
+        background-color: #fff2f3;
+        border-color: #fecaca;
+    }
+
+    /* Section heading */
+
+    .maintenance-section-heading {
+        margin: 7px 0 31px !important;
+    }
+
+    .maintenance-section-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 8px;
+        color: #8b6800;
+        font-size: 0.65rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+        .maintenance-section-eyebrow::before,
+        .maintenance-section-eyebrow::after {
+            content: "";
+            width: 28px;
+            height: 2px;
+            background-color: var(--maintenance-accent);
+        }
+
+    .maintenance-section-heading h3 {
+        margin: 0;
+        color: var(--maintenance-primary) !important;
+        font-size: clamp(1.45rem, 2.7vw, 2rem);
+        font-weight: 950 !important;
+        letter-spacing: -0.035em !important;
+    }
+
+    .maintenance-section-heading hr {
+        display: none;
+    }
+
+    /* Filter */
+
+    .maintenance-layout {
+        --bs-gutter-x: 1.5rem;
+    }
+
+    .maintenance-filter-card {
+        position: sticky;
+        top: 90px;
+        background-color: var(--maintenance-surface);
+        border: 1px solid var(--maintenance-border) !important;
+        border-radius: var(--maintenance-radius-xl) !important;
+        box-shadow: var(--maintenance-shadow) !important;
+    }
+
+    .maintenance-filter-header {
+        padding: 20px 22px !important;
+        background: radial-gradient( circle at 88% 12%, rgba(245, 184, 0, 0.18), transparent 38% ), linear-gradient( 135deg, var(--maintenance-primary), var(--maintenance-secondary) ) !important;
+        border: 0;
+    }
+
+        .maintenance-filter-header h5 {
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 950 !important;
+            letter-spacing: 0.05em;
+        }
+
+        .maintenance-filter-header i {
+            color: var(--maintenance-accent) !important;
+        }
+
+    .maintenance-filter-body {
+        padding: 22px !important;
+    }
+
+        .maintenance-filter-body .mb-4 {
+            margin-bottom: 19px !important;
+        }
+
+        .maintenance-filter-body .form-label {
+            margin-bottom: 8px !important;
+            color: #454a52 !important;
+            font-size: 0.68rem;
+            font-weight: 900 !important;
+        }
+
+        .maintenance-filter-body .input-group {
+            overflow: hidden;
+            border: 1px solid var(--maintenance-border);
+            border-radius: 12px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .maintenance-filter-body .input-group:focus-within {
+                border-color: var(--maintenance-accent);
+                box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+            }
+
+        .maintenance-filter-body .input-group-text {
+            padding-left: 13px;
+            background-color: #f8f9fa !important;
+            border: 0 !important;
+        }
+
+        .maintenance-filter-body .form-control,
+        .maintenance-filter-body .form-select {
+            min-height: 46px;
+            color: var(--maintenance-text);
+            background-color: #f8f9fa !important;
+            border: 1px solid var(--maintenance-border) !important;
+            border-radius: 11px;
+            outline: none;
+            font-size: 0.72rem;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .maintenance-filter-body .input-group .form-control {
+            border: 0 !important;
+            border-radius: 0;
+        }
+
+        .maintenance-filter-body .form-control:focus,
+        .maintenance-filter-body .form-select:focus {
+            background-color: #ffffff !important;
+            border-color: var(--maintenance-accent) !important;
+            box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+        }
+
+        .maintenance-filter-body .input-group .form-control:focus {
+            box-shadow: none;
+        }
+
+        .maintenance-filter-body .btn-warning {
+            min-height: 45px;
+            color: var(--maintenance-primary) !important;
+            background-color: var(--maintenance-accent) !important;
+            border-color: var(--maintenance-accent) !important;
+            border-radius: 11px;
+            font-size: 0.68rem;
+            font-weight: 900 !important;
+            box-shadow: 0 11px 25px rgba(245, 184, 0, 0.18);
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .maintenance-filter-body .btn-warning:hover {
+                background-color: var(--maintenance-accent-hover) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 15px 30px rgba(245, 184, 0, 0.25);
+            }
+
+        .maintenance-filter-body .btn-light {
+            min-height: 43px;
+            color: #626871 !important;
+            background-color: #ffffff !important;
+            border: 1px solid var(--maintenance-border);
+            border-radius: 11px;
+            font-size: 0.66rem;
+            font-weight: 900 !important;
+        }
+
+    /* Package grid */
+
+    .maintenance-package-grid {
+        --bs-gutter-x: 1.15rem;
+        --bs-gutter-y: 1.15rem;
+    }
+
+    .maintenance-package-column {
+        margin-bottom: 0 !important;
+    }
+
+    .package-card {
+        position: relative;
+        background-color: var(--maintenance-surface);
+        border: 1px solid var(--maintenance-border) !important;
+        border-radius: 19px !important;
+        box-shadow: 0 13px 35px rgba(17, 19, 24, 0.07) !important;
+        transition: transform 0.27s ease, border-color 0.27s ease, box-shadow 0.27s ease !important;
+    }
+
+        .package-card:hover {
+            border-color: rgba(245, 184, 0, 0.52) !important;
+            transform: translateY(-7px);
+            box-shadow: 0 23px 47px rgba(17, 19, 24, 0.13) !important;
+        }
+
+        .package-card .card-header {
+            position: relative;
+            min-height: 105px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 23px 18px !important;
+            background: radial-gradient( circle at 85% 10%, rgba(245, 184, 0, 0.17), transparent 37% ), linear-gradient( 135deg, var(--maintenance-primary), var(--maintenance-secondary) ) !important;
+            overflow: hidden;
+        }
+
+            .package-card .card-header::before {
+                content: "SERVICE";
+                position: absolute;
+                top: -20px;
+                right: -4px;
+                color: rgba(255, 255, 255, 0.035);
+                font-size: 3.7rem;
+                font-weight: 950;
+                pointer-events: none;
+            }
+
+            .package-card .card-header h5 {
+                position: relative;
+                z-index: 2;
+                color: var(--maintenance-accent) !important;
+                font-size: 0.85rem;
+                font-weight: 950 !important;
+                line-height: 1.45;
+                letter-spacing: 0.025em;
+            }
+
+        .package-card .card-body {
+            padding: 21px !important;
+        }
+
+            .package-card .card-body h3 {
+                margin-bottom: 18px !important;
+                color: #b42318 !important;
+                font-size: 1.35rem;
+                font-weight: 950 !important;
+            }
+
+                .package-card .card-body h3 span {
+                    color: #7d828a;
+                    font-size: 0.7rem !important;
+                    font-weight: 800;
+                }
+
+            .package-card .card-body > p {
+                min-height: 94px;
+                margin-bottom: 15px;
+                overflow: hidden;
+                color: var(--maintenance-muted) !important;
+                font-size: 0.7rem;
+                line-height: 1.7 !important;
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 4;
+            }
+
+                .package-card .card-body > p i {
+                    color: var(--maintenance-success) !important;
+                }
+
+            .package-card .card-body > .d-flex {
+                padding-top: 14px !important;
+                color: #777d86 !important;
+                border-color: var(--maintenance-border) !important;
+                font-size: 0.65rem !important;
+            }
+
+                .package-card .card-body > .d-flex i {
+                    color: #8a6800 !important;
+                }
+
+        .package-card .badge.bg-success {
+            padding: 6px 9px !important;
+            color: #166534 !important;
+            background-color: #effbf4 !important;
+            border: 1px solid #bbf7d0;
+            font-size: 0.57rem;
+            font-weight: 900;
+        }
+
+        .package-card .card-footer {
+            padding: 0 21px 21px !important;
+            background-color: #ffffff !important;
+        }
+
+            .package-card .card-footer .btn-warning {
+                min-height: 44px;
+                color: var(--maintenance-primary) !important;
+                background-color: var(--maintenance-accent) !important;
+                border-color: var(--maintenance-accent) !important;
+                border-radius: 11px !important;
+                font-size: 0.64rem;
+                font-weight: 900 !important;
+                box-shadow: 0 10px 23px rgba(245, 184, 0, 0.17) !important;
+            }
+
+                .package-card .card-footer .btn-warning:hover {
+                    background-color: var(--maintenance-accent-hover) !important;
+                }
+
+    /* Empty state */
+
+    .maintenance-empty {
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 55px 24px !important;
+        background-color: var(--maintenance-surface);
+        border: 1px solid var(--maintenance-border);
+        border-radius: var(--maintenance-radius-xl);
+        box-shadow: var(--maintenance-shadow);
+    }
+
+        .maintenance-empty i {
+            width: 82px;
+            height: 82px;
+            display: grid;
+            margin-bottom: 19px !important;
+            place-items: center;
+            color: #8b6800 !important;
+            background-color: #fff8d6;
+            border: 1px solid #fde68a;
+            border-radius: 24px;
+            font-size: 2rem !important;
+            opacity: 1 !important;
+        }
+
+        .maintenance-empty h4 {
+            margin-bottom: 7px;
+            color: var(--maintenance-primary);
+            font-size: 1rem;
+            font-weight: 950;
+        }
+
+        .maintenance-empty p {
+            margin: 0;
+            color: var(--maintenance-muted);
+            font-size: 0.74rem;
+        }
+
+    /* Pagination */
+
+    .maintenance-pagination {
+        gap: 6px;
+        margin-top: 29px;
+    }
+
+        .maintenance-pagination .page-link {
+            min-width: 41px;
+            height: 41px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            color: #575d66 !important;
+            background-color: #ffffff;
+            border: 1px solid var(--maintenance-border);
+            border-radius: 11px !important;
+            font-size: 0.68rem;
+            font-weight: 900;
+            box-shadow: 0 8px 20px rgba(17, 19, 24, 0.05);
+        }
+
+        .maintenance-pagination .page-item.active .page-link {
+            color: var(--maintenance-primary) !important;
+            background-color: var(--maintenance-accent) !important;
+            border-color: var(--maintenance-accent) !important;
+        }
+
+        .maintenance-pagination .page-item.disabled {
+            opacity: 0.48;
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 1199.98px) {
+        .maintenance-store-container {
+            max-width: 1160px;
+        }
+
+        .maintenance-hero__content {
+            width: min(1050px, calc(100% - 36px));
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .maintenance-hero {
+            min-height: 320px;
+            background-attachment: scroll;
+        }
+
+        .maintenance-filter-card {
+            position: static;
+        }
+
+        .maintenance-filter-body form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+            .maintenance-filter-body form > .mb-4 {
+                margin-bottom: 0 !important;
+            }
+
+            .maintenance-filter-body form > .d-grid {
+                grid-column: 1 / -1;
+                grid-template-columns: 1fr 1fr;
+                margin-top: 0 !important;
+            }
+    }
+
+    @@media (max-width: 767.98px) {
+        .maintenance-hero {
+            min-height: 290px;
+        }
+
+        .maintenance-hero__content {
+            padding: 58px 0 !important;
+        }
+
+        .maintenance-hero__title {
+            font-size: 2rem;
+        }
+
+        .maintenance-hero__subtitle {
+            font-size: 0.8rem;
+        }
+
+        .maintenance-store-container {
+            padding-right: 13px;
+            padding-left: 13px;
+            padding-top: 28px;
+        }
+
+        .maintenance-filter-card,
+        .maintenance-empty {
+            border-radius: 20px !important;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .maintenance-hero__content {
+            width: calc(100% - 26px);
+        }
+
+        .maintenance-filter-body form {
+            grid-template-columns: 1fr;
+        }
+
+            .maintenance-filter-body form > .d-grid {
+                grid-column: auto;
+                grid-template-columns: 1fr;
+            }
+
+        .package-card .card-body > p {
+            min-height: auto;
+        }
+
+        .maintenance-pagination {
+            flex-wrap: wrap;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .package-card,
+        .maintenance-filter-body .btn-warning {
+            transition: none !important;
+        }
+
+            .package-card:hover,
+            .maintenance-filter-body .btn-warning:hover {
+                transform: none;
+            }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function addToCart(type, id, name) {
+            Swal.fire({
+                title: 'Xác nhận',
+                html: 'Bạn có chắc chắn muốn thêm <b>' + (name || type) + '</b> vào giỏ hàng?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#262626',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Cart/AddToCart',
+                        type: 'POST',
+                        data: { itemType: type, itemId: id, quantity: 1 },
+                        success: function(res) {
+                            if (res.success) {
+                                updateNavbarCartCount(res.cartCount);
+                                Swal.fire({
+                                    title: 'Đã thêm vào giỏ hàng!',
+                                    text: 'Bạn có muốn đi đến giỏ hàng chung để thanh toán?',
+                                    icon: 'success',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ffc107',
+                                    cancelButtonColor: '#262626',
+                                    confirmButtonText: 'Đi đến giỏ hàng',
+                                    cancelButtonText: 'Tiếp tục xem'
+                                }).then((navResult) => {
+                                    if (navResult.isConfirmed) {
+                                        window.location.href = '/Cart/Index';
+                                    }
+                                });
+                            } else {
+                                Swal.fire('Thất bại!', res.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Lỗi!', 'Đã xảy ra lỗi kết nối.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+        function updateNavbarCartCount(count) {
+            var badge = $('#navbarCartCount');
+            if (badge.length) {
+                badge.text(count);
+                count > 0 ? badge.removeClass('d-none') : badge.addClass('d-none');
+            }
+        }
+    </script>
+}
+
+

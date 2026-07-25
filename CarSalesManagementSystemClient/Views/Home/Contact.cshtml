@@ -1,0 +1,762 @@
+@{
+    ViewData["Title"] = "Liên hệ - Group7 ECO DRIVE";
+}
+
+<style>
+    :root {
+        --contact-primary: #111318;
+        --contact-secondary: #1b1e24;
+        --contact-accent: #f5b800;
+        --contact-accent-dark: #d69f00;
+        --contact-danger: #dc3545;
+        --contact-text: #17191d;
+        --contact-muted: #6f747d;
+        --contact-surface: #ffffff;
+        --contact-background: #f5f6f8;
+        --contact-border: #e7e9ed;
+        --contact-radius-lg: 28px;
+        --contact-radius-md: 20px;
+        --contact-shadow: 0 24px 60px rgba(17, 19, 24, 0.1);
+    }
+
+    .contact-page {
+        background-color: var(--contact-background);
+        color: var(--contact-text);
+        overflow: hidden;
+    }
+
+    /* =========================
+           HERO
+        ========================== */
+
+    .contact-header {
+        position: relative;
+        min-height: 560px;
+        display: flex;
+        align-items: center;
+        background: linear-gradient( 90deg, rgba(8, 10, 14, 0.96) 0%, rgba(8, 10, 14, 0.84) 48%, rgba(8, 10, 14, 0.35) 100% ), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1920') center 58% / cover no-repeat;
+    }
+
+        .contact-header::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient( circle at 16% 30%, rgba(245, 184, 0, 0.15), transparent 28% );
+            pointer-events: none;
+        }
+
+        .contact-header::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 120px;
+            background: linear-gradient( to top, rgba(0, 0, 0, 0.38), transparent );
+            pointer-events: none;
+        }
+
+    .contact-header-content {
+        position: relative;
+        z-index: 2;
+        max-width: 720px;
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+
+    .contact-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+        color: var(--contact-accent);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+    }
+
+        .contact-eyebrow::before {
+            content: "";
+            width: 40px;
+            height: 2px;
+            background-color: var(--contact-accent);
+        }
+
+    .contact-main-title {
+        margin-bottom: 22px;
+        color: #ffffff;
+        font-size: clamp(2.8rem, 6vw, 5.4rem);
+        font-weight: 900;
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+        text-transform: uppercase;
+    }
+
+        .contact-main-title span {
+            display: block;
+            color: var(--contact-accent);
+        }
+
+    .contact-header-description {
+        max-width: 590px;
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 1.08rem;
+        line-height: 1.8;
+    }
+
+    /* =========================
+           CONTACT INFORMATION
+        ========================== */
+
+    .contact-information {
+        position: relative;
+        z-index: 5;
+        margin-top: -72px;
+        padding-bottom: 96px;
+    }
+
+    .contact-information-panel {
+        padding: 18px;
+        background-color: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        border-radius: var(--contact-radius-lg);
+        box-shadow: var(--contact-shadow);
+        backdrop-filter: blur(16px);
+    }
+
+    .contact-card {
+        position: relative;
+        height: 100%;
+        min-height: 280px;
+        padding: 36px 30px;
+        background-color: var(--contact-surface);
+        border: 1px solid transparent;
+        border-radius: var(--contact-radius-md);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        overflow: hidden;
+    }
+
+        .contact-card::after {
+            content: "";
+            position: absolute;
+            left: 30px;
+            right: 30px;
+            bottom: 0;
+            height: 3px;
+            background-color: var(--contact-accent);
+            border-radius: 10px 10px 0 0;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .contact-card:hover {
+            z-index: 2;
+            transform: translateY(-8px);
+            border-color: var(--contact-border);
+            box-shadow: 0 22px 45px rgba(17, 19, 24, 0.12);
+        }
+
+            .contact-card:hover::after {
+                transform: scaleX(1);
+            }
+
+    .contact-card-number {
+        position: absolute;
+        top: 22px;
+        right: 26px;
+        color: #f0f1f3;
+        font-size: 3.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.08em;
+        transition: color 0.3s ease;
+    }
+
+    .contact-card:hover .contact-card-number {
+        color: rgba(245, 184, 0, 0.13);
+    }
+
+    .contact-icon {
+        position: relative;
+        z-index: 2;
+        width: 66px;
+        height: 66px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        color: var(--contact-primary);
+        background-color: var(--contact-accent);
+        border-radius: 18px;
+        font-size: 1.5rem;
+        box-shadow: 0 12px 28px rgba(245, 184, 0, 0.25);
+        transition: transform 0.3s ease, border-radius 0.3s ease;
+    }
+
+    .contact-card:hover .contact-icon {
+        transform: rotate(-5deg) scale(1.05);
+        border-radius: 50%;
+    }
+
+    .contact-card-title {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 12px;
+        color: var(--contact-primary);
+        font-size: 1.25rem;
+        font-weight: 800;
+    }
+
+    .contact-card-description {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 0;
+        color: var(--contact-muted);
+        font-size: 0.96rem;
+        line-height: 1.75;
+        overflow-wrap: anywhere;
+    }
+
+    /* =========================
+           GALLERY
+        ========================== */
+
+    .contact-gallery {
+        padding: 96px 0;
+        background-color: var(--contact-primary);
+    }
+
+    .section-heading {
+        margin-bottom: 50px;
+    }
+
+    .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        color: var(--contact-accent);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+        .section-label::before {
+            content: "";
+            width: 28px;
+            height: 2px;
+            background-color: currentColor;
+        }
+
+    .section-title {
+        margin-bottom: 0;
+        color: #ffffff;
+        font-size: clamp(2rem, 4vw, 3.5rem);
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+    }
+
+    .section-description {
+        max-width: 580px;
+        margin: 18px auto 0;
+        color: rgba(255, 255, 255, 0.58);
+        line-height: 1.75;
+    }
+
+    .gallery-card {
+        position: relative;
+        height: 460px;
+        overflow: hidden;
+        border-radius: 24px;
+        background-color: var(--contact-secondary);
+    }
+
+        .gallery-card.gallery-card-small {
+            height: 220px;
+        }
+
+    .gallery-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.65s ease;
+    }
+
+    .gallery-card::before {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        background: linear-gradient( to top, rgba(5, 7, 10, 0.78), transparent 58% );
+        opacity: 0.85;
+        transition: opacity 0.35s ease;
+    }
+
+    .gallery-card:hover .gallery-image {
+        transform: scale(1.07);
+    }
+
+    .gallery-card:hover::before {
+        opacity: 1;
+    }
+
+    .gallery-content {
+        position: absolute;
+        z-index: 2;
+        left: 26px;
+        right: 26px;
+        bottom: 24px;
+        color: #ffffff;
+    }
+
+    .gallery-index {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--contact-accent);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+    }
+
+    .gallery-name {
+        margin-bottom: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    /* =========================
+           SOCIAL CONNECTION
+        ========================== */
+
+    .connect-section {
+        padding: 100px 0;
+        background-color: var(--contact-surface);
+    }
+
+    .connect-panel {
+        position: relative;
+        padding: 70px 30px;
+        background: linear-gradient( 135deg, var(--contact-primary), var(--contact-secondary) );
+        border-radius: var(--contact-radius-lg);
+        box-shadow: var(--contact-shadow);
+        overflow: hidden;
+    }
+
+        .connect-panel::before {
+            content: "";
+            position: absolute;
+            width: 330px;
+            height: 330px;
+            top: -200px;
+            left: -130px;
+            background-color: rgba(245, 184, 0, 0.11);
+            border-radius: 50%;
+        }
+
+        .connect-panel::after {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -150px;
+            bottom: -170px;
+            border: 55px solid rgba(255, 255, 255, 0.035);
+            border-radius: 50%;
+        }
+
+    .connect-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .connect-title {
+        margin-bottom: 16px;
+        color: #ffffff;
+        font-size: clamp(2.2rem, 4vw, 3.7rem);
+        font-weight: 900;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+    }
+
+    .connect-description {
+        max-width: 570px;
+        margin: 0 auto 34px;
+        color: rgba(255, 255, 255, 0.6);
+        line-height: 1.75;
+    }
+
+    .social-list {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .social-btn {
+        width: 58px;
+        height: 58px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 18px;
+        font-size: 1.2rem;
+        text-decoration: none;
+        transition: transform 0.3s ease, border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    }
+
+        .social-btn:hover {
+            color: var(--contact-primary);
+            background-color: var(--contact-accent);
+            border-color: var(--contact-accent);
+            transform: translateY(-6px);
+        }
+
+    /* =========================
+           RESPONSIVE
+        ========================== */
+
+    @@media (max-width: 991.98px) {
+        .contact-header {
+            min-height: 500px;
+            background-position: 62% center;
+        }
+
+        .contact-header-content {
+            max-width: 640px;
+        }
+
+        .contact-information {
+            margin-top: -50px;
+            padding-bottom: 72px;
+        }
+
+        .contact-information-panel {
+            padding: 12px;
+        }
+
+        .contact-card {
+            min-height: 250px;
+        }
+
+        .gallery-card,
+        .gallery-card.gallery-card-small {
+            height: 330px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .contact-header {
+            min-height: 470px;
+            text-align: center;
+            background-position: 68% center;
+        }
+
+        .contact-header {
+            background: linear-gradient( rgba(8, 10, 14, 0.88), rgba(8, 10, 14, 0.9) ), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1920') 68% center / cover no-repeat;
+        }
+
+        .contact-header-content {
+            margin: 0 auto;
+        }
+
+        .contact-eyebrow {
+            justify-content: center;
+        }
+
+        .contact-header-description {
+            margin-right: auto;
+            margin-left: auto;
+            font-size: 1rem;
+        }
+
+        .contact-information {
+            margin-top: -34px;
+            padding-bottom: 60px;
+        }
+
+        .contact-information-panel {
+            border-radius: 22px;
+        }
+
+        .contact-card {
+            min-height: auto;
+            padding: 30px 26px;
+        }
+
+        .contact-gallery,
+        .connect-section {
+            padding: 72px 0;
+        }
+
+        .gallery-card,
+        .gallery-card.gallery-card-small {
+            height: 300px;
+        }
+
+        .connect-panel {
+            padding: 55px 22px;
+            border-radius: 24px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .contact-main-title {
+            font-size: 2.65rem;
+        }
+
+        .contact-header-description {
+            line-height: 1.65;
+        }
+
+        .contact-card-number {
+            font-size: 3rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .gallery-card,
+        .gallery-card.gallery-card-small {
+            height: 260px;
+            border-radius: 18px;
+        }
+
+        .gallery-content {
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+        }
+
+        .social-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+        }
+    }
+</style>
+
+<div class="contact-page">
+
+    <!-- Page Header -->
+    <section class="contact-header">
+        <div class="container">
+            <div class="contact-header-content">
+                <div class="contact-eyebrow">
+                    Contact us
+                </div>
+
+                <h1 class="contact-main-title">
+                    Group7
+                    <span>ECO DRIVE</span>
+                </h1>
+
+                <p class="contact-header-description">
+                    Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn trong quá trình
+                    lựa chọn xe, phụ tùng và các dịch vụ chăm sóc phương tiện.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Information -->
+    <section class="contact-information">
+        <div class="container">
+            <div class="contact-information-panel">
+                <div class="row g-3">
+
+                    <!-- Email -->
+                    <div class="col-lg-4">
+                        <div class="contact-card">
+                            <span class="contact-card-number">01</span>
+
+                            <div class="contact-icon">
+                                <i class="bi bi-envelope-fill"></i>
+                            </div>
+
+                            <h2 class="contact-card-title">Gửi Email</h2>
+
+                            <p class="contact-card-description">
+                                dinhnhatquan0311@gmail.com
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="col-lg-4">
+                        <div class="contact-card">
+                            <span class="contact-card-number">02</span>
+
+                            <div class="contact-icon">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+
+                            <h2 class="contact-card-title">Đến Văn Phòng</h2>
+
+                            <p class="contact-card-description">
+                                Trường Đại học FPT<br />
+                                Khu Công nghệ cao Hòa Lạc
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="col-lg-4">
+                        <div class="contact-card">
+                            <span class="contact-card-number">03</span>
+
+                            <div class="contact-icon">
+                                <i class="bi bi-telephone-fill"></i>
+                            </div>
+
+                            <h2 class="contact-card-title">Gọi Cho Chúng Tôi</h2>
+
+                            <p class="contact-card-description">
+                                (+84) 035 949 2991
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section class="contact-gallery">
+        <div class="container">
+            <div class="section-heading text-center">
+                <div class="section-label">
+                    Our showroom
+                </div>
+
+                <h2 class="section-title">
+                    Không gian trưng bày
+                </h2>
+
+                <p class="section-description">
+                    Khám phá không gian hiện đại cùng những mẫu xe nổi bật tại
+                    Group7 ECO DRIVE.
+                </p>
+            </div>
+
+            <div class="row g-4">
+
+                <div class="col-lg-7">
+                    <div class="gallery-card">
+                        <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=1000"
+                             class="gallery-image"
+                             alt="Showroom" />
+
+                        <div class="gallery-content">
+                            <span class="gallery-index">01 / SHOWROOM</span>
+                            <h3 class="gallery-name">
+                                Không gian trưng bày hiện đại
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="row g-4">
+
+                        <div class="col-12">
+                            <div class="gallery-card gallery-card-small">
+                                <img src="https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1000"
+                                     class="gallery-image"
+                                     alt="Luxury Car" />
+
+                                <div class="gallery-content">
+                                    <span class="gallery-index">02 / VEHICLE</span>
+                                    <h3 class="gallery-name">
+                                        Những mẫu xe cao cấp
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="gallery-card gallery-card-small">
+                                <img src="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?q=80&w=1000"
+                                     class="gallery-image"
+                                     alt="Car Detail" />
+
+                                <div class="gallery-content">
+                                    <span class="gallery-index">03 / DETAIL</span>
+                                    <h3 class="gallery-name">
+                                        Chất lượng trong từng chi tiết
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Connection -->
+    <section class="connect-section">
+        <div class="container">
+            <div class="connect-panel">
+                <div class="connect-content text-center">
+                    <div class="section-label">
+                        Stay connected
+                    </div>
+
+                    <h2 class="connect-title">
+                        Let's Connect
+                    </h2>
+
+                    <p class="connect-description">
+                        Kết nối với Group7 ECO DRIVE để nhận tư vấn và cập nhật
+                        những thông tin mới nhất.
+                    </p>
+
+                    <div class="social-list">
+                        <a href="javascript:void(0);"
+                           class="social-btn"
+                           title="Facebook"
+                           aria-label="Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+
+                        <a href="javascript:void(0);"
+                           class="social-btn"
+                           title="TikTok"
+                           aria-label="TikTok">
+                            <i class="bi bi-tiktok"></i>
+                        </a>
+
+                        <a href="mailto:group7@gmail.com"
+                           class="social-btn"
+                           title="Email"
+                           aria-label="Email">
+                            <i class="bi bi-envelope-fill"></i>
+                        </a>
+
+                        <a href="tel:0359492991"
+                           class="social-btn"
+                           title="Phone"
+                           aria-label="Phone">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>

@@ -1,0 +1,50 @@
+.vs/
+.vscode/
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+
+# Build directories
+[Bb]in/
+[Oo]bj/
+appsettings.Development.json
+appsettings.Local.json
+
+# Build outputs
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Local environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/

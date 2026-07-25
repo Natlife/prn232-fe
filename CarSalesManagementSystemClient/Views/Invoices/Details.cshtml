@@ -1,0 +1,1338 @@
+@model CarSalesManagementSystemClient.Models.InvoiceListItemViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết hóa đơn " + Model.InvoiceNumber;
+
+    string Money(decimal v) => v.ToString("N0") + " đ";
+
+    string TypeLabel(string t) => t switch
+    {
+        "Car" => "Ô tô",
+        "Part" => "Phụ tùng",
+        "Service" => "Dịch vụ",
+        "Combined" => "Gộp",
+        _ => t
+    };
+}
+
+<style>
+    :root {
+        --invoice-primary: #17191e;
+        --invoice-secondary: #252830;
+        --invoice-accent: #f5b800;
+        --invoice-accent-hover: #ffca28;
+        --invoice-background: #f4f5f7;
+        --invoice-surface: #ffffff;
+        --invoice-border: #e5e7eb;
+        --invoice-text: #1b1d22;
+        --invoice-muted: #747983;
+        --invoice-danger: #dc3545;
+        --invoice-success: #198754;
+        --invoice-info: #0ea5e9;
+        --invoice-radius-lg: 12px;
+        --invoice-radius-md: 8px;
+        --invoice-shadow: 0 18px 46px rgba(17, 19, 24, 0.08);
+    }
+
+    .invoice-detail-page {
+        min-height: 100vh;
+        padding: 36px 0 76px;
+        background:
+            radial-gradient(
+                circle at 94% 6%,
+                rgba(245, 184, 0, 0.11),
+                transparent 25%
+            ),
+            var(--invoice-background);
+    }
+
+    .invoice-detail-container {
+        width: 100%;
+        max-width: 1060px;
+        margin: 0 auto;
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+    /* Header */
+
+    .invoice-page-header {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 25px;
+        padding: 30px 34px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 89% 11%,
+                rgba(245, 184, 0, 0.19),
+                transparent 31%
+            ),
+            linear-gradient(
+                135deg,
+                var(--invoice-primary),
+                var(--invoice-secondary)
+            );
+        border-radius: var(--invoice-radius-lg);
+        box-shadow: 0 20px 48px rgba(17, 19, 24, 0.16);
+        overflow: hidden;
+    }
+
+    .invoice-page-header::after {
+        content: "INVOICE";
+        position: absolute;
+        top: -34px;
+        right: 24px;
+        color: rgba(255, 255, 255, 0.035);
+        font-size: 7.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.08em;
+        pointer-events: none;
+    }
+
+    .invoice-header-content,
+    .invoice-header-action {
+        position: relative;
+        z-index: 2;
+    }
+
+    .invoice-header-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--invoice-accent);
+        font-size: 0.71rem;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+
+    .invoice-header-label::before {
+        content: "";
+        width: 31px;
+        height: 2px;
+        background-color: var(--invoice-accent);
+    }
+
+    .invoice-page-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 9px;
+        font-size: clamp(1.7rem, 3vw, 2.4rem);
+        font-weight: 950;
+        line-height: 1.15;
+        letter-spacing: -0.045em;
+    }
+
+    .invoice-page-title i {
+        color: var(--invoice-accent);
+    }
+
+    .invoice-page-description {
+        max-width: 610px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.88rem;
+        line-height: 1.65;
+    }
+
+    .invoice-back-button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 10px 16px;
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        font-size: 0.73rem;
+        font-weight: 900;
+        text-decoration: none;
+        white-space: nowrap;
+        backdrop-filter: blur(8px);
+        transition:
+            color 0.2s ease,
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .invoice-back-button:hover {
+        color: var(--invoice-primary);
+        background-color: var(--invoice-accent);
+        border-color: var(--invoice-accent);
+        transform: translateY(-2px);
+    }
+
+    /* Main invoice */
+
+    .invoice-main-card {
+        overflow: hidden;
+        margin-bottom: 20px;
+        background-color: var(--invoice-surface);
+        border: 1px solid var(--invoice-border);
+        border-radius: var(--invoice-radius-lg);
+        box-shadow: var(--invoice-shadow);
+    }
+
+    .invoice-summary-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 25px;
+        padding: 25px 27px;
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #fafafa
+            );
+        border-bottom: 1px solid var(--invoice-border);
+    }
+
+    .invoice-number-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #92969e;
+        font-size: 0.64rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .invoice-number {
+        margin-bottom: 7px;
+        color: var(--invoice-primary);
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 0.045em;
+    }
+
+    .invoice-created-date {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 13px;
+        color: var(--invoice-muted);
+        font-size: 0.74rem;
+    }
+
+    .invoice-created-date i {
+        color: #9a7300;
+    }
+
+    .invoice-badge-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+    .invoice-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 0.66rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .invoice-type-badge {
+        color: #52525b;
+        background-color: #f1f2f4;
+        border-color: #dedfe3;
+    }
+
+    .invoice-purchase-badge {
+        color: #ffffff;
+        background-color: var(--invoice-primary);
+        border-color: var(--invoice-primary);
+    }
+
+    .invoice-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 13px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .invoice-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        background-color: currentColor;
+        border-radius: 50%;
+    }
+
+    .invoice-status-cancelled {
+        color: #991b1b;
+        background-color: #fee2e2;
+        border-color: #fecaca;
+    }
+
+    .invoice-status-paid {
+        color: #166534;
+        background-color: #dcfce7;
+        border-color: #bbf7d0;
+    }
+
+    .invoice-status-deposited {
+        color: #075985;
+        background-color: #e0f2fe;
+        border-color: #bae6fd;
+    }
+
+    .invoice-status-pending {
+        color: #805f00;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .invoice-card-body {
+        padding: 27px;
+    }
+
+    /* Section title */
+
+    .invoice-section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 17px;
+        color: var(--invoice-primary);
+        font-size: 0.83rem;
+        font-weight: 950;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .invoice-section-title-icon {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #8f6b00;
+        background-color: rgba(245, 184, 0, 0.13);
+        border-radius: 6px;
+        font-size: 0.88rem;
+    }
+
+    /* Invoice lines */
+
+    .invoice-line-list {
+        overflow: hidden;
+        margin: 0 0 25px;
+        padding: 0;
+        border: 1px solid var(--invoice-border);
+        border-radius: 8px;
+        list-style: none;
+    }
+
+    .invoice-line-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 22px;
+        padding: 15px 17px;
+        background-color: #ffffff;
+        border-bottom: 1px solid #eff0f2;
+        transition: background-color 0.2s ease;
+    }
+
+    .invoice-line-item:last-child {
+        border-bottom: 0;
+    }
+
+    .invoice-line-item:hover {
+        background-color: #fbfbfc;
+    }
+
+    .invoice-line-content {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .invoice-line-description {
+        color: #4f545d;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .invoice-line-type {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 9px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 0.63rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .invoice-line-type-car {
+        color: #805f00;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .invoice-line-type-part {
+        color: #52525b;
+        background-color: #f1f2f4;
+        border-color: #dedfe3;
+    }
+
+    .invoice-line-type-service {
+        color: #075985;
+        background-color: #e0f2fe;
+        border-color: #bae6fd;
+    }
+
+    .invoice-line-amount {
+        flex: 0 0 auto;
+        color: var(--invoice-primary);
+        font-size: 0.79rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    /* Price summary */
+
+    .invoice-total-layout {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .invoice-total-card {
+        width: 100%;
+        max-width: 450px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border: 1px solid var(--invoice-border);
+        border-radius: 8px;
+    }
+
+    .invoice-total-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 10px;
+        color: #656a73;
+        font-size: 0.76rem;
+    }
+
+    .invoice-total-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .invoice-total-row span:last-child {
+        color: var(--invoice-primary);
+        font-weight: 800;
+        text-align: right;
+    }
+
+    .invoice-grand-total {
+        margin: 15px 0 12px;
+        padding-top: 15px;
+        color: var(--invoice-primary);
+        border-top: 1px solid #dfe2e6;
+        font-size: 0.94rem;
+        font-weight: 950;
+    }
+
+    .invoice-grand-total span:last-child {
+        color: #b42318;
+        font-size: 1.15rem;
+    }
+
+    .invoice-deposit-row {
+        margin-top: 11px;
+        padding-top: 11px;
+        border-top: 1px dashed #d9dce1;
+    }
+
+    .invoice-paid-value {
+        color: var(--invoice-success) !important;
+    }
+
+    .invoice-remaining-value {
+        color: var(--invoice-danger) !important;
+    }
+
+    /* Notes */
+
+    .invoice-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 15px 17px;
+        color: #5c616a;
+        background-color: #ffffff;
+        border: 1px solid var(--invoice-border);
+        border-radius: 8px;
+        box-shadow: 0 9px 25px rgba(17, 19, 24, 0.045);
+        font-size: 0.78rem;
+        line-height: 1.6;
+    }
+
+    .invoice-note i {
+        flex: 0 0 auto;
+        margin-top: 2px;
+        color: #8f6b00;
+    }
+
+    /* State messages */
+
+    .invoice-state-message {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 16px 18px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        box-shadow: 0 9px 25px rgba(17, 19, 24, 0.045);
+        font-size: 0.79rem;
+        line-height: 1.6;
+    }
+
+    .invoice-state-message i {
+        flex: 0 0 auto;
+        margin-top: 2px;
+    }
+
+    .invoice-state-cancelled {
+        color: #991b1b;
+        background-color: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .invoice-state-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    /* Verification card */
+
+    .invoice-verification-card {
+        overflow: hidden;
+        background-color: var(--invoice-surface);
+        border: 1px solid var(--invoice-border);
+        border-radius: var(--invoice-radius-lg);
+        box-shadow: var(--invoice-shadow);
+    }
+
+    .invoice-verification-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 23px;
+        color: #ffffff;
+        background:
+            radial-gradient(
+                circle at 90% 10%,
+                rgba(245, 184, 0, 0.16),
+                transparent 33%
+            ),
+            linear-gradient(
+                135deg,
+                var(--invoice-primary),
+                var(--invoice-secondary)
+            );
+    }
+
+    .invoice-verification-icon {
+        width: 43px;
+        height: 43px;
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        color: var(--invoice-primary);
+        background-color: var(--invoice-accent);
+        border-radius: 8px;
+        font-size: 1.05rem;
+    }
+
+    .invoice-verification-title {
+        margin: 0 0 3px;
+        font-size: 0.95rem;
+        font-weight: 950;
+    }
+
+    .invoice-verification-subtitle {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 0.7rem;
+    }
+
+    .invoice-verification-body {
+        padding: 24px;
+    }
+
+    .invoice-transfer-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 21px;
+        padding: 14px 16px;
+        color: #7c5b00;
+        background-color: #fff9df;
+        border: 1px solid #fde68a;
+        border-radius: 6px;
+        font-size: 0.77rem;
+        line-height: 1.6;
+    }
+
+    .invoice-transfer-notice i {
+        flex: 0 0 auto;
+        margin-top: 2px;
+    }
+
+    .invoice-verification-label {
+        display: block;
+        margin-bottom: 10px;
+        color: #40444c;
+        font-size: 0.76rem;
+        font-weight: 900;
+        line-height: 1.55;
+    }
+
+    .invoice-verification-label span {
+        color: #876500;
+    }
+
+    .invoice-captcha-form {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .invoice-captcha-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 280px;
+    }
+
+    .invoice-captcha-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 15px;
+        color: #999da5;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .invoice-captcha-input {
+        width: 100%;
+        min-height: 50px;
+        padding: 11px 14px 11px 42px;
+        color: var(--invoice-primary);
+        background-color: #f8f9fa;
+        border: 1px solid var(--invoice-border);
+        border-radius: 8px;
+        outline: none;
+        font-family: monospace;
+        font-size: 0.9rem;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .invoice-captcha-input::placeholder {
+        color: #a7abb2;
+        letter-spacing: 0.12em;
+    }
+
+    .invoice-captcha-input:focus {
+        background-color: #ffffff;
+        border-color: var(--invoice-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .invoice-verify-button {
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 11px 18px;
+        color: var(--invoice-primary);
+        background-color: var(--invoice-accent);
+        border: 1px solid var(--invoice-accent);
+        border-radius: 8px;
+        font-size: 0.73rem;
+        font-weight: 900;
+        white-space: nowrap;
+        box-shadow: 0 12px 27px rgba(245, 184, 0, 0.19);
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .invoice-verify-button:hover:not(:disabled) {
+        color: var(--invoice-primary);
+        background-color: var(--invoice-accent-hover);
+        border-color: var(--invoice-accent-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(245, 184, 0, 0.26);
+    }
+
+    .invoice-verify-button-final {
+        color: #ffffff;
+        background-color: var(--invoice-success);
+        border-color: var(--invoice-success);
+        box-shadow: 0 12px 27px rgba(25, 135, 84, 0.16);
+    }
+
+    .invoice-verify-button-final:hover:not(:disabled) {
+        color: #ffffff;
+        background-color: #157347;
+        border-color: #157347;
+        box-shadow: 0 16px 32px rgba(25, 135, 84, 0.22);
+    }
+
+    .invoice-verify-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+        transform: none;
+    }
+
+    /* Responsive */
+
+    @@media (max-width: 767.98px) {
+        .invoice-detail-page {
+            padding-top: 24px;
+        }
+
+        .invoice-detail-container {
+            padding-right: 13px;
+            padding-left: 13px;
+        }
+
+        .invoice-page-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 25px 22px;
+            border-radius: 20px;
+        }
+
+        .invoice-page-header::after {
+            display: none;
+        }
+
+        .invoice-header-action,
+        .invoice-back-button {
+            width: 100%;
+        }
+
+        .invoice-main-card,
+        .invoice-verification-card {
+            border-radius: 20px;
+        }
+
+        .invoice-summary-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 21px;
+        }
+
+        .invoice-card-body {
+            padding: 21px;
+        }
+
+        .invoice-line-item {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .invoice-line-content {
+            align-items: flex-start;
+        }
+
+        .invoice-line-amount {
+            align-self: flex-end;
+        }
+
+        .invoice-total-card {
+            max-width: none;
+        }
+
+        .invoice-captcha-form {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .invoice-captcha-wrapper {
+            max-width: none;
+        }
+
+        .invoice-verify-button {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .invoice-page-title {
+            font-size: 1.5rem;
+        }
+
+        .invoice-page-description {
+            font-size: 0.81rem;
+        }
+
+        .invoice-number {
+            font-size: 1.05rem;
+        }
+
+        .invoice-line-content {
+            flex-direction: column;
+        }
+
+        .invoice-total-row {
+            font-size: 0.72rem;
+        }
+
+        .invoice-grand-total {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .invoice-grand-total span:last-child {
+            text-align: left;
+        }
+
+        .invoice-verification-body {
+            padding: 19px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .invoice-back-button,
+        .invoice-verify-button,
+        .invoice-captcha-input {
+            transition: none;
+        }
+
+        .invoice-back-button:hover,
+        .invoice-verify-button:hover {
+            transform: none;
+        }
+    }
+</style>
+
+<main class="invoice-detail-page">
+    <div class="invoice-detail-container">
+
+        <!-- Header -->
+        <header class="invoice-page-header">
+            <div class="invoice-header-content">
+                <div class="invoice-header-label">
+                    Invoice details
+                </div>
+
+                <h1 class="invoice-page-title">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    Chi tiết hóa đơn
+                </h1>
+
+                <p class="invoice-page-description">
+                    Theo dõi danh mục sản phẩm, tổng chi phí và trạng thái thanh toán
+                    của hóa đơn.
+                </p>
+            </div>
+
+            <div class="invoice-header-action">
+                <a
+                    href="/Invoices"
+                    class="invoice-back-button">
+                    <i class="bi bi-arrow-left"></i>
+                    Danh sách hóa đơn
+                </a>
+            </div>
+        </header>
+
+        <!-- Invoice information -->
+        <section class="invoice-main-card">
+            <div class="invoice-summary-header">
+                <div>
+                    <span class="invoice-number-label">
+                        Mã hóa đơn
+                    </span>
+
+                    <div class="invoice-number">
+                        @Model.InvoiceNumber
+                    </div>
+
+                    <div class="invoice-created-date">
+                        <i class="bi bi-calendar-event"></i>
+                        Lập ngày @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+
+                    <div class="invoice-badge-list">
+                        <span class="invoice-badge invoice-type-badge">
+                            <i class="bi bi-tag-fill"></i>
+                            @TypeLabel(Model.InvoiceType)
+                        </span>
+
+                        <span class="invoice-badge invoice-purchase-badge">
+                            <i class="bi bi-cash-stack"></i>
+                            @(Model.IsDeposit ? "Đặt cọc" : "Mua đứt")
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    @if (Model.IsCancelled)
+                    {
+                        <span class="invoice-status invoice-status-cancelled">
+                            Đã hủy
+                        </span>
+                    }
+                    else if (Model.IsPaid)
+                    {
+                        <span class="invoice-status invoice-status-paid">
+                            Đã thanh toán
+                        </span>
+                    }
+                    else if (Model.IsDeposited)
+                    {
+                        <span class="invoice-status invoice-status-deposited">
+                            Đã đặt cọc
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="invoice-status invoice-status-pending">
+                            Chờ xác thực
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <div class="invoice-card-body">
+                <h2 class="invoice-section-title">
+                    <span class="invoice-section-title-icon">
+                        <i class="bi bi-list-check"></i>
+                    </span>
+                    Danh mục hóa đơn
+                </h2>
+
+                <ul class="invoice-line-list">
+                    @foreach (var line in Model.Lines)
+                    {
+                        <li class="invoice-line-item">
+                            <div class="invoice-line-content">
+                                <span class="invoice-line-type @(line.ItemType == "Car"
+                                    ? "invoice-line-type-car"
+                                    : line.ItemType == "Part"
+                                        ? "invoice-line-type-part"
+                                        : "invoice-line-type-service")">
+
+                                    @TypeLabel(line.ItemType)
+                                </span>
+
+                                <span class="invoice-line-description">
+                                    @line.Description
+                                </span>
+                            </div>
+
+                            <span class="invoice-line-amount">
+                                @Money(line.SubTotal)
+                            </span>
+                        </li>
+                    }
+                </ul>
+
+                <div class="invoice-total-layout">
+                    <div class="invoice-total-card">
+                        <div class="invoice-total-row">
+                            <span>Tạm tính</span>
+                            <span>@Money(Model.TotalSubTotal)</span>
+                        </div>
+
+                        <div class="invoice-total-row">
+                            <span>Chiết khấu</span>
+                            <span>- @Money(Model.DiscountAmount)</span>
+                        </div>
+
+                        <div class="invoice-total-row">
+                            <span>Thuế</span>
+                            <span>@Money(Model.TaxAmount)</span>
+                        </div>
+
+                        <div class="invoice-total-row invoice-grand-total">
+                            <span>Tổng cộng</span>
+                            <span>@Money(Model.TotalAmount)</span>
+                        </div>
+
+                        @if (Model.IsDeposit && Model.DepositAmount.HasValue)
+                        {
+                            <div class="invoice-deposit-row">
+                                <div class="invoice-total-row">
+                                    <span>Tiền cọc</span>
+                                    <span>@Money(Model.DepositAmount.Value)</span>
+                                </div>
+
+                                @if (Model.IsDeposited)
+                                {
+                                    <div class="invoice-total-row">
+                                        <span>Đã cọc</span>
+
+                                        <span class="invoice-paid-value">
+                                            @Money(Model.DepositPaidAmount ?? 0)
+                                        </span>
+                                    </div>
+
+                                    <div class="invoice-total-row">
+                                        <span>Còn phải trả</span>
+
+                                        <span class="invoice-remaining-value">
+                                            @Money(Model.RemainingAmount)
+                                        </span>
+                                    </div>
+
+                                    @if (Model.DepositExpiresAt.HasValue)
+                                    {
+                                        <div class="invoice-total-row">
+                                            <span>Giữ chỗ đến</span>
+
+                                            <span>
+                                                @Model.DepositExpiresAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="invoice-note">
+                <i class="bi bi-sticky-fill"></i>
+                <span>@Model.Notes</span>
+            </div>
+        }
+
+        @if (!Model.IsPaid && !Model.IsDeposited && !Model.IsCancelled)
+        {
+            <div class="mb-4 p-3.5 rounded-4 bg-dark text-warning border border-warning border-opacity-25 shadow-sm d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning bg-opacity-10 text-warning p-2.5 rounded-3 border border-warning border-opacity-25 fs-3 d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white fs-6">Hạn khóa số lượng &amp; giữ chỗ xe tạm thời (30 phút)</div>
+                        <div class="small text-white-50">Vui lòng liên hệ nhân viên nhận mã &amp; nhập xác thực trước khi hết giờ. Quá 30 phút hóa đơn sẽ tự động hủy &amp; thả sản phẩm.</div>
+                    </div>
+                </div>
+                <div class="text-end ms-auto bg-black bg-opacity-50 px-3 py-2 rounded-3 border border-secondary border-opacity-25">
+                    <div class="small text-warning fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.1em;">THỜI GIAN CÒN LẠI</div>
+                    <div class="fs-3 fw-bold text-warning font-monospace lh-1 mt-1" id="invoiceDetailTimer">--:--</div>
+                </div>
+            </div>
+        }
+
+        @if (Model.IsCancelled)
+        {
+            <div class="invoice-state-message invoice-state-cancelled">
+                <i class="bi bi-x-circle-fill"></i>
+                <span>Hóa đơn đã bị hủy.</span>
+            </div>
+        }
+        else if (Model.NextAction == "deposit")
+        {
+            <section class="invoice-verification-card">
+                <div class="invoice-verification-header">
+                    <div class="invoice-verification-icon">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="invoice-verification-title">
+                            Xác nhận đặt cọc
+                        </h2>
+
+                        <p class="invoice-verification-subtitle">
+                            Nhập mã bảo mật do nhân viên cung cấp
+                        </p>
+                    </div>
+                </div>
+
+                <div class="invoice-verification-body">
+                    @if (Model.DepositAmount.HasValue)
+                    {
+                        <div class="invoice-transfer-notice">
+                            <i class="bi bi-bank"></i>
+
+                            <span>
+                                Vui lòng chuyển khoản
+                                <strong>
+                                    đặt cọc: @Money(Model.DepositAmount.Value)
+                                </strong>
+                                rồi liên hệ nhân viên qua hotline
+                                <strong>(+84) 0359492991</strong>
+                                để nhận mã.
+                            </span>
+                        </div>
+                    }
+
+                    <label
+                        for="captchaInput"
+                        class="invoice-verification-label">
+                        Nhập mã xác thực
+                        <span>ĐẶT CỌC</span>
+                        do nhân viên cấp:
+                    </label>
+
+                    <div class="invoice-captcha-form">
+                        <div class="invoice-captcha-wrapper">
+                            <i class="bi bi-shield-lock invoice-captcha-icon"></i>
+
+                            <input
+                                type="text"
+                                id="captchaInput"
+                                class="invoice-captcha-input"
+                                maxlength="20"
+                                placeholder="VD: A1B2C3" />
+                        </div>
+
+                        <button
+                            type="button"
+                            class="invoice-verify-button"
+                            id="btnVerify"
+                            data-stage="deposit">
+                            <i class="bi bi-cash-stack"></i>
+                            Xác nhận đặt cọc
+                        </button>
+                    </div>
+                </div>
+            </section>
+        }
+        else if (Model.NextAction == "final")
+        {
+            <section class="invoice-verification-card">
+                <div class="invoice-verification-header">
+                    <div class="invoice-verification-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="invoice-verification-title">
+                            Xác nhận thanh toán
+                        </h2>
+
+                        <p class="invoice-verification-subtitle">
+                            Hoàn tất bước thanh toán cuối cùng của hóa đơn
+                        </p>
+                    </div>
+                </div>
+
+                <div class="invoice-verification-body">
+                    <label
+                        for="captchaInput"
+                        class="invoice-verification-label">
+                        Nhập mã xác thực
+                        @(Model.IsDeposit
+                            ? "TẤT TOÁN (trả nốt " + Money(Model.RemainingAmount) + ")"
+                            : "MUA ĐỨT")
+                        do nhân viên cấp:
+                    </label>
+
+                    <div class="invoice-captcha-form">
+                        <div class="invoice-captcha-wrapper">
+                            <i class="bi bi-shield-lock invoice-captcha-icon"></i>
+
+                            <input
+                                type="text"
+                                id="captchaInput"
+                                class="invoice-captcha-input"
+                                maxlength="20"
+                                placeholder="VD: A1B2C3" />
+                        </div>
+
+                        <button
+                            type="button"
+                            class="invoice-verify-button invoice-verify-button-final"
+                            id="btnVerify"
+                            data-stage="final">
+                            <i class="bi bi-check-circle-fill"></i>
+
+                            @(Model.IsDeposit
+                                ? "Tất toán"
+                                : "Xác nhận mua đứt")
+                        </button>
+                    </div>
+                </div>
+            </section>
+        }
+        else if (Model.IsPaid)
+        {
+            <div class="invoice-state-message invoice-state-success">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Hóa đơn đã hoàn tất thanh toán.</span>
+            </div>
+        }
+
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        (function () {
+            const input = document.getElementById('captchaInput');
+            const btn = document.getElementById('btnVerify');
+
+            if (input) {
+                input.addEventListener('input', () =>
+                    input.value = input.value.toUpperCase()
+                );
+            }
+
+            if (!btn) return;
+
+            btn.addEventListener('click', async function () {
+                const code = (input && input.value || '').trim();
+                const stage = btn.getAttribute('data-stage');
+
+                if (!code) {
+                    if (window.Swal) {
+                        Swal.fire(
+                            'Thiếu mã',
+                            'Vui lòng nhập mã xác thực.',
+                            'warning'
+                        );
+                    } else {
+                        alert('Vui lòng nhập mã xác thực.');
+                    }
+
+                    return;
+                }
+
+                const original = btn.innerHTML;
+
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý...';
+
+                try {
+                    const url =
+                        stage === 'deposit'
+                            ? '/Invoices/VerifyDeposit'
+                            : '/Invoices/VerifyFinal';
+
+                    const body = new URLSearchParams({
+                        masterInvoiceId: '@Model.MasterInvoiceId',
+                        captchaCode: code
+                    });
+
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type':
+                                'application/x-www-form-urlencoded'
+                        },
+                        body: body.toString()
+                    });
+
+                    const res = await resp.json();
+
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+
+                    if (res.success) {
+                        if (window.Swal) {
+                            await Swal.fire(
+                                'Thành công!',
+                                res.message,
+                                'success'
+                            );
+                        } else {
+                            alert(res.message);
+                        }
+
+                        window.location.reload();
+                    } else {
+                        if (window.Swal) {
+                            Swal.fire(
+                                'Thất bại',
+                                res.message,
+                                'error'
+                            );
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+
+                    if (window.Swal) {
+                        Swal.fire('Lỗi', 'Đã xảy ra lỗi kết nối.', 'error');
+                    } else {
+                        alert('Đã xảy ra lỗi kết nối.');
+                    }
+                }
+            });
+        })();
+
+        // Countdown Timer (30 minutes) - Tính toán thời gian thực từ Backend
+        (function () {
+            const timerEl = document.getElementById('invoiceDetailTimer');
+            if (timerEl) {
+                let remainingSeconds = @Model.RemainingSeconds;
+
+                function tick() {
+                    if (remainingSeconds <= 0) {
+                        timerEl.innerText = "00:00";
+                        timerEl.classList.remove('text-warning');
+                        timerEl.classList.add('text-danger');
+                        return;
+                    }
+
+                    const m = Math.floor(remainingSeconds / 60);
+                    const s = remainingSeconds % 60;
+                    timerEl.innerText = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                    remainingSeconds--;
+                }
+                tick();
+                setInterval(tick, 1000);
+            }
+        })();
+    </script>
+}

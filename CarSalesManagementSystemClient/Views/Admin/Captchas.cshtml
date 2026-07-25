@@ -1,0 +1,1011 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.DepositCaptchaViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Captcha Đặt cọc & Mua xe";
+
+    var carsList =
+        ViewBag.Cars as IEnumerable<CarSalesManagementSystemClient.Models.CarViewModel>
+        ?? new List<CarSalesManagementSystemClient.Models.CarViewModel>();
+}
+
+<style>
+    :root {
+        --captcha-primary: #16181d;
+        --captcha-secondary: #22252c;
+        --captcha-accent: #f5b800;
+        --captcha-accent-hover: #ffc928;
+        --captcha-background: #f4f5f7;
+        --captcha-surface: #ffffff;
+        --captcha-border: #e6e8ec;
+        --captcha-text: #17191d;
+        --captcha-muted: #747983;
+        --captcha-success: #198754;
+        --captcha-danger: #dc3545;
+        --captcha-radius-lg: 24px;
+        --captcha-radius-md: 16px;
+        --captcha-shadow: 0 18px 45px rgba(17, 19, 24, 0.08);
+    }
+
+    .captcha-admin-page {
+        min-height: 100vh;
+        padding: 34px 0 70px;
+        background: radial-gradient( circle at 94% 8%, rgba(245, 184, 0, 0.1), transparent 24% ), var(--captcha-background);
+    }
+
+        .captcha-admin-page .container-fluid {
+            max-width: 1480px;
+            padding-right: 28px;
+            padding-left: 28px;
+        }
+
+    /* Breadcrumb */
+
+    .captcha-breadcrumb {
+        margin-bottom: 22px;
+    }
+
+        .captcha-breadcrumb .breadcrumb {
+            margin-bottom: 0;
+            padding: 0;
+            background-color: transparent;
+        }
+
+        .captcha-breadcrumb .breadcrumb-item {
+            color: #92969e;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+            .captcha-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+                color: #b6b9bf;
+            }
+
+        .captcha-breadcrumb a {
+            color: var(--captcha-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+            .captcha-breadcrumb a:hover {
+                color: var(--captcha-primary);
+            }
+
+        .captcha-breadcrumb .active {
+            color: #9c7400;
+        }
+
+    /* Page header */
+
+    .captcha-page-header {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 28px;
+        padding: 30px 34px;
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.18), transparent 30% ), linear-gradient( 135deg, var(--captcha-primary), var(--captcha-secondary) );
+        border-radius: var(--captcha-radius-lg);
+        box-shadow: 0 20px 48px rgba(17, 19, 24, 0.16);
+        overflow: hidden;
+    }
+
+        .captcha-page-header::after {
+            content: "KEY";
+            position: absolute;
+            top: -30px;
+            right: 24px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .captcha-header-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .captcha-header-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--captcha-accent);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+        .captcha-header-label::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background-color: var(--captcha-accent);
+        }
+
+    .captcha-page-title {
+        margin: 0 0 9px;
+        font-size: clamp(1.65rem, 3vw, 2.45rem);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+    }
+
+    .captcha-page-description {
+        max-width: 680px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.91rem;
+        line-height: 1.65;
+    }
+
+    .captcha-header-icon {
+        position: relative;
+        z-index: 2;
+        flex: 0 0 auto;
+        width: 68px;
+        height: 68px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--captcha-primary);
+        background-color: var(--captcha-accent);
+        border-radius: 20px;
+        font-size: 1.75rem;
+        box-shadow: 0 14px 34px rgba(245, 184, 0, 0.22);
+        transform: rotate(-4deg);
+    }
+
+    /* Alerts */
+
+    .captcha-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 20px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        font-size: 0.87rem;
+        line-height: 1.55;
+        box-shadow: 0 8px 25px rgba(17, 19, 24, 0.05);
+    }
+
+        .captcha-alert i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+    .captcha-alert-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    .captcha-alert-danger {
+        color: #991b1b;
+        background-color: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .captcha-alert .btn-close {
+        margin-left: auto;
+        padding: 3px;
+        font-size: 0.68rem;
+    }
+
+    /* Main cards */
+
+    .captcha-panel {
+        background-color: var(--captcha-surface);
+        border: 1px solid var(--captcha-border);
+        border-radius: var(--captcha-radius-lg);
+        box-shadow: var(--captcha-shadow);
+    }
+
+    /* Create form */
+
+    .captcha-create-panel {
+        position: sticky;
+        top: 92px;
+        padding: 27px;
+    }
+
+    .captcha-panel-heading {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        margin-bottom: 16px;
+    }
+
+    .captcha-panel-icon {
+        flex: 0 0 auto;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--captcha-primary);
+        background-color: var(--captcha-accent);
+        border-radius: 14px;
+        font-size: 1.2rem;
+        box-shadow: 0 10px 24px rgba(245, 184, 0, 0.2);
+    }
+
+    .captcha-panel-title {
+        margin: 0;
+        color: var(--captcha-primary);
+        font-size: 1.15rem;
+        font-weight: 900;
+    }
+
+    .captcha-panel-description {
+        margin-bottom: 24px;
+        color: var(--captcha-muted);
+        font-size: 0.83rem;
+        line-height: 1.65;
+    }
+
+    .captcha-form-group {
+        margin-bottom: 19px;
+    }
+
+    .captcha-label {
+        display: block;
+        margin-bottom: 9px;
+        color: #3e424a;
+        font-size: 0.76rem;
+        font-weight: 800;
+    }
+
+    .captcha-required {
+        color: var(--captcha-danger);
+    }
+
+    .captcha-input-wrapper {
+        position: relative;
+    }
+
+    .captcha-field-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 15px;
+        color: #969ba4;
+        font-size: 0.95rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: color 0.2s ease;
+    }
+
+    .captcha-form-control,
+    .captcha-form-select {
+        width: 100%;
+        min-height: 51px;
+        color: var(--captcha-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--captcha-border);
+        border-radius: 13px;
+        outline: none;
+        font-size: 0.88rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .captcha-form-control {
+        padding: 12px 15px 12px 44px;
+    }
+
+    .captcha-form-select {
+        padding: 12px 42px 12px 44px;
+    }
+
+    .captcha-form-control::placeholder {
+        color: #a6aab1;
+    }
+
+    .captcha-form-control:hover,
+    .captcha-form-select:hover {
+        border-color: #cdd0d6;
+    }
+
+    .captcha-form-control:focus,
+    .captcha-form-select:focus {
+        background-color: #ffffff;
+        border-color: var(--captcha-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .captcha-input-wrapper:focus-within .captcha-field-icon {
+        color: #a07800;
+    }
+
+    .captcha-empty-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-top: 8px;
+        color: var(--captcha-danger);
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .captcha-generate-button {
+        width: 100%;
+        min-height: 52px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        margin-top: 5px;
+        color: var(--captcha-primary);
+        background-color: var(--captcha-accent);
+        border: 1px solid var(--captcha-accent);
+        border-radius: 13px;
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        box-shadow: 0 13px 28px rgba(245, 184, 0, 0.19);
+        transition: transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+        .captcha-generate-button:hover:not(:disabled) {
+            color: var(--captcha-primary);
+            background-color: var(--captcha-accent-hover);
+            border-color: var(--captcha-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 17px 34px rgba(245, 184, 0, 0.26);
+        }
+
+        .captcha-generate-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.52;
+            box-shadow: none;
+        }
+
+    .captcha-form-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 7px;
+        margin: 17px 0 0;
+        color: #999da5;
+        font-size: 0.72rem;
+        line-height: 1.5;
+    }
+
+    /* List panel */
+
+    .captcha-list-panel {
+        overflow: hidden;
+    }
+
+    .captcha-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 22px 25px;
+        background: radial-gradient( circle at 90% 15%, rgba(245, 184, 0, 0.14), transparent 30% ), linear-gradient( 135deg, var(--captcha-primary), var(--captcha-secondary) );
+    }
+
+    .captcha-list-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .captcha-list-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--captcha-accent);
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 12px;
+        font-size: 1.05rem;
+    }
+
+    .captcha-list-title {
+        margin: 0;
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .captcha-count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        min-height: 32px;
+        padding: 6px 13px;
+        color: var(--captcha-accent);
+        background-color: rgba(245, 184, 0, 0.1);
+        border: 1px solid rgba(245, 184, 0, 0.2);
+        border-radius: 999px;
+        font-size: 0.74rem;
+        font-weight: 800;
+    }
+
+    /* Empty state */
+
+    .captcha-empty-state {
+        padding: 78px 25px;
+        text-align: center;
+    }
+
+    .captcha-empty-icon {
+        width: 86px;
+        height: 86px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 22px;
+        color: #9a7300;
+        background-color: rgba(245, 184, 0, 0.1);
+        border: 1px solid rgba(245, 184, 0, 0.18);
+        border-radius: 24px;
+        font-size: 2rem;
+    }
+
+    .captcha-empty-title {
+        margin-bottom: 7px;
+        color: var(--captcha-primary);
+        font-size: 1.05rem;
+        font-weight: 900;
+    }
+
+    .captcha-empty-description {
+        margin-bottom: 0;
+        color: var(--captcha-muted);
+        font-size: 0.82rem;
+    }
+
+    /* Table */
+
+    .captcha-table {
+        margin-bottom: 0;
+    }
+
+        .captcha-table thead th {
+            padding: 15px 18px;
+            color: #777c85;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--captcha-border);
+            font-size: 0.7rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .captcha-table tbody td {
+            padding: 17px 18px;
+            color: #555a63;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eff0f2;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+
+        .captcha-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .captcha-table tbody tr {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+            .captcha-table tbody tr:hover td {
+                background-color: #fbfbfc;
+            }
+
+            .captcha-table tbody tr.captcha-used-row td {
+                background-color: rgba(25, 135, 84, 0.035);
+            }
+
+    .captcha-code {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+        padding: 9px 13px;
+        color: var(--captcha-accent);
+        background-color: var(--captcha-primary);
+        border: 1px solid rgba(245, 184, 0, 0.2);
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 0.88rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        box-shadow: 0 7px 18px rgba(17, 19, 24, 0.12);
+    }
+
+    .captcha-car-name {
+        margin-bottom: 3px;
+        color: var(--captcha-primary);
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    .captcha-car-model {
+        color: #969aa2;
+        font-size: 0.72rem;
+    }
+
+    .captcha-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .captcha-status-used {
+        color: #166534;
+        background-color: #dcfce7;
+        border: 1px solid #bbf7d0;
+    }
+
+    .captcha-status-unused {
+        color: #8a6500;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+    }
+
+    .captcha-date {
+        color: #686d76;
+        font-size: 0.76rem;
+        white-space: nowrap;
+    }
+
+    /* Responsive */
+
+    @@media (max-width: 1199.98px) {
+        .captcha-admin-page .container-fluid {
+            padding-right: 22px;
+            padding-left: 22px;
+        }
+
+        .captcha-create-panel {
+            top: 80px;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .captcha-admin-page {
+            padding-top: 25px;
+        }
+
+        .captcha-create-panel {
+            position: static;
+        }
+
+        .captcha-page-header {
+            padding: 27px;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .captcha-admin-page .container-fluid {
+            padding-right: 14px;
+            padding-left: 14px;
+        }
+
+        .captcha-page-header {
+            align-items: flex-start;
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+        .captcha-header-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            font-size: 1.35rem;
+        }
+
+        .captcha-page-description {
+            font-size: 0.82rem;
+        }
+
+        .captcha-list-header {
+            padding: 18px;
+        }
+
+        .captcha-table thead {
+            display: none;
+        }
+
+        .captcha-table,
+        .captcha-table tbody,
+        .captcha-table tr,
+        .captcha-table td {
+            display: block;
+            width: 100%;
+        }
+
+            .captcha-table tbody tr {
+                padding: 17px 18px;
+                border-bottom: 1px solid var(--captcha-border);
+            }
+
+                .captcha-table tbody tr:last-child {
+                    border-bottom: 0;
+                }
+
+            .captcha-table tbody td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 18px;
+                padding: 8px 0;
+                border: 0;
+                text-align: right;
+            }
+
+                .captcha-table tbody td::before {
+                    content: attr(data-label);
+                    flex: 0 0 100px;
+                    color: #8b9098;
+                    font-size: 0.68rem;
+                    font-weight: 900;
+                    letter-spacing: 0.03em;
+                    text-align: left;
+                    text-transform: uppercase;
+                }
+
+            .captcha-table tbody tr:hover td,
+            .captcha-table tbody tr.captcha-used-row td {
+                background-color: transparent;
+            }
+    }
+
+    @@media (max-width: 575.98px) {
+        .captcha-page-header::after {
+            display: none;
+        }
+
+        .captcha-header-icon {
+            display: none;
+        }
+
+        .captcha-page-title {
+            font-size: 1.5rem;
+        }
+
+        .captcha-create-panel {
+            padding: 22px 18px;
+            border-radius: 19px;
+        }
+
+        .captcha-list-panel {
+            border-radius: 19px;
+        }
+
+        .captcha-list-icon {
+            display: none;
+        }
+
+        .captcha-list-title {
+            font-size: 0.9rem;
+        }
+
+        .captcha-count-badge {
+            min-width: auto;
+            padding: 6px 10px;
+        }
+
+        .captcha-table tbody td {
+            align-items: flex-start;
+        }
+
+        .captcha-date {
+            white-space: normal;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .captcha-generate-button,
+        .captcha-form-control,
+        .captcha-form-select {
+            transition: none;
+        }
+
+            .captcha-generate-button:hover:not(:disabled) {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="captcha-admin-page">
+    <div class="container-fluid">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="captcha-breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-controller="Home" asp-action="Index">
+                        Trang chủ
+                    </a>
+                </li>
+
+                <li class="breadcrumb-item active"
+                    aria-current="page">
+                    Quản lý Captcha
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <header class="captcha-page-header">
+            <div class="captcha-header-content">
+                <div class="captcha-header-label">
+                    Security management
+                </div>
+
+                <h1 class="captcha-page-title">
+                    Quản lý Captcha Đặt cọc / Mua đứt
+                </h1>
+
+                <p class="captcha-page-description">
+                    Sinh mã xác nhận bảo mật để trao đổi trực tiếp với khách hàng.
+                </p>
+            </div>
+
+            <div class="captcha-header-icon">
+                <i class="bi bi-key-fill"></i>
+            </div>
+        </header>
+
+        <!-- Success message -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="captcha-alert captcha-alert-success alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+
+                <span>@TempData["SuccessMessage"]</span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+            </div>
+        }
+
+        <!-- Error message -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="captcha-alert captcha-alert-danger alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <span>@TempData["ErrorMessage"]</span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+            </div>
+        }
+
+        <div class="row g-4">
+
+            <!-- Generate Captcha -->
+            <div class="col-lg-4 col-xl-3">
+                <section class="captcha-panel captcha-create-panel">
+                    <div class="captcha-panel-heading">
+                        <div class="captcha-panel-icon">
+                            <i class="bi bi-magic"></i>
+                        </div>
+
+                        <h2 class="captcha-panel-title">
+                            Sinh mã mới
+                        </h2>
+                    </div>
+
+                    <p class="captcha-panel-description">
+                        Để trống ô "Mã thủ công" để hệ thống tự sinh ngẫu nhiên
+                        6 ký tự. Mã sẽ tự động chuyển thành CHỮ HOA.
+                    </p>
+
+                    <form asp-action="GenerateCaptcha" method="post">
+                        <div class="captcha-form-group">
+                            <label for="captchaCarId"
+                                   class="captcha-label">
+                                Chọn xe ô tô
+                                <span class="captcha-required">*</span>
+                            </label>
+
+                            <div class="captcha-input-wrapper">
+                                <i class="bi bi-car-front captcha-field-icon"></i>
+
+                                <select id="captchaCarId"
+                                        name="carId"
+                                        class="captcha-form-select"
+                                        required>
+                                    <option value="">
+                                        -- Chọn xe --
+                                    </option>
+
+                                    @foreach (var car in carsList)
+                                    {
+                                        <option value="@car.CarId">
+                                            @car.CarName — @car.Status
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            @if (!carsList.Any())
+                            {
+                                <div class="captcha-empty-warning">
+                                    <i class="bi bi-info-circle-fill"></i>
+
+                                    <span>
+                                        Không có xe khả dụng/đặt cọc.
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="captcha-form-group">
+                            <label for="captchaCustomCode"
+                                   class="captcha-label">
+                                Mã thủ công (Tùy chọn)
+                            </label>
+
+                            <div class="captcha-input-wrapper">
+                                <i class="bi bi-key captcha-field-icon"></i>
+
+                                <input id="captchaCustomCode"
+                                       name="code"
+                                       type="text"
+                                       class="captcha-form-control text-uppercase font-monospace"
+                                       placeholder="VD: VIP2026"
+                                       maxlength="20" />
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="captcha-generate-button"
+                            @(carsList.Any() ? "" : "disabled")>
+                            <i class="bi bi-cpu-fill"></i>
+                            Sinh mã xác thực
+                        </button>
+                    </form>
+
+                    <p class="captcha-form-note">
+                        <i class="bi bi-shield-check"></i>
+
+                        Mỗi mã được liên kết với một xe cụ thể để xác minh
+                        giao dịch.
+                    </p>
+                </section>
+            </div>
+
+            <!-- Captcha List -->
+            <div class="col-lg-8 col-xl-9">
+                <section class="captcha-panel captcha-list-panel">
+                    <div class="captcha-list-header">
+                        <div class="captcha-list-title-group">
+                            <div class="captcha-list-icon">
+                                <i class="bi bi-list-stars"></i>
+                            </div>
+
+                            <h2 class="captcha-list-title">
+                                Danh sách mã hiện có
+                            </h2>
+                        </div>
+
+                        <span class="captcha-count-badge">
+                            @Model.Count() mã
+                        </span>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="captcha-empty-state">
+                            <div class="captcha-empty-icon">
+                                <i class="bi bi-key-fill"></i>
+                            </div>
+
+                            <h3 class="captcha-empty-title">
+                                Chưa có mã captcha nào
+                            </h3>
+
+                            <p class="captcha-empty-description">
+                                Hãy sử dụng form bên trái để tạo mã đầu tiên.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table captcha-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã</th>
+                                        <th>Xe tương ứng</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Ngày dùng</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var captcha in Model)
+                                    {
+                                        <tr class="@(captcha.IsUsed ? "captcha-used-row" : "")">
+                                            <td data-label="Mã">
+                                                <span class="captcha-code">
+                                                    @captcha.Code
+                                                </span>
+                                            </td>
+
+                                            <td data-label="Xe tương ứng">
+                                                <div>
+                                                    <div class="captcha-car-name">
+                                                        @(captcha.Car?.CarName ?? "N/A")
+                                                    </div>
+
+                                                    <div class="captcha-car-model">
+                                                        @(captcha.Car?.Model ?? "")
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="Trạng thái">
+                                                @if (captcha.IsUsed)
+                                                {
+                                                    <span class="captcha-status captcha-status-used">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                        Đã dùng
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="captcha-status captcha-status-unused">
+                                                        <i class="bi bi-hourglass-split"></i>
+                                                        Chưa dùng
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <td data-label="Ngày tạo">
+                                                <span class="captcha-date">
+                                                    @captcha.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                                </span>
+                                            </td>
+
+                                            <td data-label="Ngày dùng">
+                                                <span class="captcha-date">
+                                                    @(captcha.UsedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            </div>
+
+        </div>
+    </div>
+</main>

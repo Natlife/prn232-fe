@@ -1,0 +1,82 @@
+@model CarSalesManagementSystemClient.Models.BookingViewModel
+@{
+    ViewData["Title"] = "Đặt lịch bảo dưỡng";
+}
+
+<div class="py-4 text-center" style="background-color: #f7f7f7; border-bottom: 1px solid #eee;">
+    <h3 class="fw-bold m-0 text-secondary" style="letter-spacing: 1px;">ĐẶT LỊCH BẢO DƯỠNG</h3>
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
+                <div class="card-header bg-dark text-white p-4 text-center">
+                    <h4 class="m-0 fw-bold text-warning text-uppercase">@(ViewBag.PackageName ?? "ĐẶT LỊCH BẢO DƯỠNG")</h4>
+                    <p class="mb-0 mt-2 text-light opacity-75 small">Vui lòng điền thông tin chi tiết xe để chúng tôi phục vụ tốt nhất</p>
+                </div>
+                <div class="card-body p-lg-5 p-4 bg-white">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger p-3 mb-4 rounded-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Error</div>
+                    }
+
+                    <form asp-action="Booking" method="post">
+                        <input type="hidden" name="PackageIds[0]" value="@(Model.PackageIds?.FirstOrDefault() ?? 0)" />
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="CarName">TÊN DÒNG XE *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="CarName" placeholder="VD: VinFast VF8" />
+                                <span asp-validation-for="CarName" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="LicensePlate">BIỂN SỐ XE *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="LicensePlate" placeholder="VD: 30G-123.45" />
+                                <span asp-validation-for="LicensePlate" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="CustomerPhone">SỐ ĐIỆN THOẠI LIÊN HỆ *</label>
+                                <input class="form-control p-3 bg-light border-0 rounded-3" asp-for="CustomerPhone" placeholder="VD: 0987654321" />
+                                <span asp-validation-for="CustomerPhone" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="AppointmentDate">NGÀY HẸN *</label>
+                                <input type="date" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentDate" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="AppointmentDate" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                            <div class="col-md-6 mt-4 mt-md-0">
+                                <label class="fw-bold mb-2 text-secondary small" asp-for="AppointmentTime">GIỜ HẸN *</label>
+                                <input type="time" class="form-control p-3 bg-light border-0 rounded-3" asp-for="AppointmentTime" />
+                                <span asp-validation-for="AppointmentTime" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="fw-bold mb-2 text-secondary small" asp-for="Note">GHI CHÚ (NẾU CÓ)</label>
+                            <textarea class="form-control p-3 bg-light border-0 rounded-3" asp-for="Note" rows="4" placeholder="Ví dụ: Cần kiểm tra thêm phanh phụ, vệ sinh lọc gió..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="text-center pt-3 border-top">
+                            <a asp-action="Index" class="btn btn-light px-4 py-2 me-3 rounded-pill fw-bold text-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-warning px-5 py-2 rounded-pill fw-bold shadow-sm text-dark">
+                                <i class="bi bi-calendar2-check-fill me-2"></i>XÁC NHẬN ĐẶT LỊCH
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

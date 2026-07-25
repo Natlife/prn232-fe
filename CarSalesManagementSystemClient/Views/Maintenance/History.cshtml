@@ -1,0 +1,168 @@
+@model CarSalesManagementSystemClient.Models.PagedResultViewModel<CarSalesManagementSystemClient.Models.AppointmentHistoryViewModel>
+@{
+    ViewData["Title"] = "Lịch sử Đặt lịch";
+}
+
+<div class="py-4 mb-5 text-center" style="background-color: #f7f7f7; border-bottom: 1px solid #eee;">
+    <h3 class="fw-bold m-0 text-secondary" style="letter-spacing: 1px;">LỊCH SỬ BẢO DƯỠNG</h3>
+</div>
+
+<div class="container mb-5 pb-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-borderless align-middle m-0">
+                    <thead class="bg-dark text-white text-uppercase" style="font-size: 13px;">
+                        <tr>
+                            <th class="py-3 px-4 rounded-start-0 rounded-end-0">Ngày tạo</th>
+                            <th class="py-3">Dịch Vụ</th>
+                            <th class="py-3">Xe / Biển Số</th>
+                            <th class="py-3">Lịch Hẹn</th>
+                            <th class="py-3">Trạng Thái</th>
+                            <th class="py-3 text-end px-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                if (item.CustomerCar != null && item.CustomerCar.Model == "N/A - Đơn phụ tùng")
+                                {
+                                    continue;
+                                }
+                                <tr class="border-bottom">
+                                    <td class="py-4 px-4 text-secondary small">
+                                        @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td class="py-4">
+                                        @if (item.Details != null && item.Details.Any())
+                                        {
+                                            <ul class="list-unstyled mb-0 small">
+                                                @foreach(var d in item.Details)
+                                                {
+                                                    <li>- @(d.PackageId.HasValue ? d.PackageName : d.ServiceName)</li>
+                                                }
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa chọn dịch vụ</span>
+                                        }
+                                    </td>
+                                    <td class="py-4">
+                                        @if (item.CustomerCar != null)
+                                        {
+                                            <div class="fw-bold text-dark">@item.CustomerCar.Model</div>
+                                            <div class="text-secondary small">@item.CustomerCar.LicensePlate</div>
+                                        }
+                                    </td>
+                                    <td class="py-4">
+                                        <div class="fw-bold text-danger">@item.AppointmentDate.ToString("dd/MM/yyyy")</div>
+                                        <div class="text-secondary small"><i class="bi bi-clock me-1"></i>@item.AppointmentTime.ToString("HH:mm")</div>
+                                    </td>
+                                    <td class="py-4">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Chờ showroom xác nhận</span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">Đã hủy</span>
+                                            @if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[Lý do hủy:"))
+                                            {
+                                                var reasonStart = item.Note.LastIndexOf("[Lý do hủy:") + 12;
+                                                var reasonText = item.Note.Substring(reasonStart).Replace("]", "").Trim();
+                                                if (reasonText != "Khách hàng tự hủy")
+                                                {
+                                                    <div class="mt-2 small text-danger fw-bold"><i class="bi bi-info-circle me-1"></i>Lý do: @reasonText</div>
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3 py-2">Đã xác nhận</span>
+                                            <div class="mt-1 text-muted" style="font-size: 11px;">Liên hệ showroom nếu cần thay đổi hoặc hủy lịch</div>
+                                        }
+                                    </td>
+                                    <td class="py-4 text-end px-4">
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <form asp-action="Cancel" asp-route-id="@item.AppointmentId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch hẹn này không?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                    <i class="bi bi-x-circle me-1"></i>Hủy lịch
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <a href="/Orders/Details?type=Maintenance&id=@item.AppointmentId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                <i class="bi bi-eye me-1"></i>Xem chi tiết
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Orders/Details?type=Maintenance&id=@item.AppointmentId" class="btn btn-sm btn-primary rounded-pill px-3">
+                                                <i class="bi bi-arrow-right-circle me-1"></i>Theo dõi đơn dịch vụ
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-50"></i>
+                                    Bạn chưa có lịch hẹn bảo dưỡng nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer bg-white border-top py-3">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                                <a class="page-link text-dark" asp-action="History" asp-route-pageNumber="@(Model.PageNumber - 1)" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                                    <a class="page-link @(Model.PageNumber == i ? "bg-warning border-warning text-dark fw-bold" : "text-dark")" asp-action="History" asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link text-dark" asp-action="History" asp-route-pageNumber="@(Model.PageNumber + 1)" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+    </div>
+</div>

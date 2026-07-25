@@ -1,0 +1,880 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.CarViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Xe ô tô";
+}
+
+<style>
+    :root {
+        --car-admin-primary: #17191e;
+        --car-admin-secondary: #24272e;
+        --car-admin-accent: #f5b800;
+        --car-admin-accent-hover: #ffca28;
+        --car-admin-background: #f4f5f7;
+        --car-admin-surface: #ffffff;
+        --car-admin-border: #e6e8ec;
+        --car-admin-text: #1b1d22;
+        --car-admin-muted: #757a84;
+        --car-admin-success: #198754;
+        --car-admin-warning: #f59e0b;
+        --car-admin-danger: #dc3545;
+        --car-admin-radius-lg: 24px;
+        --car-admin-radius-md: 15px;
+        --car-admin-shadow: 0 18px 45px rgba(17, 19, 24, 0.08);
+    }
+
+    .car-admin-page {
+        min-height: 100vh;
+        padding: 34px 0 72px;
+        background: radial-gradient( circle at 95% 5%, rgba(245, 184, 0, 0.1), transparent 24% ), var(--car-admin-background);
+    }
+
+    .car-admin-container {
+        max-width: 1480px;
+        padding-right: 28px;
+        padding-left: 28px;
+    }
+
+    /* Header */
+
+    .car-admin-header {
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 26px;
+        padding: 30px 34px;
+        color: #ffffff;
+        background: radial-gradient( circle at 90% 10%, rgba(245, 184, 0, 0.17), transparent 30% ), linear-gradient( 135deg, var(--car-admin-primary), var(--car-admin-secondary) );
+        border-radius: var(--car-admin-radius-lg);
+        box-shadow: 0 20px 48px rgba(17, 19, 24, 0.16);
+        overflow: hidden;
+    }
+
+        .car-admin-header::after {
+            content: "CARS";
+            position: absolute;
+            top: -32px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.035);
+            font-size: 8.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.08em;
+            pointer-events: none;
+        }
+
+    .car-admin-header-content,
+    .car-admin-actions {
+        position: relative;
+        z-index: 2;
+    }
+
+    .car-admin-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 10px;
+        color: var(--car-admin-accent);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+        .car-admin-label::before {
+            content: "";
+            width: 30px;
+            height: 2px;
+            background-color: var(--car-admin-accent);
+        }
+
+    .car-admin-title {
+        margin: 0 0 8px;
+        font-size: clamp(1.7rem, 3vw, 2.45rem);
+        font-weight: 900;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+    }
+
+    .car-admin-description {
+        max-width: 650px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 0.9rem;
+        line-height: 1.65;
+    }
+
+    .car-admin-actions {
+        display: flex;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 11px;
+    }
+
+    .car-admin-button {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 12px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .car-admin-button-secondary {
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+        .car-admin-button-secondary:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.13);
+            border-color: rgba(255, 255, 255, 0.22);
+            transform: translateY(-2px);
+        }
+
+    .car-admin-button-primary {
+        color: var(--car-admin-primary);
+        background-color: var(--car-admin-accent);
+        border: 1px solid var(--car-admin-accent);
+        box-shadow: 0 12px 28px rgba(245, 184, 0, 0.2);
+    }
+
+        .car-admin-button-primary:hover {
+            color: var(--car-admin-primary);
+            background-color: var(--car-admin-accent-hover);
+            border-color: var(--car-admin-accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(245, 184, 0, 0.28);
+        }
+
+    /* Alerts */
+
+    .car-admin-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 20px;
+        padding: 14px 16px;
+        border: 1px solid transparent;
+        border-radius: 14px;
+        font-size: 0.87rem;
+        line-height: 1.55;
+        box-shadow: 0 8px 25px rgba(17, 19, 24, 0.05);
+    }
+
+        .car-admin-alert i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+    .car-admin-alert-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    .car-admin-alert-danger {
+        color: #991b1b;
+        background-color: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .car-admin-alert .btn-close {
+        margin-left: auto;
+        padding: 3px;
+        font-size: 0.68rem;
+    }
+
+    /* Main panel */
+
+    .car-list-panel {
+        overflow: hidden;
+        background-color: var(--car-admin-surface);
+        border: 1px solid var(--car-admin-border);
+        border-radius: var(--car-admin-radius-lg);
+        box-shadow: var(--car-admin-shadow);
+    }
+
+    .car-list-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 21px 25px;
+        border-bottom: 1px solid var(--car-admin-border);
+    }
+
+    .car-list-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .car-list-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--car-admin-primary);
+        background-color: rgba(245, 184, 0, 0.13);
+        border: 1px solid rgba(245, 184, 0, 0.22);
+        border-radius: 13px;
+        font-size: 1.1rem;
+    }
+
+    .car-list-title {
+        margin: 0 0 3px;
+        color: var(--car-admin-primary);
+        font-size: 1rem;
+        font-weight: 900;
+    }
+
+    .car-list-subtitle {
+        margin: 0;
+        color: var(--car-admin-muted);
+        font-size: 0.74rem;
+    }
+
+    .car-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 6px 13px;
+        color: #805f00;
+        background-color: #fff8d6;
+        border: 1px solid #fde68a;
+        border-radius: 999px;
+        font-size: 0.73rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    /* Empty state */
+
+    .car-empty-state {
+        padding: 80px 24px;
+        text-align: center;
+    }
+
+    .car-empty-icon {
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 22px;
+        color: #987100;
+        background-color: rgba(245, 184, 0, 0.11);
+        border: 1px solid rgba(245, 184, 0, 0.2);
+        border-radius: 26px;
+        font-size: 2.1rem;
+    }
+
+    .car-empty-title {
+        margin-bottom: 8px;
+        color: var(--car-admin-primary);
+        font-size: 1.1rem;
+        font-weight: 900;
+    }
+
+    .car-empty-description {
+        margin-bottom: 22px;
+        color: var(--car-admin-muted);
+        font-size: 0.84rem;
+    }
+
+    /* Table */
+
+    .car-admin-table {
+        margin-bottom: 0;
+    }
+
+        .car-admin-table thead th {
+            padding: 15px 17px;
+            color: #777c85;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--car-admin-border);
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.045em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .car-admin-table tbody td {
+            padding: 15px 17px;
+            color: #555a63;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eff0f2;
+            font-size: 0.79rem;
+            vertical-align: middle;
+        }
+
+        .car-admin-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .car-admin-table tbody tr:hover td {
+            background-color: #fbfbfc;
+        }
+
+    .car-image-wrapper {
+        width: 80px;
+        height: 56px;
+        overflow: hidden;
+        background-color: #e9ebee;
+        border: 1px solid var(--car-admin-border);
+        border-radius: 12px;
+    }
+
+    .car-table-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .car-admin-table tbody tr:hover .car-table-image {
+        transform: scale(1.07);
+    }
+
+    .car-image-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8d929a;
+        background: linear-gradient( 135deg, #f1f2f4, #e5e7ea );
+        font-size: 1.3rem;
+    }
+
+    .car-name {
+        margin-bottom: 4px;
+        color: var(--car-admin-primary);
+        font-size: 0.86rem;
+        font-weight: 900;
+    }
+
+    .car-meta {
+        color: #92969e;
+        font-size: 0.7rem;
+        line-height: 1.45;
+    }
+
+    .car-brand,
+    .car-year-color {
+        color: #666b74;
+        font-size: 0.77rem;
+    }
+
+    .car-price {
+        color: var(--car-admin-primary);
+        font-size: 0.82rem;
+        font-weight: 900;
+        white-space: nowrap;
+    }
+
+    .car-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+        .car-status::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            background-color: currentColor;
+            border-radius: 50%;
+        }
+
+    .car-status-available {
+        color: #166534;
+        background-color: #dcfce7;
+        border-color: #bbf7d0;
+    }
+
+    .car-status-reserved {
+        color: #8a6500;
+        background-color: #fff8d6;
+        border-color: #fde68a;
+    }
+
+    .car-status-sold {
+        color: #991b1b;
+        background-color: #fee2e2;
+        border-color: #fecaca;
+    }
+
+    .car-status-other {
+        color: #52525b;
+        background-color: #f1f2f4;
+        border-color: #dedfe3;
+    }
+
+    .car-action-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .car-action-button {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background-color: #ffffff;
+        border: 1px solid var(--car-admin-border);
+        border-radius: 10px;
+        font-size: 0.78rem;
+        text-decoration: none;
+        transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .car-action-edit {
+        color: #2563eb;
+    }
+
+        .car-action-edit:hover {
+            color: #ffffff;
+            background-color: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+        }
+
+    .car-action-delete {
+        color: var(--car-admin-danger);
+    }
+
+        .car-action-delete:hover {
+            color: #ffffff;
+            background-color: var(--car-admin-danger);
+            border-color: var(--car-admin-danger);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(220, 53, 69, 0.2);
+        }
+
+    /* Responsive */
+
+    @@media (max-width: 1199.98px) {
+        .car-admin-container {
+            padding-right: 22px;
+            padding-left: 22px;
+        }
+    }
+
+    @@media (max-width: 991.98px) {
+        .car-admin-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .car-admin-actions {
+            justify-content: flex-start;
+        }
+    }
+
+    @@media (max-width: 767.98px) {
+        .car-admin-page {
+            padding-top: 24px;
+        }
+
+        .car-admin-container {
+            padding-right: 14px;
+            padding-left: 14px;
+        }
+
+        .car-admin-header {
+            padding: 24px 21px;
+            border-radius: 20px;
+        }
+
+            .car-admin-header::after {
+                display: none;
+            }
+
+        .car-admin-actions {
+            width: 100%;
+        }
+
+        .car-admin-button {
+            flex: 1 1 160px;
+        }
+
+        .car-list-panel {
+            border-radius: 20px;
+        }
+
+        .car-list-header {
+            padding: 18px;
+        }
+
+        .car-admin-table thead {
+            display: none;
+        }
+
+        .car-admin-table,
+        .car-admin-table tbody,
+        .car-admin-table tr,
+        .car-admin-table td {
+            display: block;
+            width: 100%;
+        }
+
+            .car-admin-table tbody tr {
+                padding: 18px;
+                border-bottom: 1px solid var(--car-admin-border);
+            }
+
+                .car-admin-table tbody tr:last-child {
+                    border-bottom: 0;
+                }
+
+            .car-admin-table tbody td {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 18px;
+                padding: 8px 0;
+                border: 0;
+                text-align: right;
+            }
+
+                .car-admin-table tbody td::before {
+                    content: attr(data-label);
+                    flex: 0 0 105px;
+                    color: #8b9098;
+                    font-size: 0.67rem;
+                    font-weight: 900;
+                    letter-spacing: 0.04em;
+                    text-align: left;
+                    text-transform: uppercase;
+                }
+
+            .car-admin-table tbody tr:hover td {
+                background-color: transparent;
+            }
+
+        .car-image-wrapper {
+            width: 105px;
+            height: 68px;
+        }
+
+        .car-action-group {
+            justify-content: flex-end;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .car-admin-title {
+            font-size: 1.55rem;
+        }
+
+        .car-admin-description {
+            font-size: 0.82rem;
+        }
+
+        .car-admin-actions {
+            flex-direction: column;
+        }
+
+        .car-admin-button {
+            width: 100%;
+            flex-basis: auto;
+        }
+
+        .car-list-icon {
+            display: none;
+        }
+
+        .car-list-title {
+            font-size: 0.92rem;
+        }
+
+        .car-admin-table tbody td {
+            align-items: flex-start;
+        }
+
+            .car-admin-table tbody td::before {
+                flex-basis: 88px;
+            }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .car-admin-button,
+        .car-action-button,
+        .car-table-image {
+            transition: none;
+        }
+
+            .car-admin-button:hover,
+            .car-action-button:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="car-admin-page">
+    <div class="container-fluid car-admin-container">
+
+        <!-- Header -->
+        <header class="car-admin-header">
+            <div class="car-admin-header-content">
+                <div class="car-admin-label">
+                    Showroom management
+                </div>
+
+                <h1 class="car-admin-title">
+                    Quản lý Xe ô tô
+                </h1>
+
+                <p class="car-admin-description">
+                    Thêm, chỉnh sửa và xóa danh sách xe trong showroom.
+                </p>
+            </div>
+
+            <div class="car-admin-actions">
+                <a asp-action="Captchas"
+                   class="car-admin-button car-admin-button-secondary">
+                    <i class="bi bi-key-fill"></i>
+                    Captchas
+                </a>
+
+                <a asp-action="CreateCar"
+                   class="car-admin-button car-admin-button-primary">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    Thêm xe mới
+                </a>
+            </div>
+        </header>
+
+        <!-- Success message -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="car-admin-alert car-admin-alert-success alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+
+                <span>@TempData["SuccessMessage"]</span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        }
+
+        <!-- Error message -->
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="car-admin-alert car-admin-alert-danger alert-dismissible fade show"
+                 role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <span>@TempData["ErrorMessage"]</span>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+            </div>
+        }
+
+        <!-- Car list -->
+        <section class="car-list-panel">
+            <div class="car-list-header">
+                <div class="car-list-heading">
+                    <div class="car-list-icon">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="car-list-title">
+                            Danh sách xe
+                        </h2>
+
+                        <p class="car-list-subtitle">
+                            Toàn bộ xe đang được quản lý trong hệ thống
+                        </p>
+                    </div>
+                </div>
+
+                <span class="car-count">
+                    @Model.Count() xe
+                </span>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="car-empty-state">
+                    <div class="car-empty-icon">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+
+                    <h3 class="car-empty-title">
+                        Chưa có xe nào
+                    </h3>
+
+                    <p class="car-empty-description">
+                        Thêm xe đầu tiên để bắt đầu quản lý showroom.
+                    </p>
+
+                    <a asp-action="CreateCar"
+                       class="car-admin-button car-admin-button-primary">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        Thêm xe đầu tiên
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table car-admin-table">
+                        <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên xe</th>
+                                <th>Thương hiệu</th>
+                                <th>Năm / Màu</th>
+                                <th>Giá</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var car in Model)
+                            {
+                                <tr>
+                                    <td data-label="Ảnh">
+                                        <div class="car-image-wrapper">
+                                            @if (!string.IsNullOrEmpty(car.ImageUrl))
+                                            {
+                                                <img src="@car.ImageUrl"
+                                                     alt="@car.CarName"
+                                                     class="car-table-image"
+                                                     onerror="this.onerror=null; this.style.display='none';" />
+                                            }
+                                            else
+                                            {
+                                                <div class="car-image-placeholder">
+                                                    <i class="bi bi-car-front-fill"></i>
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td data-label="Tên xe">
+                                        <div>
+                                            <div class="car-name">
+                                                @car.CarName
+                                            </div>
+
+                                            <div class="car-meta">
+                                                @car.Model |
+                                                @car.FuelType |
+                                                @car.Transmission
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td data-label="Thương hiệu">
+                                        <span class="car-brand">
+                                            @(car.Brand?.BrandName ?? "N/A")
+                                        </span>
+                                    </td>
+
+                                    <td data-label="Năm / Màu">
+                                        <span class="car-year-color">
+                                            @car.Year / @car.Color
+                                        </span>
+                                    </td>
+
+                                    <td data-label="Giá">
+                                        <span class="car-price">
+                                            @car.Price.ToString("N0") đ
+                                        </span>
+                                    </td>
+
+                                    <td data-label="Trạng thái">
+                                        @{
+                                            var badgeClass = car.Status switch
+                                            {
+                                                "Available" => "car-status-available",
+                                                "Reserved" => "car-status-reserved",
+                                                "Sold" => "car-status-sold",
+                                                _ => "car-status-other"
+                                            };
+
+                                            var statusLabel = car.Status switch
+                                            {
+                                                "Available" => "Có sẵn",
+                                                "Reserved" => "Đang cọc",
+                                                "Sold" => "Đã bán",
+                                                _ => car.Status
+                                            };
+                                        }
+
+                                        <span class="car-status @badgeClass">
+                                            @statusLabel
+                                        </span>
+                                    </td>
+
+                                    <td data-label="Hành động">
+                                        <div class="car-action-group">
+                                            <a asp-action="EditCar"
+                                               asp-route-id="@car.CarId"
+                                               class="car-action-button car-action-edit"
+                                               title="Chỉnh sửa">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+
+                                            <form asp-action="DeleteCar"
+                                                  asp-route-id="@car.CarId"
+                                                  method="post"
+                                                  onsubmit="return confirm('Bạn có chắc muốn xóa xe này không?')">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <button type="submit"
+                                                        class="car-action-button car-action-delete"
+                                                        title="Xóa">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
+    </div>
+</main>

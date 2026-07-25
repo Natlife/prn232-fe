@@ -4,40 +4,621 @@
     ViewData["Title"] = "Xác nhận Email";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow-lg border-0 rounded-lg">
-            <div class="card-header bg-warning text-dark text-center">
-                <h3 class="font-weight-light my-2">Xác nhận Email</h3>
-            </div>
-            <div class="card-body">
-                <p class="text-muted text-center">Chúng tôi đã gửi một mã OTP gồm 6 chữ số đến Email <b>@Model.Email</b>. Vui lòng kiểm tra hộp thư (cả mục Spam) và nhập mã vào đây.</p>
-                
-                @if (ViewBag.Error != null)
-                {
-                    <div class="alert alert-danger">@ViewBag.Error</div>
-                }
-                @if (TempData["Success"] != null)
-                {
-                    <div class="alert alert-success">@TempData["Success"]</div>
-                }
+<style>
+    :root {
+        --verify-primary: #111318;
+        --verify-secondary: #1c1f25;
+        --verify-accent: #f5b800;
+        --verify-accent-hover: #ffca28;
+        --verify-text: #17191d;
+        --verify-muted: #747983;
+        --verify-border: #e4e6ea;
+        --verify-surface: #ffffff;
+        --verify-danger: #dc3545;
+        --verify-success: #198754;
+        --verify-radius: 28px;
+        --verify-shadow: 0 30px 80px rgba(17, 19, 24, 0.15);
+    }
 
-                <form asp-action="VerifyEmail" method="post">
-                    <input type="hidden" asp-for="Email" />
-                    <div class="form-group mb-3">
-                        <label class="small mb-1" asp-for="Otp">Mã OTP</label>
-                        <input class="form-control py-4 text-center fs-4 letter-spacing-5" asp-for="Otp" placeholder="------" maxlength="6" />
-                        <span asp-validation-for="Otp" class="text-danger"></span>
+    .verify-page {
+        position: relative;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 72px 20px;
+        background: radial-gradient( circle at 12% 18%, rgba(245, 184, 0, 0.13), transparent 30% ), linear-gradient( 135deg, #f7f8fa 0%, #eceef1 52%, #f8f8f9 100% );
+        overflow: hidden;
+    }
+
+        .verify-page::before {
+            content: "";
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            top: -270px;
+            right: -150px;
+            border: 70px solid rgba(17, 19, 24, 0.035);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .verify-page::after {
+            content: "";
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            left: -170px;
+            bottom: -170px;
+            background-color: rgba(245, 184, 0, 0.08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+    .verify-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1060px;
+        margin: 0 auto;
+    }
+
+    .verify-card {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        overflow: hidden;
+        background-color: var(--verify-surface);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: var(--verify-radius);
+        box-shadow: var(--verify-shadow);
+    }
+
+    /* Visual panel */
+
+    .verify-visual {
+        position: relative;
+        min-height: 630px;
+        display: flex;
+        align-items: flex-end;
+        padding: 52px;
+        color: #ffffff;
+        background: linear-gradient( to top, rgba(7, 9, 13, 0.97), rgba(7, 9, 13, 0.52) 55%, rgba(7, 9, 13, 0.18) ), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1400') center / cover no-repeat;
+        overflow: hidden;
+    }
+
+        .verify-visual::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient( circle at 28% 20%, rgba(245, 184, 0, 0.18), transparent 35% );
+            pointer-events: none;
+        }
+
+        .verify-visual::after {
+            content: "VERIFY";
+            position: absolute;
+            top: 30px;
+            left: 25px;
+            color: rgba(255, 255, 255, 0.045);
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.07em;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            pointer-events: none;
+        }
+
+    .verify-visual-content {
+        position: relative;
+        z-index: 2;
+        max-width: 430px;
+    }
+
+    .verify-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+        color: var(--verify-accent);
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+        .verify-brand::before {
+            content: "";
+            width: 36px;
+            height: 2px;
+            background-color: var(--verify-accent);
+        }
+
+    .verify-visual-title {
+        margin-bottom: 18px;
+        font-size: clamp(2.3rem, 4.5vw, 3.8rem);
+        font-weight: 900;
+        line-height: 1.03;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+    }
+
+        .verify-visual-title span {
+            display: block;
+            color: var(--verify-accent);
+        }
+
+    .verify-visual-description {
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+
+    .verify-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+    }
+
+    .verify-feature {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        color: rgba(255, 255, 255, 0.78);
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        font-size: 0.73rem;
+        backdrop-filter: blur(8px);
+    }
+
+        .verify-feature i {
+            color: var(--verify-accent);
+        }
+
+    /* Form panel */
+
+    .verify-form-panel {
+        display: flex;
+        align-items: center;
+        padding: 62px 70px;
+    }
+
+    .verify-form-content {
+        width: 100%;
+        max-width: 460px;
+        margin: 0 auto;
+    }
+
+    .verify-icon {
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 28px;
+        color: var(--verify-primary);
+        background-color: var(--verify-accent);
+        border-radius: 20px;
+        font-size: 1.85rem;
+        box-shadow: 0 15px 35px rgba(245, 184, 0, 0.26);
+        transform: rotate(-4deg);
+        transition: transform 0.3s ease, border-radius 0.3s ease;
+    }
+
+    .verify-card:hover .verify-icon {
+        transform: rotate(0deg);
+        border-radius: 50%;
+    }
+
+    .verify-page-label {
+        margin-bottom: 10px;
+        color: #a07800;
+        font-size: 0.73rem;
+        font-weight: 800;
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+    }
+
+    .verify-title {
+        margin-bottom: 14px;
+        color: var(--verify-primary);
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .verify-description {
+        margin-bottom: 29px;
+        color: var(--verify-muted);
+        font-size: 0.94rem;
+        line-height: 1.75;
+    }
+
+    .verify-email {
+        color: var(--verify-primary);
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+
+    /* Alerts */
+
+    .verify-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-size: 0.87rem;
+        line-height: 1.55;
+    }
+
+        .verify-alert i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+    .verify-alert-danger {
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+    }
+
+        .verify-alert-danger i {
+            color: var(--verify-danger);
+        }
+
+    .verify-alert-success {
+        color: #166534;
+        background-color: #f0fdf4;
+        border: 1px solid #bbf7d0;
+    }
+
+        .verify-alert-success i {
+            color: var(--verify-success);
+        }
+
+    /* OTP form */
+
+    .verify-form-group {
+        margin-bottom: 24px;
+    }
+
+    .verify-label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--verify-primary);
+        font-size: 0.81rem;
+        font-weight: 800;
+    }
+
+    .verify-otp-wrapper {
+        position: relative;
+    }
+
+    .verify-otp-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 19px;
+        color: #989ca5;
+        font-size: 1.15rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: color 0.25s ease;
+    }
+
+    .verify-otp-input {
+        width: 100%;
+        min-height: 74px;
+        padding: 15px 54px;
+        color: var(--verify-primary);
+        background-color: #f8f9fa;
+        border: 1px solid var(--verify-border);
+        border-radius: 16px;
+        outline: none;
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: 0.5em;
+        text-align: center;
+        transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .verify-otp-input::placeholder {
+            color: #b4b7bd;
+            font-weight: 500;
+            letter-spacing: 0.35em;
+        }
+
+        .verify-otp-input:hover {
+            border-color: #cdd0d5;
+        }
+
+        .verify-otp-input:focus {
+            background-color: #ffffff;
+            border-color: var(--verify-accent);
+            box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+        }
+
+    .verify-otp-wrapper:focus-within .verify-otp-icon {
+        color: var(--verify-accent);
+    }
+
+    .verify-validation {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.77rem;
+    }
+
+    .verify-submit-button {
+        width: 100%;
+        min-height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 14px 22px;
+        color: var(--verify-primary);
+        background-color: var(--verify-accent);
+        border: 1px solid var(--verify-accent);
+        border-radius: 14px;
+        font-size: 0.81rem;
+        font-weight: 900;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        box-shadow: 0 15px 34px rgba(245, 184, 0, 0.22);
+        transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+        .verify-submit-button:hover {
+            color: var(--verify-primary);
+            background-color: var(--verify-accent-hover);
+            border-color: var(--verify-accent-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 42px rgba(245, 184, 0, 0.3);
+        }
+
+        .verify-submit-button:active {
+            transform: translateY(-1px);
+        }
+
+    .verify-note {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 7px;
+        margin: 22px 0 0;
+        color: #999da5;
+        font-size: 0.74rem;
+        line-height: 1.5;
+        text-align: center;
+    }
+
+        .verify-note i {
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+    @@media (max-width: 991.98px) {
+        .verify-page {
+            padding: 55px 20px;
+        }
+
+        .verify-card {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .verify-visual {
+            min-height: 320px;
+            padding: 42px;
+        }
+
+        .verify-form-panel {
+            padding: 58px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .verify-page {
+            min-height: calc(100vh - 56px);
+            padding: 28px 12px;
+        }
+
+        .verify-card {
+            border-radius: 22px;
+        }
+
+        .verify-visual {
+            min-height: 235px;
+            padding: 28px 24px;
+        }
+
+            .verify-visual::after {
+                display: none;
+            }
+
+        .verify-visual-title {
+            font-size: 2rem;
+        }
+
+        .verify-visual-description,
+        .verify-features {
+            display: none;
+        }
+
+        .verify-form-panel {
+            padding: 40px 24px;
+        }
+
+        .verify-icon {
+            width: 62px;
+            height: 62px;
+            margin-bottom: 24px;
+            border-radius: 17px;
+            font-size: 1.55rem;
+        }
+
+        .verify-title {
+            font-size: 2rem;
+        }
+
+        .verify-description {
+            font-size: 0.89rem;
+        }
+
+        .verify-otp-input {
+            min-height: 66px;
+            padding-right: 42px;
+            padding-left: 42px;
+            font-size: 1.4rem;
+            letter-spacing: 0.4em;
+        }
+
+        .verify-submit-button {
+            min-height: 54px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .verify-icon,
+        .verify-submit-button {
+            transition: none;
+        }
+
+            .verify-card:hover .verify-icon,
+            .verify-submit-button:hover {
+                transform: none;
+            }
+    }
+</style>
+
+<main class="verify-page">
+    <div class="verify-container">
+        <div class="verify-card">
+
+            <!-- Visual panel -->
+            <section class="verify-visual">
+                <div class="verify-visual-content">
+                    <div class="verify-brand">
+                        Group7 ECO DRIVE
                     </div>
-                    <div class="form-group mt-4 mb-0 text-center">
-                        <button type="submit" class="btn btn-warning w-100">Xác nhận</button>
+
+                    <h1 class="verify-visual-title">
+                        Xác minh
+                        <span>tài khoản</span>
+                    </h1>
+
+                    <p class="verify-visual-description">
+                        Nhập mã OTP được gửi qua email để xác nhận địa chỉ email
+                        và hoàn tất quá trình tạo tài khoản.
+                    </p>
+
+                    <div class="verify-features">
+                        <span class="verify-feature">
+                            <i class="bi bi-envelope-check"></i>
+                            Xác nhận email
+                        </span>
+
+                        <span class="verify-feature">
+                            <i class="bi bi-shield-check"></i>
+                            Bảo mật tài khoản
+                        </span>
                     </div>
-                </form>
-            </div>
+                </div>
+            </section>
+
+            <!-- Form panel -->
+            <section class="verify-form-panel">
+                <div class="verify-form-content">
+
+                    <div class="verify-icon">
+                        <i class="bi bi-envelope-check-fill"></i>
+                    </div>
+
+                    <div class="verify-page-label">
+                        Email verification
+                    </div>
+
+                    <h2 class="verify-title">
+                        Xác nhận Email
+                    </h2>
+
+                    <p class="verify-description">
+                        Chúng tôi đã gửi một mã OTP gồm 6 chữ số đến email
+                        <span class="verify-email">@Model.Email</span>.
+                        Vui lòng kiểm tra hộp thư, bao gồm cả mục Spam, và nhập mã
+                        vào bên dưới.
+                    </p>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="verify-alert verify-alert-danger" role="alert">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span>@ViewBag.Error</span>
+                        </div>
+                    }
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="verify-alert verify-alert-success" role="alert">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>@TempData["Success"]</span>
+                        </div>
+                    }
+
+                    <form asp-action="VerifyEmail" method="post">
+                        <input type="hidden" asp-for="Email" />
+
+                        <div class="verify-form-group">
+                            <label asp-for="Otp"
+                                   class="verify-label">
+                                Mã OTP
+                            </label>
+
+                            <div class="verify-otp-wrapper">
+                                <i class="bi bi-shield-lock verify-otp-icon"></i>
+
+                                <input asp-for="Otp"
+                                       class="verify-otp-input"
+                                       placeholder="------"
+                                       maxlength="6"
+                                       inputmode="numeric"
+                                       autocomplete="one-time-code" />
+                            </div>
+
+                            <span asp-validation-for="Otp"
+                                  class="text-danger verify-validation">
+                            </span>
+                        </div>
+
+                        <button type="submit"
+                                class="verify-submit-button">
+                            Xác nhận
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <p class="verify-note">
+                        <i class="bi bi-info-circle"></i>
+                        Mã OTP chỉ được sử dụng để xác minh tài khoản của bạn.
+                    </p>
+
+                </div>
+            </section>
+
         </div>
     </div>
-</div>
+</main>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

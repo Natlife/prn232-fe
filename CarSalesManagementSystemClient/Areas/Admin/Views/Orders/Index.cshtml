@@ -1,0 +1,819 @@
+@model IEnumerable<CarSalesManagementSystemClient.Models.AdminOrderListItemViewModel>
+@{
+    ViewData["Title"] = "Quản lý Đơn Hàng";
+    string selectedType = ViewBag.SelectedType ?? "All";
+    string selectedStatus = ViewBag.SelectedStatus ?? "All";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 text-dark fw-bold">
+            <i class="bi bi-receipt-cutoff text-warning me-2"></i>Quản lý Đơn Hàng Tổng Hợp
+        </h4>
+        <span class="badge bg-dark text-warning px-3 py-2 fs-6 shadow-sm">
+            Tổng số bản ghi: @Model.Count()
+        </span>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-3">
+            <div class="row align-items-center g-3">
+                <!-- Order Type Tabs -->
+                <div class="col-md-6">
+                    <label class="form-label small text-muted fw-bold mb-2">PHÂN LOẠI ĐƠN HÀNG</label>
+                    <div class="btn-group w-100" role="group">
+                        <a href="?type=All&status=@selectedStatus" class="btn btn-outline-dark @(selectedType == "All" ? "active" : "")">Tất cả</a>
+                        <a href="?type=Maintenance&status=@selectedStatus" class="btn btn-outline-dark @(selectedType == "Maintenance" ? "active" : "")"><i class="bi bi-wrench-adjustable me-1"></i>Dịch vụ bảo dưỡng</a>
+                        <a href="?type=Part&status=@selectedStatus" class="btn btn-outline-dark @(selectedType == "Part" ? "active" : "")"><i class="bi bi-tools me-1"></i>Phụ tùng lẻ</a>
+                    </div>
+                </div>
+
+                <!-- Quick Status Filters -->
+                <div class="col-md-6">
+                    <label class="form-label small text-muted fw-bold mb-2">TRẠNG THÁI XỬ LÝ NHANH</label>
+                    <select class="form-select" onchange="location.href='?type=@selectedType&status=' + this.value">
+                        <option value="All" selected="@(selectedStatus == "All")">Tất cả trạng thái</option>
+                        <option value="Pending" selected="@(selectedStatus == "Pending")">Chờ xử lý (Chỉ phụ tùng lẻ)</option>
+                        <option value="InProgress" selected="@(selectedStatus == "InProgress")">Đang thực hiện / Đã xác nhận</option>
+                        <option value="Unpaid" selected="@(selectedStatus == "Unpaid")">Chờ thanh toán</option>
+                        <option value="Completed" selected="@(selectedStatus == "Completed")">Đã hoàn thành & Thanh toán</option>
+                        <option value="Cancelled" selected="@(selectedStatus == "Cancelled")">Đã hủy</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main List Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-dark text-warning">
+                    <tr>
+                        <th class="px-4 py-3" style="width: 130px;">Mã đơn</th>
+                        <th class="py-3" style="width: 180px;">Loại đơn</th>
+                        <th class="py-3">Khách hàng</th>
+                        <th class="py-3">Ngày tạo / Lịch hẹn</th>
+                        <th class="py-3 text-end" style="width: 140px;">Tổng tiền</th>
+                        <th class="py-3 text-center" style="width: 160px;">Xử lý</th>
+                        <th class="py-3 text-center" style="width: 160px;">Thanh toán</th>
+                        <th class="px-4 py-3 text-end" style="width: 280px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-3 text-secondary"></i>
+                                Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="px-4 fw-bold text-dark">
+                                    @item.OrderCode
+                                </td>
+                                <td>
+                                    @if (item.OrderType == "Maintenance")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary"><i class="bi bi-wrench-adjustable me-1"></i>Bảo dưỡng</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info"><i class="bi bi-cart me-1"></i>Phụ tùng lẻ</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.CustomerName</div>
+                                    <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@item.CustomerPhone</div>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold text-secondary">Tạo: @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                    @if (item.AppointmentDateTime.HasValue)
+                                    {
+                                        <div class="small text-danger fw-bold"><i class="bi bi-calendar-event me-1"></i>Hẹn: @item.AppointmentDateTime.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                    }
+                                    else
+                                    {
+                                        @if (item.DeliveryMethod == "Shipping")
+                                        {
+                                            <div class="small text-muted"><i class="bi bi-truck me-1"></i>Mua mang về</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="small text-muted"><i class="bi bi-shop me-1"></i>Nhận tại showroom</div>
+                                        }
+                                    }
+                                </td>
+                                <td class="text-end fw-bold text-dark">
+                                    @item.TotalAmount.ToString("N0") đ
+                                </td>
+                                <td class="text-center">
+                                    @switch (item.ProcessingStatus)
+                                    {
+                                        case "Pending":
+                                            <span class="badge bg-warning text-dark border border-warning">Chờ xác nhận</span>
+                                            break;
+                                        case "Confirmed":
+                                            <span class="badge bg-info text-dark border border-info">Đã xác nhận</span>
+                                            break;
+                                        case "InProgress":
+                                            <span class="badge bg-primary border border-primary">Đang sửa chữa</span>
+                                            break;
+                                        case "Shipping":
+                                            <span class="badge bg-primary border border-primary">Đang giao hàng</span>
+                                            break;
+                                        case "Delivered":
+                                            <span class="badge bg-info text-dark border border-info">Khách đã nhận</span>
+                                            break;
+                                        case "Completed":
+                                            <span class="badge bg-success border border-success">Hoàn thành</span>
+                                            break;
+                                        case "Cancelled":
+                                            <span class="badge bg-danger border border-danger">Đã hủy</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary border border-secondary">@item.ProcessingStatus</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @switch (item.PaymentStatus)
+                                    {
+                                        case "NoInvoice":
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary">Chưa xuất HĐ</span>
+                                            break;
+                                        case "Unpaid":
+                                            <span class="badge bg-danger-subtle text-danger border border-danger">Chưa thanh toán</span>
+                                            break;
+                                        case "Paid":
+                                            <span class="badge bg-success-subtle text-success border border-success">Đã thanh toán</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary border border-secondary">@item.PaymentStatus</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="px-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1.5 flex-wrap">
+                                        <button class="btn btn-sm btn-dark" onclick="viewOrderDetails('@item.OrderType', @item.SourceId)" title="Xem chi tiết">
+                                            <i class="bi bi-eye-fill"></i> Chi tiết
+                                        </button>
+
+                                        @if (item.OrderType == "Maintenance")
+                                        {
+                                            @if (item.ProcessingStatus == "Confirmed")
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary" onclick="startMaintenance(@item.SourceId)">
+                                                    <i class="bi bi-play-circle-fill"></i> Tiếp nhận xe
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="cancelMaintenance(@item.SourceId)">
+                                                    Hủy
+                                                </button>
+                                            }
+                                            else if (item.ProcessingStatus == "InProgress")
+                                            {
+                                                <button class="btn btn-sm btn-outline-warning" onclick="openAddPartModal(@item.SourceId)">
+                                                    <i class="bi bi-plus-circle"></i> +Phụ tùng
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="completeMaintenance(@item.SourceId)">
+                                                    <i class="bi bi-check2-all"></i> Hoàn thành
+                                                </button>
+                                            }
+                                            else if (item.ProcessingStatus == "Completed" && item.PaymentStatus == "Unpaid")
+                                            {
+                                                <button class="btn btn-sm btn-success" onclick="confirmPaymentMaintenance(@item.SourceId)">
+                                                    <i class="bi bi-cash-coin"></i> Thanh toán
+                                                </button>
+                                            }
+                                        }
+                                        else if (item.OrderType == "Part")
+                                        {
+                                            @if (item.ProcessingStatus == "Pending")
+                                            {
+                                                <button class="btn btn-sm btn-outline-success" onclick="confirmPartOrder(@item.SourceId)">
+                                                    Xác nhận đơn
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="cancelPartOrder(@item.SourceId)">
+                                                    Từ chối
+                                                </button>
+                                            }
+                                            else if (item.ProcessingStatus == "Confirmed")
+                                            {
+                                                @if (item.DeliveryMethod == "Shipping")
+                                                {
+                                                    @if (item.PaymentStatus == "Paid")
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-primary" onclick="shipPartOrder(@item.SourceId)">
+                                                            Giao hàng
+                                                        </button>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-sm btn-success" onclick="completePartOrder(@item.SourceId)">
+                                                        Xác nhận nhận hàng
+                                                    </button>
+                                                }
+                                            }
+                                            else if (item.ProcessingStatus == "Delivered")
+                                            {
+                                                <button class="btn btn-sm btn-success" onclick="completePartOrder(@item.SourceId)">
+                                                    Hoàn thành đơn
+                                                </button>
+                                            }
+                                            else if (item.ProcessingStatus == "Completed" && item.PaymentStatus == "Unpaid")
+                                            {
+                                                <button class="btn btn-sm btn-success" onclick="confirmPaymentPartOrder(@item.SourceId)">
+                                                    <i class="bi bi-cash-coin"></i> Thanh toán
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="card-footer bg-light p-3 border-0">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-end m-0">
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="?type=@selectedType&status=@selectedStatus&page=@(ViewBag.CurrentPage - 1)">Trang trước</a>
+                        </li>
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?type=@selectedType&status=@selectedStatus&page=@i">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="?type=@selectedType&status=@selectedStatus&page=@(ViewBag.CurrentPage + 1)">Trang sau</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ==========================================
+     ORDER DETAILS MODAL (SHARED LAYOUT)
+     ========================================== -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-warning p-4">
+                <h5 class="modal-title fw-bold" id="orderDetailModalLabel">
+                    <i class="bi bi-info-circle-fill me-2"></i>Chi Tiết Đơn Hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="orderDetailContent">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="modal-footer bg-light p-3 border-top-0 rounded-bottom-4">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Incurred Part Modal -->
+<div class="modal fade" id="addPartModal" tabindex="-1" aria-labelledby="addPartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-warning p-3">
+                <h5 class="modal-title fw-bold" id="addPartModalLabel">Thêm phụ tùng phát sinh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="frmAddPart" onsubmit="submitAddPart(event)">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="addPartAppointmentId">
+                    <div class="mb-3">
+                        <label for="ddlParts" class="form-label fw-semibold">Chọn phụ tùng</label>
+                        <select class="form-select rounded-3" id="ddlParts" required>
+                            <option value="">Đang tải danh sách phụ tùng...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="txtQuantity" class="form-label fw-semibold">Số lượng sử dụng</label>
+                        <input type="number" class="form-control rounded-3" id="txtQuantity" value="1" min="1" required>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">Xác nhận dùng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Load details dynamically based on OrderType
+        function viewOrderDetails(orderType, sourceId) {
+            const contentDiv = $('#orderDetailContent');
+            contentDiv.html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <div class="small text-muted mt-2">Đang tải thông tin chi tiết đơn hàng...</div>
+                </div>
+            `);
+            $('#orderDetailModal').modal('show');
+
+            if (orderType === 'Maintenance') {
+                $.ajax({
+                    url: '/Admin/Orders/GetMaintenanceDetail/' + sourceId,
+                    type: 'GET',
+                    success: function(res) {
+                        if (res && res.success && res.data) {
+                            const appt = res.data;
+                            
+                            // Calculate Estimated total
+                            let detailsHtml = "";
+                            let servicesTotal = 0;
+                            if (appt.details) {
+                                appt.details.forEach(d => {
+                                    const name = d.packageName || d.serviceName || "Dịch vụ";
+                                    const unitPrice = d.unitPrice || 0;
+                                    const qty = d.quantity || 1;
+                                    const sub = unitPrice * qty;
+                                    servicesTotal += sub;
+                                    detailsHtml += `
+                                        <tr>
+                                            <td class="py-2">${name}</td>
+                                            <td class="py-2 text-center">${qty}</td>
+                                            <td class="py-2 text-end">${unitPrice.toLocaleString()} đ</td>
+                                            <td class="py-2 text-end fw-semibold">${sub.toLocaleString()} đ</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            let partsHtml = "";
+                            let partsTotal = 0;
+                            if (appt.consumedParts) {
+                                appt.consumedParts.forEach(p => {
+                                    const name = p.partName || "Linh kiện";
+                                    const unitPrice = p.unitPrice || 0;
+                                    const qty = p.quantity || 0;
+                                    const sub = unitPrice * qty;
+                                    partsTotal += sub;
+                                    const incurredBadge = p.isIncurred ? `<span class="badge bg-warning text-dark ms-1 small" style="font-size:9px;">Phát sinh</span>` : "";
+                                    partsHtml += `
+                                        <tr>
+                                            <td class="py-2">${name} ${incurredBadge}</td>
+                                            <td class="py-2 text-center">${qty}</td>
+                                            <td class="py-2 text-end">${unitPrice.toLocaleString()} đ</td>
+                                            <td class="py-2 text-end fw-semibold">${sub.toLocaleString()} đ</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            const grandTotal = servicesTotal + partsTotal;
+
+                            let html = `
+                                <div class="row g-3 border-bottom pb-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="text-secondary small">Mã đơn dịch vụ:</div>
+                                        <div class="fw-bold fs-5 text-primary">#SV-${appt.appointmentId.toString().padStart(4, '0')}</div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="text-secondary small">Loại đơn:</div>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary"><i class="bi bi-wrench-adjustable me-1"></i>Bảo dưỡng định kỳ</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-secondary small">Khách hàng liên hệ:</div>
+                                        <div class="fw-bold text-dark">${appt.customerName || "N/A"}</div>
+                                        <div class="small text-muted">${appt.customerPhone || "N/A"} | ${appt.customerEmail || ""}</div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="text-secondary small">Lịch hẹn bảo dưỡng:</div>
+                                        <div class="fw-bold text-danger"><i class="bi bi-calendar-check me-1"></i>${appt.appointmentDate} vào lúc ${appt.appointmentTime}</div>
+                                        <div class="small text-muted">Xe: ${appt.carName || "Chưa rõ"} - Biển số: ${appt.licensePlate || "Chưa rõ"}</div>
+                                    </div>
+                                </div>
+
+                                <div class="fw-bold text-dark mb-2"><i class="bi bi-list-check text-warning me-1"></i>Dịch vụ và gói đăng ký:</div>
+                                <table class="table table-sm align-middle table-bordered mb-3 small">
+                                    <thead class="table-light text-secondary">
+                                        <tr>
+                                            <th class="py-2">Tên gói / dịch vụ</th>
+                                            <th class="py-2 text-center" style="width: 80px;">SL</th>
+                                            <th class="py-2 text-end" style="width: 120px;">Đơn giá</th>
+                                            <th class="py-2 text-end" style="width: 140px;">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${detailsHtml || '<tr><td colspan="4" class="text-center text-muted">Không có dịch vụ nào</td></tr>'}
+                                    </tbody>
+                                </table>
+
+                                <div class="fw-bold text-dark mb-2"><i class="bi bi-nut text-warning me-1"></i>Phụ tùng sử dụng:</div>
+                                <table class="table table-sm align-middle table-bordered mb-3 small">
+                                    <thead class="table-light text-secondary">
+                                        <tr>
+                                            <th class="py-2">Tên phụ tùng</th>
+                                            <th class="py-2 text-center" style="width: 80px;">SL</th>
+                                            <th class="py-2 text-end" style="width: 120px;">Đơn giá</th>
+                                            <th class="py-2 text-end" style="width: 140px;">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${partsHtml || '<tr><td colspan="4" class="text-center text-muted">Không sử dụng phụ tùng</td></tr>'}
+                                    </tbody>
+                                </table>
+
+                                <div class="bg-dark text-warning p-3 rounded-3 mt-4">
+                                    <div class="d-flex justify-content-between mb-1 small">
+                                        <span>Tổng tiền dịch vụ:</span>
+                                        <span>${servicesTotal.toLocaleString()} đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2 small border-bottom border-secondary pb-2">
+                                        <span>Tổng tiền phụ tùng:</span>
+                                        <span>${partsTotal.toLocaleString()} đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold fs-5">
+                                        <span>Tổng thanh toán tạm tính:</span>
+                                        <span class="text-danger">${grandTotal.toLocaleString()} đ</span>
+                                    </div>
+                                </div>
+                            `;
+                            contentDiv.html(html);
+                        } else {
+                            contentDiv.html(`<div class="alert alert-danger">Không tìm thấy dữ liệu phản hồi.</div>`);
+                        }
+                    },
+                    error: function() {
+                        contentDiv.html(`<div class="alert alert-danger">Lỗi kết nối khi tải chi tiết lịch bảo dưỡng.</div>`);
+                    }
+                });
+            } else if (orderType === 'Part') {
+                $.ajax({
+                    url: '/Admin/Orders/GetPartDetail/' + sourceId,
+                    type: 'GET',
+                    success: function(res) {
+                        if (res) {
+                            const po = res;
+
+                            let itemsHtml = "";
+                            let subtotal = 0;
+                            if (po.partOrderDetails) {
+                                po.partOrderDetails.forEach(d => {
+                                    const partName = d.part ? d.part.partName : "Phụ tùng";
+                                    const unitPrice = d.unitPrice || 0;
+                                    const qty = d.quantity || 0;
+                                    const sub = unitPrice * qty;
+                                    subtotal += sub;
+                                    itemsHtml += `
+                                        <tr>
+                                            <td class="py-2">${partName}</td>
+                                            <td class="py-2 text-center">${qty}</td>
+                                            <td class="py-2 text-end">${unitPrice.toLocaleString()} đ</td>
+                                            <td class="py-2 text-end fw-semibold">${sub.toLocaleString()} đ</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            let html = `
+                                <div class="row g-3 border-bottom pb-3 mb-3">
+                                    <div class="col-md-6">
+                                        <div class="text-secondary small">Mã đơn phụ tùng:</div>
+                                        <div class="fw-bold fs-5 text-primary">#PT-${po.orderId.toString().padStart(4, '0')}</div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="text-secondary small">Loại đơn:</div>
+                                        <span class="badge bg-info-subtle text-info border border-info"><i class="bi bi-cart me-1"></i>Phụ tùng mua lẻ</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-secondary small">Khách hàng:</div>
+                                        <div class="fw-bold text-dark">${po.customerName || "N/A"}</div>
+                                        <div class="small text-muted">${po.customerPhone || "N/A"} | ${po.customerEmail || ""}</div>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <div class="text-secondary small">Phương thức nhận:</div>
+                                        <div class="fw-bold text-dark"><i class="bi bi-truck me-1"></i>${po.deliveryMethod === 'Shipping' ? 'Giao hàng tận nơi' : 'Nhận tại showroom'}</div>
+                                        <div class="small text-muted">${po.shippingAddress || ""}</div>
+                                    </div>
+                                </div>
+
+                                <div class="fw-bold text-dark mb-2"><i class="bi bi-box-seam text-warning me-1"></i>Danh sách linh kiện:</div>
+                                <table class="table table-sm align-middle table-bordered mb-3 small">
+                                    <thead class="table-light text-secondary">
+                                        <tr>
+                                            <th class="py-2">Tên phụ tùng</th>
+                                            <th class="py-2 text-center" style="width: 80px;">SL</th>
+                                            <th class="py-2 text-end" style="width: 120px;">Đơn giá</th>
+                                            <th class="py-2 text-end" style="width: 140px;">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${itemsHtml || '<tr><td colspan="4" class="text-center text-muted">Không có sản phẩm nào</td></tr>'}
+                                    </tbody>
+                                </table>
+
+                                <div class="bg-dark text-warning p-3 rounded-3 mt-4">
+                                    <div class="d-flex justify-content-between mb-1 small">
+                                        <span>Tạm tính phụ tùng:</span>
+                                        <span>${subtotal.toLocaleString()} đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2 small border-bottom border-secondary pb-2">
+                                        <span>Phí vận chuyển:</span>
+                                        <span>${(po.shippingFee || 0).toLocaleString()} đ</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between fw-bold fs-5">
+                                        <span>Tổng cộng hóa đơn:</span>
+                                        <span class="text-danger">${(po.totalAmount || 0).toLocaleString()} đ</span>
+                                    </div>
+                                </div>
+                            `;
+                            contentDiv.html(html);
+                        } else {
+                            contentDiv.html(`<div class="alert alert-danger">Không thể tải dữ liệu đơn phụ tùng.</div>`);
+                        }
+                    },
+                    error: function() {
+                        contentDiv.html(`<div class="alert alert-danger">Lỗi kết nối khi tải chi tiết đơn phụ tùng.</div>`);
+                    }
+                });
+            }
+        }
+
+        // Add consumed part modal control
+        function openAddPartModal(apptId) {
+            $('#addPartAppointmentId').val(apptId);
+            const ddl = $('#ddlParts');
+            ddl.html('<option>Đang tải danh sách phụ tùng...</option>');
+            
+            $.ajax({
+                url: '/Admin/Orders/GetAllParts',
+                type: 'GET',
+                success: function(res) {
+                    let html = '<option value="">-- Chọn một phụ tùng --</option>';
+                    if (res && res.length > 0) {
+                        res.forEach(p => {
+                            if (p.quantity > 0) {
+                                html += `<option value="${p.partId}">${p.partName} (Còn: ${p.quantity} - ${p.price.toLocaleString()} đ)</option>`;
+                            }
+                        });
+                    } else {
+                        html = '<option value="">Không có phụ tùng khả dụng</option>';
+                    }
+                    ddl.html(html);
+                    $('#addPartModal').modal('show');
+                },
+                error: function() {
+                    Swal.fire('Lỗi', 'Không thể tải danh sách phụ tùng từ máy chủ.', 'error');
+                }
+            });
+        }
+
+        function submitAddPart(e) {
+            e.preventDefault();
+            const id = $('#addPartAppointmentId').val();
+            const partId = $('#ddlParts').val();
+            const qty = $('#txtQuantity').val();
+
+            if (!partId) {
+                Swal.fire('Chú ý', 'Vui lòng chọn phụ tùng.', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '/Admin/Orders/AddConsumedPart',
+                type: 'POST',
+                data: { id: id, partId: partId, quantity: qty },
+                success: function(res) {
+                    if (res.success) {
+                        $('#addPartModal').modal('hide');
+                        Swal.fire('Thành công', res.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Thất bại', res.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Lỗi', 'Có lỗi kết nối xảy ra.', 'error');
+                }
+            });
+        }
+
+        // ==========================================
+        // MAINTENANCE ORDER ACTIONS
+        // ==========================================
+        function startMaintenance(id) {
+            Swal.fire({
+                title: 'Tiếp nhận xe?',
+                text: "Xác nhận tiếp nhận xe và bắt đầu thực hiện bảo dưỡng sửa chữa.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Bỏ qua'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/StartMaintenance/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function completeMaintenance(id) {
+            Swal.fire({
+                title: 'Hoàn thành dịch vụ?',
+                text: "Xác nhận dịch vụ sửa chữa đã hoàn tất để xuất hóa đơn.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Xác nhận hoàn thành',
+                cancelButtonText: 'Bỏ qua'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/CompleteMaintenance/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function confirmPaymentMaintenance(id) {
+            Swal.fire({
+                title: 'Xác nhận thanh toán?',
+                text: "Xác nhận khách hàng đã thanh toán đủ tiền hóa đơn bảo dưỡng.",
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Đã nhận đủ tiền',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/ConfirmPaymentMaintenance/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function cancelMaintenance(id) {
+            Swal.fire({
+                title: 'Hủy lịch bảo dưỡng?',
+                text: 'Nhập lý do hủy lịch hẹn:',
+                input: 'text',
+                inputAttributes: {
+                    autocapitalize: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Hủy lịch',
+                cancelButtonText: 'Bỏ qua',
+                showLoaderOnConfirm: true,
+                preConfirm: (reason) => {
+                    if (!reason) {
+                        Swal.showValidationMessage('Vui lòng nhập lý do hủy lịch');
+                        return false;
+                    }
+                    return $.post('/Admin/Orders/CancelMaintenance/' + id, { reason: reason });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed && result.value.success) {
+                    Swal.fire('Đã hủy', 'Đã hủy lịch bảo dưỡng thành công.', 'success').then(() => location.reload());
+                } else if (result.value && !result.value.success) {
+                    Swal.fire('Thất bại', result.value.message, 'error');
+                }
+            });
+        }
+
+        // ==========================================
+        // PART ORDER ACTIONS
+        // ==========================================
+        function confirmPartOrder(id) {
+            Swal.fire({
+                title: 'Xác nhận đơn hàng?',
+                text: "Kiểm tra kho, xuất phụ tùng và xác nhận đơn phụ tùng này.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận đơn',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/ConfirmPartOrder/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function shipPartOrder(id) {
+            $.post('/Admin/Orders/ShippingPartOrder/' + id, function(res) {
+                if (res.success) {
+                    Swal.fire('Đã giao', res.message, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Thất bại', res.message, 'error');
+                }
+            });
+        }
+
+        function completePartOrder(id) {
+            Swal.fire({
+                title: 'Hoàn thành đơn phụ tùng?',
+                text: "Xác nhận khách hàng đã nhận đủ sản phẩm.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Hoàn thành',
+                cancelButtonText: 'Hủy bỏ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/CompletePartOrder/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function confirmPaymentPartOrder(id) {
+            Swal.fire({
+                title: 'Thanh toán đơn phụ tùng?',
+                text: "Xác nhận nhận thanh toán của hóa đơn này.",
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận thanh toán',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/ConfirmPaymentPartOrder/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Thành công', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function cancelPartOrder(id) {
+            Swal.fire({
+                title: 'Hủy đơn phụ tùng?',
+                text: "Bạn có chắc chắn muốn hủy đơn hàng này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Đồng ý hủy',
+                cancelButtonText: 'Bỏ qua'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Orders/CancelPartOrder/' + id, function(res) {
+                        if (res.success) {
+                            Swal.fire('Đã hủy', res.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Thất bại', res.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

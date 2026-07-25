@@ -1,0 +1,869 @@
+@model CarSalesManagementSystemClient.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Đăng nhập hệ thống";
+}
+
+<style>
+    :root {
+        --login-primary: #111318;
+        --login-secondary: #1c1f25;
+        --login-accent: #f5b800;
+        --login-accent-hover: #ffca28;
+        --login-danger: #ef4444;
+        --login-text: #17191d;
+        --login-muted: #7a7f89;
+        --login-border: #e3e5e9;
+        --login-surface: #ffffff;
+        --login-background: #f3f4f6;
+        --login-radius: 28px;
+        --login-shadow: 0 30px 80px rgba(17, 19, 24, 0.16);
+    }
+
+    .login-page {
+        position: relative;
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 72px 20px;
+        background:
+            radial-gradient(
+                circle at 10% 15%,
+                rgba(245, 184, 0, 0.13),
+                transparent 30%
+            ),
+            linear-gradient(
+                135deg,
+                #f7f8fa 0%,
+                #eceef1 50%,
+                #f8f8f9 100%
+            );
+        overflow: hidden;
+    }
+
+    .login-page::before {
+        content: "";
+        position: absolute;
+        width: 420px;
+        height: 420px;
+        top: -260px;
+        right: -140px;
+        border: 70px solid rgba(17, 19, 24, 0.035);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .login-page::after {
+        content: "";
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        left: -160px;
+        bottom: -170px;
+        background-color: rgba(245, 184, 0, 0.08);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .login-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1080px;
+        margin: 0 auto;
+    }
+
+    .login-card {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        overflow: hidden;
+        background-color: var(--login-surface);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: var(--login-radius);
+        box-shadow: var(--login-shadow);
+    }
+
+    /* =========================
+       VISUAL PANEL
+    ========================== */
+
+    .login-visual {
+        position: relative;
+        min-height: 640px;
+        display: flex;
+        align-items: flex-end;
+        padding: 54px;
+        color: #ffffff;
+        background:
+            linear-gradient(
+                to top,
+                rgba(7, 9, 13, 0.97),
+                rgba(7, 9, 13, 0.52) 55%,
+                rgba(7, 9, 13, 0.18)
+            ),
+            url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1400')
+            center / cover no-repeat;
+        overflow: hidden;
+    }
+
+    .login-visual::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(
+                circle at 25% 20%,
+                rgba(245, 184, 0, 0.18),
+                transparent 34%
+            );
+        pointer-events: none;
+    }
+
+    .login-visual::after {
+        content: "ECO DRIVE";
+        position: absolute;
+        top: 32px;
+        left: 28px;
+        color: rgba(255, 255, 255, 0.045);
+        font-size: 5rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.07em;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        pointer-events: none;
+    }
+
+    .login-visual-content {
+        position: relative;
+        z-index: 2;
+        max-width: 450px;
+    }
+
+    .login-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 23px;
+        color: var(--login-accent);
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+    }
+
+    .login-brand::before {
+        content: "";
+        width: 36px;
+        height: 2px;
+        background-color: var(--login-accent);
+    }
+
+    .login-visual-title {
+        margin-bottom: 20px;
+        font-size: clamp(2.4rem, 4.5vw, 4rem);
+        font-weight: 900;
+        line-height: 1.02;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+    }
+
+    .login-visual-title span {
+        display: block;
+        color: var(--login-accent);
+    }
+
+    .login-visual-description {
+        margin-bottom: 0;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.96rem;
+        line-height: 1.8;
+    }
+
+    .login-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 28px;
+    }
+
+    .login-feature {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        color: rgba(255, 255, 255, 0.78);
+        background-color: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+        font-size: 0.73rem;
+        backdrop-filter: blur(8px);
+    }
+
+    .login-feature i {
+        color: var(--login-accent);
+    }
+
+    /* =========================
+       FORM PANEL
+    ========================== */
+
+    .login-form-panel {
+        display: flex;
+        align-items: center;
+        padding: 64px 72px;
+    }
+
+    .login-form-content {
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+
+    .login-icon {
+        width: 72px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 28px;
+        color: var(--login-primary);
+        background-color: var(--login-accent);
+        border-radius: 20px;
+        font-size: 1.9rem;
+        box-shadow: 0 15px 35px rgba(245, 184, 0, 0.26);
+        transform: rotate(-4deg);
+        transition:
+            transform 0.3s ease,
+            border-radius 0.3s ease;
+    }
+
+    .login-card:hover .login-icon {
+        transform: rotate(0deg);
+        border-radius: 50%;
+    }
+
+    .login-label {
+        margin-bottom: 10px;
+        color: var(--login-accent);
+        font-size: 0.73rem;
+        font-weight: 800;
+        letter-spacing: 0.19em;
+        text-transform: uppercase;
+    }
+
+    .login-title {
+        margin-bottom: 13px;
+        color: var(--login-primary);
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 900;
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+    }
+
+    .login-description {
+        margin-bottom: 30px;
+        color: var(--login-muted);
+        font-size: 0.94rem;
+        line-height: 1.7;
+    }
+
+    /* =========================
+       ERROR
+    ========================== */
+
+    .login-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        color: #991b1b;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        font-size: 0.87rem;
+        line-height: 1.5;
+    }
+
+    .login-alert i {
+        flex-shrink: 0;
+        margin-top: 2px;
+        color: var(--login-danger);
+    }
+
+    /* =========================
+       FORM FIELDS
+    ========================== */
+
+    .login-form-group {
+        margin-bottom: 21px;
+    }
+
+    .login-field-label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--login-primary);
+        font-size: 0.81rem;
+        font-weight: 800;
+    }
+
+    .login-input-group {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .login-input-icon {
+        position: absolute;
+        z-index: 2;
+        top: 50%;
+        left: 17px;
+        color: #989ca5;
+        font-size: 1rem;
+        transform: translateY(-50%);
+        pointer-events: none;
+        transition: color 0.25s ease;
+    }
+
+    .login-input {
+        width: 100%;
+        min-height: 56px;
+        padding: 14px 16px 14px 48px;
+        color: var(--login-text);
+        background-color: #f8f9fa;
+        border: 1px solid var(--login-border);
+        border-radius: 14px;
+        outline: none;
+        font-size: 0.94rem;
+        transition:
+            background-color 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .login-input::placeholder {
+        color: #a5a8ae;
+    }
+
+    .login-input:hover {
+        border-color: #cdd0d5;
+    }
+
+    .login-input:focus {
+        background-color: #ffffff;
+        border-color: var(--login-accent);
+        box-shadow: 0 0 0 4px rgba(245, 184, 0, 0.13);
+    }
+
+    .login-input-group:focus-within .login-input-icon {
+        color: var(--login-accent);
+    }
+
+    .login-password-input {
+        padding-right: 56px;
+    }
+
+    .login-password-toggle {
+        position: absolute;
+        z-index: 3;
+        top: 50%;
+        right: 8px;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8b8f97;
+        background-color: transparent;
+        border: none;
+        border-radius: 10px;
+        transform: translateY(-50%);
+        transition:
+            color 0.2s ease,
+            background-color 0.2s ease;
+    }
+
+    .login-password-toggle:hover {
+        color: var(--login-primary);
+        background-color: rgba(17, 19, 24, 0.05);
+    }
+
+    .login-validation {
+        display: block;
+        margin-top: 7px;
+        font-size: 0.77rem;
+    }
+
+    .login-options {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -2px;
+        margin-bottom: 25px;
+    }
+
+    .login-forgot-link {
+        color: #a07800;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .login-forgot-link:hover {
+        color: var(--login-primary);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    /* =========================
+       SUBMIT BUTTON
+    ========================== */
+
+    .login-submit-button {
+        width: 100%;
+        min-height: 56px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        padding: 14px 22px;
+        color: var(--login-primary);
+        background-color: var(--login-accent);
+        border: 1px solid var(--login-accent);
+        border-radius: 14px;
+        font-size: 0.81rem;
+        font-weight: 900;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        box-shadow: 0 15px 34px rgba(245, 184, 0, 0.22);
+        transition:
+            transform 0.25s ease,
+            background-color 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .login-submit-button:hover:not(:disabled) {
+        color: var(--login-primary);
+        background-color: var(--login-accent-hover);
+        border-color: var(--login-accent-hover);
+        transform: translateY(-3px);
+        box-shadow: 0 20px 42px rgba(245, 184, 0, 0.3);
+    }
+
+    .login-submit-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.72;
+    }
+
+    /* =========================
+       REGISTER
+    ========================== */
+
+    .login-divider {
+        position: relative;
+        margin: 31px 0 25px;
+        text-align: center;
+    }
+
+    .login-divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: var(--login-border);
+    }
+
+    .login-divider span {
+        position: relative;
+        padding: 0 13px;
+        color: #9a9ea6;
+        background-color: var(--login-surface);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+    }
+
+    .login-register {
+        text-align: center;
+        color: var(--login-muted);
+        font-size: 0.84rem;
+    }
+
+    .login-register-link {
+        margin-left: 4px;
+        color: #9a7300;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .login-register-link:hover {
+        color: var(--login-primary);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+    }
+
+    .login-security {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin: 23px 0 0;
+        color: #9a9ea6;
+        font-size: 0.74rem;
+        text-align: center;
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @@media (max-width: 991.98px) {
+        .login-page {
+            padding: 55px 20px;
+        }
+
+        .login-card {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .login-visual {
+            min-height: 330px;
+            padding: 42px;
+        }
+
+        .login-visual-title {
+            max-width: 470px;
+        }
+
+        .login-form-panel {
+            padding: 58px;
+        }
+    }
+
+    @@media (max-width: 575.98px) {
+        .login-page {
+            min-height: calc(100vh - 56px);
+            padding: 28px 12px;
+        }
+
+        .login-card {
+            border-radius: 22px;
+        }
+
+        .login-visual {
+            min-height: 245px;
+            padding: 29px 24px;
+        }
+
+        .login-visual::after {
+            display: none;
+        }
+
+        .login-visual-title {
+            font-size: 2.1rem;
+        }
+
+        .login-visual-description,
+        .login-features {
+            display: none;
+        }
+
+        .login-form-panel {
+            padding: 40px 24px;
+        }
+
+        .login-icon {
+            width: 62px;
+            height: 62px;
+            margin-bottom: 24px;
+            border-radius: 17px;
+            font-size: 1.55rem;
+        }
+
+        .login-title {
+            font-size: 2rem;
+        }
+
+        .login-description {
+            font-size: 0.89rem;
+        }
+
+        .login-input,
+        .login-submit-button {
+            min-height: 54px;
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .login-icon,
+        .login-submit-button {
+            transition: none;
+        }
+
+        .login-card:hover .login-icon,
+        .login-submit-button:hover:not(:disabled) {
+            transform: none;
+        }
+    }
+</style>
+
+<main class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+
+            <!-- Visual Panel -->
+            <section class="login-visual">
+                <div class="login-visual-content">
+                    <div class="login-brand">
+                        Group7 ECO DRIVE
+                    </div>
+
+                    <h1 class="login-visual-title">
+                        Chào mừng
+                        <span>trở lại</span>
+                    </h1>
+
+                    <p class="login-visual-description">
+                        Đăng nhập để tiếp tục khám phá các mẫu xe, quản lý yêu cầu
+                        và sử dụng các dịch vụ của Group7 ECO DRIVE.
+                    </p>
+
+                    <div class="login-features">
+                        <span class="login-feature">
+                            <i class="bi bi-shield-check"></i>
+                            Bảo mật
+                        </span>
+
+                        <span class="login-feature">
+                            <i class="bi bi-lightning-charge"></i>
+                            Nhanh chóng
+                        </span>
+
+                        <span class="login-feature">
+                            <i class="bi bi-headset"></i>
+                            Hỗ trợ tận tâm
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Login Form -->
+            <section class="login-form-panel">
+                <div class="login-form-content">
+
+                    <div class="login-icon">
+                        <i class="bi bi-car-front-fill"></i>
+                    </div>
+
+                    <div class="login-label">
+                        My account
+                    </div>
+
+                    <h2 class="login-title">
+                        Đăng nhập hệ thống
+                    </h2>
+
+                    <p class="login-description">
+                        Vui lòng nhập thông tin tài khoản để tiếp tục sử dụng dịch vụ.
+                    </p>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="login-alert" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>@TempData["Error"]</span>
+                        </div>
+                    }
+
+                    <div
+                        id="loginPageError"
+                        class="login-alert d-none"
+                        role="alert">
+                    </div>
+
+                    <form id="loginPageForm">
+                        <div class="login-form-group">
+                            <label
+                                asp-for="Email"
+                                class="login-field-label">
+                                Địa chỉ email
+                            </label>
+
+                            <div class="login-input-group">
+                                <i class="bi bi-envelope login-input-icon"></i>
+
+                                <input
+                                    asp-for="Email"
+                                    class="login-input"
+                                    placeholder="email@example.com"
+                                    autocomplete="email"
+                                    required />
+                            </div>
+
+                            <span
+                                asp-validation-for="Email"
+                                class="text-danger login-validation">
+                            </span>
+                        </div>
+
+                        <div class="login-form-group">
+                            <label
+                                asp-for="Password"
+                                class="login-field-label">
+                                Mật khẩu
+                            </label>
+
+                            <div class="login-input-group">
+                                <i class="bi bi-lock login-input-icon"></i>
+
+                                <input
+                                    asp-for="Password"
+                                    type="password"
+                                    id="pagePassword"
+                                    class="login-input login-password-input"
+                                    placeholder="••••••••"
+                                    autocomplete="current-password"
+                                    required />
+
+                                <button
+                                    class="login-password-toggle"
+                                    type="button"
+                                    onclick="togglePagePassword()"
+                                    aria-label="Hiển thị hoặc ẩn mật khẩu">
+                                    <i
+                                        class="bi bi-eye"
+                                        id="toggleEyeIcon">
+                                    </i>
+                                </button>
+                            </div>
+
+                            <span
+                                asp-validation-for="Password"
+                                class="text-danger login-validation">
+                            </span>
+                        </div>
+
+                        <div class="login-options">
+                            <a
+                                asp-controller="Auth"
+                                asp-action="ForgotPassword"
+                                class="login-forgot-link">
+                                Quên mật khẩu?
+                            </a>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="login-submit-button">
+                            Đăng nhập
+                            <i class="bi bi-box-arrow-in-right"></i>
+                        </button>
+                    </form>
+
+                    <div class="login-divider">
+                        <span>Hoặc</span>
+                    </div>
+
+                    <div class="login-register">
+                        <span>Chưa có tài khoản?</span>
+
+                        <a
+                            href="#"
+                            data-bs-toggle="modal"
+                            data-bs-target="#registerModal"
+                            class="login-register-link">
+                            Đăng ký ngay!
+                        </a>
+                    </div>
+
+                    <p class="login-security">
+                        <i class="bi bi-shield-lock"></i>
+                        Thông tin đăng nhập của bạn được bảo mật.
+                    </p>
+
+                </div>
+            </section>
+
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        function togglePagePassword() {
+            var passwordInput = document.getElementById("pagePassword");
+            var eyeIcon = document.getElementById("toggleEyeIcon");
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.classList.remove("bi-eye");
+                eyeIcon.classList.add("bi-eye-slash");
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.classList.remove("bi-eye-slash");
+                eyeIcon.classList.add("bi-eye");
+            }
+        }
+
+        // Handle AJAX login submit on the page
+        document.getElementById('loginPageForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const btn = form.querySelector('button[type="submit"]');
+
+            btn.disabled = true;
+            btn.innerHTML =
+                '<span class="spinner-border spinner-border-sm"></span> Đang đăng nhập...';
+
+            const formData = new FormData(form);
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnUrl = urlParams.get('ReturnUrl');
+
+            if (returnUrl && !formData.get('returnUrl')) {
+                formData.append('returnUrl', returnUrl);
+            }
+
+            try {
+                const res = await fetch('/Auth/Login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    window.location.href =
+                        returnUrl || result.redirectUrl || '/';
+                } else {
+                    const err =
+                        document.getElementById('loginPageError');
+
+                    err.innerText = result.message;
+                    err.classList.remove('d-none');
+
+                    btn.disabled = false;
+                    btn.innerText = 'ĐĂNG NHẬP';
+                }
+            } catch (ex) {
+                document.getElementById('loginPageError').innerText =
+                    "Lỗi kết nối đến máy chủ.";
+
+                document
+                    .getElementById('loginPageError')
+                    .classList.remove('d-none');
+
+                btn.disabled = false;
+                btn.innerText = 'ĐĂNG NHẬP';
+            }
+        });
+    </script>
+}
